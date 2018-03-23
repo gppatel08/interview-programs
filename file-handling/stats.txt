@@ -1,0 +1,2 @@
+population UK: 6400000
+population IND: 6200000
