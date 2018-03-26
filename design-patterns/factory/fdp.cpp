@@ -12,6 +12,12 @@ Factory Design Pattern is very basic design pattern and it is one of the creatio
 In this design pattern we create a factory method and  we pass type to this method and 
 it returns that type's object.
 
+Advantages:
+-----------
+1. Less code change if we change object creation process.
+2. we create object without exposing creation logic to the client.
+3. we get the benifits of virtual constructor.
+
 */
 
 
