@@ -1,0 +1,136 @@
+Typically two processes communicate with each other on a single system through one of the following inter process communication techniques.
+
+    1. Pipes
+    2. Message queues
+    3. Shared memory
+
+    There are several other methods. 
+    But the above are some of the very classic ways of interprocess communication.
+
+    For example, when you browse a website, on your local system the process running is your web 
+    browser, while on the remote system the process running is the web server. So this is also an 
+    inter process communication but the technique through which they communicate with each other 
+    is SOCKETS.
+
+    In layman’s term, a Socket is an end point of communication between two systems on a network. 
+    To be a bit precise, a socket is a combination of IP address and port on one system. 
+    So on each system a socket exists for a process interacting with the socket on other system 
+    over the network. A combination of local socket and the socket at the remote system is also 
+    known a ‘Four tuple’ or ‘4-tuple’. Each connection between two processes running at different 
+    systems can be uniquely identified through their 4-tuple.
+
+    There are two types of network communication models:
+
+             1. OSI
+             2. TCP/IP
+    While OSI is more of a theoretical model, the TCP/IP networking model is the most popular and 
+    widely used.
+
+    The communication over the network in TCP/IP model takes place in form of a client server 
+    architecture. ie, the client begins the communication and server follows up and a connection 
+    is established.
+
+SOCKET PROGRAMMING:
+===================
+
+Socket programming is a way of connecting two nodes on a network to communicate with each other. 
+One socket(node) listens on a particular port at an IP, while other socket reaches out to the other to form a connection. 
+Server forms the listener socket while client reaches out to the server.
+
+Stages for server:
+=================
+1. Socket creation:
+       int sockfd = socket(domain, type, protocol);
+
+   sockfd: socket descriptor, an integer (like a file-handle)
+   domain: integer, communication domain e.g., AF_INET (IPv4 protocol) , AF_INET6 (IPv6 protocol)
+   type: communication type
+         SOCK_STREAM: TCP(reliable, connection oriented)
+         SOCK_DGRAM: UDP(unreliable, connectionless)
+   protocol: Protocol value for Internet Protocol(IP), which is 0. 
+             This is the same number which appears on protocol field in the IP header of a packet.
+
+2. Setsockopt:
+       int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
+
+   This helps in manipulating options for the socket referred by the file descriptor sockfd. 
+   This is completely optional, but it helps in reuse of address and port. Prevents error such as: “address already in use”.
+
+3. Bind:
+       int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+   
+   After creation of the socket, bind function binds the socket to the address and port number specified in addr(custom data 
+   structure). In the example code, we bind the server to the localhost, hence we use INADDR_ANY to specify the IP address.
+
+4. Listen:
+       int listen(int sockfd, int backlog);
+
+   It puts the server socket in a passive mode, where it waits for the client to approach the server to make a connection. 
+   The backlog, defines the maximum length to which the queue of pending connections for sockfd may grow. 
+   If a connection request arrives when the queue is full, the client may receive an error with an indication of ECONNREFUSED.
+
+5. Accept:
+       int new_socket= accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+   It extracts the first connection request on the queue of pending connections for the listening socket, sockfd, creates a 
+   new connected socket, and returns a new file descriptor referring to that socket. At this point, connection is established 
+   between client and server, and they are ready to transfer data.
+
+
+Stages for Client:
+==================
+1. Socket connection: Exactly same as that of server’s socket creation
+
+2. Connect:
+       int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+
+   The connect() system call connects the socket referred to by the file descriptor sockfd to the address specified by addr. 
+   Server’s address and port is specified in addr.
+
+
+
+
+HANDLING MULTILE CLIENTS ON SERVER WITHOUT MULTI THREADEDING-:
+==============================================================
+
+  In the basic model, server handles only one client at a time, which is a big assumption if you 
+  want to develop any scalable server model. The simple way to handle multiple clients would be to 
+  spawn new thread for every new client connected to the server. This method is strongly not 
+  recommended because of various disadvantages, namely:
+
+  1. Threads are difficult to code, debug and sometimes they have unpredictable results.
+  2. Overhead switching of context
+  3. Not scalable for large number of clients
+  4. Deadlocks can occur
+
+
+Select():-
+--------
+  A better way to handle multiple clients is by using select() linux command.
+
+  Select command allows to monitor multiple file descriptors, waiting until one of the file 
+  descriptors become active. For example, if there is some data to be read on one of the sockets 
+  select will provide that information. Select works like an interrupt handler, which gets activated  as soon as any file descriptor sends any data.
+
+  Data structure used for select: fd_set
+     It contains the list of file descriptors to monitor for some activity.
+
+  There are four functions associated with fd_set:
+
+     fd_set readfds;
+
+     // Clear an fd_set
+     FD_ZERO(&readfds);  
+
+     // Add a descriptor to an fd_set
+     FD_SET(master_sock, &readfds);   
+
+     // Remove a descriptor from an fd_set
+     FD_CLR(master_sock, &readfds); 
+
+     //If something happened on the master socket , then its an incoming connection  
+     FD_ISSET(master_sock, &readfds); 
+
+     activity = select( max_fd + 1 , &readfds , NULL , NULL , NULL);
+
+
