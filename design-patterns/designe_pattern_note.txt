@@ -1,0 +1,7 @@
+In Software industries, a design pattern is a general repeatable solution to a commonly occurring problem in software designe.
+
+Type of Designe Pattern:
+========================
+1. Creational Design Pattern - 6
+2. Behavioral Design Pattern - 12
+3. Structural Design Pattern - 8
