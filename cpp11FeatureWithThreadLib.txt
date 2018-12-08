@@ -1,0 +1,601 @@
+Ten C++11 Features Every C++ Developer Should Use:
+--------------------------------------------------
+	1. auto
+	2. nullptr
+	3. Range-based for loops
+	4. Override and final
+	5. Strongly-typed enums
+	6. Smart pointers 
+	7. Lambdas
+	8. non-member begin() and end()
+	9. static_assert and type traits
+	10. Move semantics
+
+/*
+Lambda Expressions:
+-------------------
+A lambda expression lets you define functions locally, at the place of the call.
+	[capture](parameters)->return-type {body}
+	
+The [] construct inside a function call's argument list indicates the beginning of a lambda expression.
+Suppose you want to count how many uppercase letters a string contains. Using for_each() to traverses a char array, 
+the following lambda expression determines whether each letter is in uppercase. 
+
+It's as if you defined a function whose body is placed inside another function call. 
+The ampersand in [&Uppercase] means that the lambda body gets a reference to Uppercase so it can modify it. 
+Without the ampersand, Uppercase would be passed by value. C++11 lambdas include constructs for member functions as well.
+*/
+
+#include<iostream>
+using namespace std;
+
+int main() {
+	char str[] = "Hello Word";
+	int  =0;
+	uppserCaseCount
+	for_each(s, s+sizeof(s), [&uppserCaseCount](char c){
+		if(uppercase(c))
+			uppserCaseCount++;
+	});
+	cout << "uppserCaseCount: " << uppserCaseCount << endl;
+}
+
+/*
+Automatic Type Deduction and decltype:
+--------------------------------------
+C++11 letting you declare objects without specifying their types:
+C++11 has changed its meaning; auto no longer designates an object with automatic storage type. 
+Rather, it declares an object whose type is deducible from its initializer. 
+The old meaning of auto was removed from C++11 to avoid confusion.
+*/
+#include<iostream>
+#include<vector>
+using namespace std;
+
+class Base {};
+int main() {
+	auto x = 10;
+	auto y = 20.5
+	Base b;
+	auto z = b;
+	
+	// Automatic type deduction is chiefly useful when the type of the object is verbose or when it's automatically generated (in templates).
+	const vector<int> vi;
+	vector<int>::const_iterator ci = vi.begin();
+	
+	//instead use as below
+	auto ci = vi.begin();
+	
+	//C++11 offers a similar mechanism for capturing the type of an object or an expression. 
+	//The new operator decltype takes an expression and "returns" its type:
+	const vector<int> cvi;
+	typedef decltype(cvi.begin()) CIT;
+	//CIT another_const_iterator;
+	for(CIT another_const_iterator = cvi.begin(); another_const_iterator != cvi.end(); another_const_iterator++){
+		cout << "*another_const_iterator : " << *another_const_iterator << endl;
+	}
+	return 0;
+}
+
+
+/*
+Uniform Initialization Syntax:
+--------------------------------
+C++ has at least four different initialization notations, some of which overlap.
+	//Parenthesized initialization:
+	std::string s("hello");
+	int m=int(); //default initialization
+	
+	//You can also use the = notation for the same purpose in certain cases
+	std::string s="hello";
+	int x=5;
+	
+	//For POD aggregates, you use braces:
+	int arr[4]={0,1,2,3};
+	struct tm today={0};
+	
+	//Finally, constructors use member initializers:
+	struct S {
+		int x;
+		S(): x(0) {} 
+	};
+	
+This above all proliferation is a fertile source for confusion, not only among novices. 
+Worse yet, in C++03 you can't initialize POD array members and POD arrays allocated using new[]. 
+
+	//C++11 cleans up this mess with a uniform brace notation:
+	class C {
+		int a;
+		int b;
+	  public:
+		C(int i, int j);
+	};
+
+	C c {0,0}; //C++11 only. Equivalent to: C c(0,0);
+
+	int* a = new int[3] { 1, 2, 0 }; /C++11 only
+
+	class X {
+		int a[4];
+	  public:
+		X() : a{1,2,3,4} {} //C++11, member array initializer
+	};
+	
+With respect to containers, you can say goodbye to a long list of push_back() calls. In C++11 you can initialize containers intuitively:
+	// C++11 container initializer
+	vector<string> vs={ "first", "second", "third"};
+
+	map singers = { {"Lady Gaga", "+1 (212) 555-7890"},
+					{"Beyonce Knowles", "+1 (212) 555-0987"}
+				  };
+				  
+Similarly, C++11 supports in-class initialization of data members:
+	class C {
+		int a=7; //C++11 only
+	  public:
+		C();
+	};
+*/
+
+
+/*
+Deleted and Defaulted Functions:
+--------------------------------
+1. The =default; part instructs the compiler to generate the default implementation for the function. 
+   Defaulted functions have two advantages: 
+    a. They are more efficient than manual implementations, 
+	b. and they rid the programmer from the chore of defining those functions manually.
+	
+	//A function in the form is called a defaulted function.
+	struct A {
+		A()=default; //C++11
+		virtual ~A()=default; //C++11
+	};
+
+2. Deleted functions are useful for preventing object copying, among the rest. 
+   Recall that C++ automatically declares a copy constructor and an assignment operator for classes. 
+   To disable copying, declare these two special member functions =delete:
+   The opposite of a defaulted function is a deleted function:
+		int func()=delete;
+		
+    struct NoCopy {
+		NoCopy & operator =( const NoCopy & ) = delete;
+		NoCopy ( const NoCopy & ) = delete;
+    };
+
+	NoCopy a;
+	NoCopy b(a); //compilation error, copy ctor is deleted
+	NoCopy c;
+	c = a; //compilation error, assignment is deleted
+*/
+
+
+/*
+nullptr:
+---------
+1. At last, C++ has a keyword that designates a null pointer constant. 
+2. nullptr replaces the bug-prone NULL macro and the literal 0 that have been used as null pointer substitutes for many years. 
+3. nullptr is strongly-typed:
+
+	void f(int); //#1
+	void f(char *);//#2
+
+	//C++03
+	f(0); //which f is called? ambiguous
+
+	//C++11
+	f(nullptr) //unambiguous, calls #2
+	
+4. nullptr is applicable to all pointer categories, including function pointers and pointers to members:
+	const char *pc=str.c_str(); //data pointers
+	if (pc!=nullptr)
+		cout<<pc<<endl;
+
+	int (A::*pmf)()=nullptr; //pointer to member function
+	void (*pmf)()=nullptr; //pointer to function
+	
+*/
+
+/*
+Delegating Constructors:
+------------------------
+In C++11 a constructor may call another constructor of the same class:
+	class M //C++11 delegating constructors
+	{
+		int x, y;
+		char *p;
+	  public:
+		M(int v) : x(v), y(0), p(new char [MAX]) {} //#1 target
+		M(): M(0) {cout<<"delegating ctor"<<endl;} //#2 delegating
+	};
+	//Constructor #2, the delegating constructor, invokes the target constructor #1
+*/
+
+/*
+Rvalue References:
+-------------------
+1. Reference types in C++03 can only bind to lvalues. 
+2. C++11 introduces a new category of reference types called rvalue references. 
+3. Rvalue references can bind to rvalues, e.g. temporary objects and literals.
+4. The primary reason for adding rvalue references is move semantics. 
+   Unlike traditional copying, moving means that a target object pilfers the resources of the source object, leaving the source in an "empty" state. 
+   In certain cases where making a copy of an object is both expensive and unnecessary, a move operation can be used instead. 
+   To appreciate the performance gains of move semantics, consider string swapping. A naive implementation would look like this:
+	void naiveswap(string &a, string & b) {
+		string temp = a;
+		a=b;
+		b=temp;
+	}
+   This is expensive. Copying a string entails the allocation of raw memory and copying the characters from the source to the target. 
+4. In contrast, moving strings merely swaps two data members, without allocating memory, copying char arrays and deleting memory:
+	void moveswapstr(string& empty, string & filled) {
+		//pseudo code, but you get the idea
+		size_t sz=empty.size();
+		const char *p= empty.data();
+
+		//move filled's resources to empty
+		empty.setsize(filled.size());
+		empty.setdata(filled.data());
+
+		//filled becomes empty
+		filled.setsize(sz);
+		filled.setdata(p);
+	}
+
+5. If you're implementing a class that supports moving, you can declare a move constructor and a move assignment operator like this:
+	class Movable {
+		Movable (Movable&&); //move constructor
+		Movable&& operator=(Movable&&); //move assignment operator
+	};
+6. The C++11 Standard Library uses move semantics extensively. Many algorithms and containers are now move-optimized.
+*/
+
+
+
+
+
+/*
+C++11 Standard Library:
+-------------------------
+C++ underwent a major facelift in 2003 in the form of the Library Technical Report 1 (TR1). 
+TR1 included new container classes:
+	a. unordered_set, 
+	b. unordered_map, 
+	c. unordered_multiset, and 
+	d. unordered_multimap) and 
+	e. several new libraries for regular expressions, tuples, function object wrapper and more. 
+With the approval of C++11, TR1 is officially incorporated into standard C++ standard, along with new libraries that have been added since TR1. 
+
+Here are some of the C++11 Standard Library features:
+-----------------------------------------------------
+1. Threading Library:-
+	Unquestionably, the most important addition to C++11 from a programmer's perspective is concurrency. 
+	C++11 has a thread class that represents an execution thread, promises and futures, 
+	which are objects that are used for synchronization in a concurrent environment, the 'async()' function template for launching concurrent tasks, 
+	and the 'thread_local' storage type for declaring thread-unique data. 
+	For a quick tour of the C++11 threading library, read Anthony Williams' Simpler Multithreading in C++0x.
+
+2. New Smart Pointer Classes:-
+	C++98 defined only one smart pointer class, 'auto_ptr', which is now deprecated. 
+	
+	C++11 includes new smart pointer classes: 'shared_ptr' and the recently-added 'unique_ptr'. 
+	Both are compatible with other Standard Library components, so you can safely store these smart pointers in standard containers and 
+	manipulate them with standard algorithms.
+	
+3. New C++ Algorithms:-
+	The C++11 Standard Library defines new algorithms that mimic the set theory operations all_of(), any_of() and none_of(). 
+	The following listing applies the predicate ispositive() to the range [first, first+n) and uses all_of(), any_of() and none_of() to examine the range's properties:
+		#include <algorithm>
+		//C++11 code
+		//are all of the elements positive?
+		all_of(first, first+n, ispositive()); //false
+		//is there at least one positive element?
+		any_of(first, first+n, ispositive());//true
+		// are none of the elements positive?
+		none_of(first, first+n, ispositive()); //false
+		
+	A new category of copy_n algorithms is also available. Using copy_n(), copying an array of 5 elements to another array is a cinch:
+		#include
+		int source[5]={0,12,34,50,80};
+		int target[5];
+		//copy 5 elements from source to target
+		copy_n(source,5,target);
+		
+	The algorithm iota() creates a range of sequentially increasing values, as if by assigning an initial value to *first, 
+	then incrementing that value using prefix ++. In the following listing, iota() assigns the consecutive values {10,11,12,13,14} to the array arr, 
+	and {'a', 'b', 'c'} to the char array c.
+		#include <numeric>
+		int a[5]={0};
+		char c[3]={0};
+		iota(a, a+5, 10); //changes a to {10,11,12,13,14}
+		iota(c, c+3, 'a'); //{'a','b','c'}
+		
+C++11 still lacks a few useful libraries such as an XML API, sockets, GUI, reflection — and yes, a proper automated garbage collector. 
+However, it does offer plenty of new features that will make C++ more secure, efficient.
+*/
+
+
+
+/*
+http://www.devx.com/SpecialReports/Article/38883/0/page/2
+
+One major new feature in the C++0x standard is multi-threading support. 
+Prior to C++0x, any multi-threading support in your C++ compiler has been provided as an extension to the C++ standard, 
+which has meant that the details of that support varies between compilers and platforms. However, with the new standard, 
+all compilers will have to conform to the same memory model and provide the same facilities for multi-threading (though implementors are still free to provide 
+additional extensions). What does this mean for you? It means you'll be able to port multi-threaded code between compilers and platforms with much reduced cost. 
+This will also reduce the number of different APIs and syntaxes you’ll have to know when writing for multiple platforms.
+
+NOTE: The core of the new thread library is the 'std::thread' class, which manages a thread of execution.
+
+Launching Threads:
+	You start a new thread by constructing an instance of 'std::thread with a function'. 
+	This function is then used as the entry point for the new thread, and once that function returns, the thread is finished:
+		void do_work();
+		std::thread t(do_work);
+		
+	In C++, so we're not restricted to functions ONLY. 
+	Just like many of the algorithms in the Standard C++ Library, std::thread will accept an object of a type that implements the function call 
+	operator (operator()), as well as ordinary functions:
+		class do_work {
+		  public:
+			void operator()();
+		};
+
+		do_work dw;
+		std::thread t(dw);
+	It's important to note that this actually copies the supplied object into the thread. 
+	
+	If you really want to use the object you supplied (in which case, you'd better make sure that it doesn't get destroyed before the thread finishes), 
+	you can do so by wrapping it in std::ref:
+		do_work dw;
+		std::thread t(std::ref(dw));
+	
+	Most thread creation APIs allow you to pass a single parameter to your newly created thread, typically a long or a void*. 
+	std::thread allows arguments too, but you can pass any number of arguments, of (almost) any type. 
+	The constructor uses C++0x's new 'variadic template' facility to allow a variable number of arguments like the old ... varargs syntax, but in a type-safe manner.
+		You can now pass objects of any copyable type as arguments to the thread function:
+			void do_more_work(int i,std::string s,std::vector<double> v);
+			std::thread t(do_more_work,42,"hello",std::vector<double>(23,3.141));
+
+	Just as with the function object itself, the arguments are copied into the thread before the function is invoked, 
+	so if you want to pass a reference you need to wrap the argument in std::ref:
+		void foo(std::string&);
+		std::string s;
+		std::thread t(foo,std::ref(s));
+		
+	What about waiting for the thread to finish? The C++ Standard calls that "joining" with the thread (after the POSIX terminology), 
+	and you do that with the join() member function:
+		void do_work();
+		std::thread t(do_work);
+		t.join();
+		
+	If you're not planning on joining with your thread, just destroy the thread object or call detach():
+		void do_work();
+		std::thread t(do_work);
+		t.detach();
+		
+	Now, it's very well launching all these threads, but if you're going to share data you'd better protect it. 
+	The new C++ Standard Library provides facilities for that, too.
+	
+Protecting Data:
+----------------
+In the C++0x thread library, as with most thread APIs, the basic facility for protecting shared data is the mutex. 
+In C++0x, there are four varieties of mutexes:
+	1. non-recursive (std::mutex)
+	2. recursive (std::recursive_mutex)
+	3. non-recursive that allows timeouts on the lock functions (std::timed_mutex)
+	4. recursive mutex that allows timeouts on the lock functions (std::recursive_timed_mutex)
+	
+	All of them provide exclusive ownership for one thread. 
+	If you try and lock a non-recursive mutex twice from the same thread without unlocking in between, you get undefined behavior. 
+	A recursive mutex simply increases the lock count—(you must unlock the mutex the same number of times that you locked it)—in order for other threads to be allowed to lock the mutex.
+	
+	Though these mutex types all have member functions for locking and unlocking, in most scenarios the best way to do it is with the 
+	lock class templates std::unique_lock<> and std::lock_guard<>. These classes lock the mutex in the constructor and release it in the destructor. 
+	Thus, if you use them as local variables, your mutex is automatically unlocked when you exit the scope:
+		std::mutex m;
+		my_class data;
+
+		void foo() {
+			std::lock_guard<std::mutex> lk(m);
+			process(data);
+		}   // mutex unlocked here
+		
+	std::lock_guard is deliberately basic and can only be used as shown. 
+	On the other hand, std::unique_lock allows for deferred locking, trying to lock, trying to lock with a timeout, and unlocking before the object is destroyed. 
+	If you've chosen to use std::timed_mutex because you want the timeout on the locks, you probably need to use std::unique_lock:
+		std::timed_mutex m;
+		my_class data;
+
+		void foo() {
+			std::unique_lock<std::timed_mutex> lk(m,std::chrono::milliseconds(3)); // wait up to 3ms
+			if(lk) // if we got the lock, access the data
+				process(data);
+		}   // mutex unlocked here
+		
+	These lock classes are templates, so they can be used with all the standard mutex types, plus any additional types that supply lock() and unlock() functions.
+	
+Protecting Against Deadlock When Locking Multiple Mutexes:
+----------------------------------------------------------
+Occasionally, an operation requires you to lock more than one mutex. 
+Done wrong, this is a nasty source of deadlocks: 
+	Two threads can try and lock the same mutexes in the opposite order, with each end upholding one mutex and waiting for the other thread to finish with 
+	the other mutexes. The C++0x thread library allievates this problem, in those cases where you wish to acquire the locks together, by providing a generic 
+	std::lock function that can lock multiple mutexes at once. Rather than calling the lock() member function on each mutex in turn, 
+	you pass them to std::lock(), which locks them all without risking deadlock. You can even pass in currently unlocked instances of std::unique_lock<>:
+
+		struct X {
+			std::mutex m;
+			int a;
+			std::string b;
+		};
+
+		void foo(X& a,X& b) {
+			std::unique_lock<std::mutex> lock_a(a.m,std::defer_lock);
+			std::unique_lock<std::mutex> lock_b(b.m,std::defer_lock);
+			std::lock(lock_a,lock_b);
+
+			// do something with the internals of a and b
+		}
+
+	In the above example, suppose you didn't use std::lock. This could possibly result in a deadlock if one thread did foo(x,y) and another did foo(y,x) for 
+	two X objects x and y. With std::lock, this is safe.
+	
+Protecting Data During Initialization:-
+---------------------------------------
+If your data only needs protecting during its initialization, using a mutex is not the answer. 
+Doing so only leads to unnecessary synchronization after initialization is complete. The C++0x standard provides several ways of dealing with this.
+1. First, suppose your constructor is declared with the new 'constexpr' keyword and satisfies the requirements for constant initialization. 
+   In this case, an object of static storage duration, initialized with that constructor, is guaranteed to be initialized before any code is run as part of 
+   the static initialization phase. This is the option chosen for std::mutex, because it eliminates the possibility of race conditions with initialization 
+   of mutexes at a global scope:
+		class my_class {
+			int i;
+		  public:
+			constexpr my_class():i(0){}
+			my_class(int i_):i(i_){}
+
+			void do_stuff();
+		};
+
+		my_class x; // static initialization with constexpr constructor
+
+		int foo();
+		my_class y(42+foo()); // dynamic initialization
+
+		void f() {
+			y.do_stuff(); // is y initialized?
+		}
+		
+2. second option is to use a 'static variable' at block scope. 
+   In C++0x, initialization of block scope static variables happens the first time the function is called. 
+   If a second thread should call the function before the initialization is complete, then that second thread has to wait:
+		void bar() {
+			static my_class z(42+foo()); // initialization is thread-safe
+			z.do_stuff();
+		}
+		
+3. If neither options apply (perhaps because the object is dynamically allocated), then it's best to use std::call_once and std::once_flag. 
+   As the name suggests, when std::call_once is used in conjunction with a specific instance of type std::once_flag, 
+   the specified function is called exactly once:
+
+		my_class* p=0;
+		std::once_flag p_flag;
+
+		void create_instance() {
+			p=new my_class(42+foo());
+		}
+
+		void baz() {
+			std::call_once(p_flag,create_instance);
+			p->do_stuff(); 
+		}
+
+	Just as with the std::thread constructor, std::call_once can take function objects instead of functions, and can pass arguments to the function. 
+	Again, copying is the default, and you have to use std::ref if you want a reference.
+	
+	
+Waiting for Events:-
+---------------------
+If you're sharing data between threads, you often need one thread to wait for another to perform some action, and you want to do this without consuming 
+any CPU time. If a thread is simply waiting for its turn to access some shared data, then a mutex lock can be sufficient. 
+However, generally doing so won't have the desired semantics.
+
+The simplest way to wait is to put the thread to sleep for a short period of time. Then check to see if the desired action has occurred when the thread wakes up.
+It's important to ensure that the mutex you use to protect the data indicating that the event has occurred is unlocked whilst the thread is sleeping:
+	std::mutex m;
+    bool data_ready;
+
+    void process_data();
+
+    void foo() {
+        std::unique_lock<std::mutex> lk(m);
+        while(!data_ready)
+        {
+            lk.unlock();
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            lk.lock();
+        }
+        process_data();
+    }
+	
+	This above method may be simplest, but it's less than ideal for two reasons. 
+	Firstly, on average, the thread will wait five ms (half of ten ms) after the data is ready before it will wake in order to check. 
+	This may cause a noticeable lag in some cases. Though this can be improved by reducing the wait time, 
+	it exacerbates the second problem: the thread has to wake up, acquire the mutex, and check the flag every ten ms—even if nothing has happened. 
+	This consumes CPU time and increases contention on the mutex, and thus potentially slows down the thread performing the task for which it's waiting!
+	
+	If you find yourself writing code like that, don't: Use condition variables instead. 
+	Rather than sleeping for a fixed period, you can let the thread sleep until it has been notified by another thread. 
+	This ensures that the latency between being notified and the thread waking is as small as the OS will allow, and effectively reduces the 
+	CPU consumption of the waiting thread to zero for the entire time. You can rewrite foo to use a condition variable like this:
+		std::mutex m;
+		std::condition_variable cond;
+
+		bool data_ready;
+
+		void process_data();
+
+		void foo() {
+			std::unique_lock<std::mutex> lk(m);
+			while(!data_ready) {
+				cond.wait(lk);
+			}
+			process_data();
+		}
+		
+	Note that the above code passes in the lock object lk as a parameter to wait(). 
+	The condition variable implementation then unlocks the mutex on entry to wait(), and locks it again on exit. 
+	This ensures that the protected data can be modified by other threads whilst this thread is waiting. 
+	The code that sets the data_ready flag then looks like this:
+
+		void set_data_ready() {
+			std::lock_guard<std::mutex> lk(m);
+			data_ready=true;
+			cond.notify_one();
+		}
+		
+	You still need to check that the data is ready though, since condition variables can suffer from what are called spurious wakes: 
+	    The call to wait() may return even though it wasn't notified by another thread. 
+	If you're worried about getting this wrong, you can pass that responsibility off to the standard library too, if you tell it what you're waiting for 
+	with a predicate. The new C++0x lambda facility makes this really easy:
+
+		void foo() {
+			std::unique_lock<std::mutex> lk(m);
+			cond.wait(lk,[]{return data_ready;});
+			process_data();
+		}
+		
+What if you don't want to share your data? What if you want exactly the opposite: For each thread to have its own copy? 
+This is the scenario addressed by the new 'thread_local' storage duration keyword.
+
+Thread Local Data:-
+-------------------
+The thread_local keyword can be used with any object declaration at namespace scope at local scope, and specifies that such a variable is thread local. 
+Each thread thus has its own copy of that variable, and that copy exists for the entire duration of that thread. 
+It is essentially a per-thread static variable, so each thread's copy of a variable declared at local scope is initialized the first time that 
+particular thread passes through the declaration, and they retain their values until that thread exits:
+
+    std::string foo(std::string const& s2) {
+        thread_local std::string s="hello";
+
+        s+=s2;
+        return s;
+    }
+
+In this function, each thread's copy of s starts life with the contents "hello." Every time the function is called, the supplied string is appended to that 
+thread's copy of s. As you can see from this example, this even works with class types that have constructors and destructors (such as std::string), 
+which is an improvement over the pre-C++0x compiler extensions.
+Thread-local storage isn't the only change to the concurrency support in the core language: 
+	There's also a brand new multi-threading aware memory model, with support for atomic operations.
+	
+The New Memory Model and Atomic Operations:-
+-------------------------------------------
+Sticking to using locks and condition variables to protect your data, you won't need to worry about the memory model. 
+The memory model guarantees to protect your data from race conditions—if you use locks correctly. You'll get undefined behavior if you don't.
+
+If you're working at a really low-level and providing high-performance library facilities, then it's important to know the details—which are too complicated 
+to go into here. For now, it's enough to know that C++0x has a set of atomic types corresponding to the built-in integer types and void pointers—
+and a template std::atomic<>—which can be used to create an atomic version of a simple user-defined type. 
+You can look up the relevant documentation for the details. There's much more to the library, with features such as thread IDs and asynchronous future values.
