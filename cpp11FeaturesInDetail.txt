@@ -1,0 +1,1801 @@
+https://www.codeproject.com/Articles/570638/Ten-Cplusplus11-Features-Every-Cplusplus-Developer
+
+Ten C++11 Features Every C++ Developer Should Use:
+--------------------------------------------------
+	1. auto
+	2. nullptr
+	3. Range-based for loops
+	4. Override and final
+	5. Strongly-typed enums
+	6. Smart pointers 
+	7. Lambdas
+	8. non-member begin() and end()
+	9. static_assert and type traits
+	10. Move semantics
+	
+1. auto:
+--------
+a. Before C++11 the auto keyword was used for storage duration specification. 
+b. In the new standard its purpose was changed towards type inference. 
+c. auto is now a sort of placeholder for a type, telling the compiler it has to deduce the actual type of a variable that is being declared from its initializer. 
+d. It can be used when declaring variables in different scopes such as namespaces, blocks or initialization statement of for loops.
+	auto i = 42;        // i is an int
+	auto l = 42LL;      // l is an long long
+	auto p = new foo(); // p is a foo*
+	
+e. Using auto usually means less code (unless your type is int which is one letter shorter). 
+   Think of iterators in STL that you always had to write while iterating over containers. It makes obsolete creating typedefs just for the sake of simplicity.
+	std::map<std::string, std::vector<int>> map;
+	for(auto it = begin(map); it != end(map); ++it) { }
+	
+f. auto cannot be used as the return type of a function. 
+   However, you can use auto in place of the return type of function, but in this case the function must have a trailing return type. 
+   In this case auto does not tell the compiler it has to infer the type, it only instructs it to look for the return type at the end of the function.
+   
+   In the example below the return type of function compose is the return type of operator+ that sums values of types T1 and T2.
+	template <typename T1, typename T2>
+	auto compose(T1 t1, T2 t2) -> decltype(t1 + t2) {
+		return t1+t2;
+	}
+	auto v = compose(2, 3.14); // v's type is double
+	
+2. nullptr:
+-----------
+a. Zero used to be the value of null pointers, and that has drawbacks due to the implicit conversion to integral types. 
+b. The keyword nullptr denotes a value of type std::nullptr_t that represents the null pointer literal. 
+c. Implicit conversions exists from nullptr to null pointer value of any pointer type and any pointer-to-member types, but also to bool (as false). 
+d. But no implicit conversion to integral types exist.
+
+	void foo(int* p) {}
+
+	void bar(std::shared_ptr<int> p) {}
+
+	int* p1 = NULL;
+	int* p2 = nullptr;   
+	if(p1 == p2) {  }
+
+	foo(nullptr);	
+	bar(nullptr);
+
+	bool f = nullptr;
+	int i = nullptr; // error: A native nullptr can only be converted to bool or, using reinterpret_cast, to an integral type
+	
+e. For backward compatibility 0 is still a valid null pointer value.
+
+3. Range-based for loops:
+-------------------------
+a. C++11 augmented the for statement to support the "foreach" paradigm of iterating over collections. 
+b. In the new form, it is possible to iterate over C-like arrays, initializer lists and anything for which the non-member begin() and end() functions are overloaded.
+c. This for each for is useful when you just want to get and do something with the elements of a collection/array and don't care about indexes, 
+   iterators or number of elements.
+
+	std::map<std::string, std::vector<int>> map;
+	std::vector<int> v;
+	v.push_back(1);
+	v.push_back(2);
+	v.push_back(3);
+	map["one"] = v;
+
+	for(const auto& kvp : map) {
+		std::cout << kvp.first << std::endl;
+		for(auto v : kvp.second) {
+			std::cout << v << std::endl;
+		}
+	}
+
+	int arr[] = {1,2,3,4,5};
+	for(int& e : arr) {
+		e = e*e;
+	}
+	
+4. Override and final:
+----------------------
+a. I always founded the virtual methods badly designed in C++ because there wasn't (and still isn't) a mandatory mechanism to mark virtual methods as 
+   overridden in derived classes. 
+b. The virtual keyword is optional and that makes reading code a bit harder, because you may have to look through the top of the hierarchy to check 
+   if the method is virtual. 
+c. I have always used, and encouraged people to use the virtual keyword on derived classes also, to make the code easier to read. 
+
+d. However, there are subtle errors that can still arise. 
+    d.1 Take for instance the following example:
+	--------------------------------------------
+	class B {
+	  public:
+		virtual void f(short) {std::cout << "B::f" << std::endl;}
+	};
+
+	class D : public B {
+	  public:
+		virtual void f(int) {std::cout << "D::f" << std::endl;}
+	};
+	
+	D::f is supposed to override B::f. However, the signature differ, one takes a short, one takes an int, therefor B::f is just another method with the 
+	same name (and overload) and not an override. You may call f() through a pointer to B and expect to print D::f, but it's printing B::f. 
+	
+	d.2 Here is another subtle error: 
+	---------------------------------
+	    the parameters are the same, but the method in the base class is marked const, while me method in the derived is not.
+
+	class B {
+	  public:
+		virtual void f(int) const {std::cout << "B::f " << std::endl;}
+	};
+
+	class D : public B {
+	  public:
+		virtual void f(int) {std::cout << "D::f" << std::endl;}
+	};
+	
+	Again, these two are overloads and not overrides, so if you call f() through a pointer to B it will print B::f and not D::f. 
+	
+e. Fortunately there is now a way to describe your intentions. Two new special identifiers (not keywords) have been added: 
+   A. override, to indicate that a method is supposed to be an override of a virtual method in a base class, and 
+      
+   The first example would become:
+   -------------------------------
+	class B {
+	  public:
+		virtual void f(short) {std::cout << "B::f" << std::endl;}
+	};
+
+	class D : public B {
+	  public:
+		virtual void f(int) override {std::cout << "D::f" << std::endl;}
+	};
+	
+	This now triggers a compiler error: 'D::f' : method with override specifier 'override' did not override any base class methods
+	
+	B. final, to indicate that a derived class shall not override a virtual method. 
+	   On the other hand if you intend to make a method impossible to override any more mark it as final. 
+	   That can be in the base class, or any derived class. 
+	   If it's in a derived classes you can use both the override and final specifiers. 
+
+	The second example would become:
+    --------------------------------
+	class B {
+	  public:
+		virtual void f(int) {std::cout << "B::f" << std::endl;}
+	};
+
+	class D : public B {
+	  public:
+		virtual void f(int) override final {std::cout << "D::f" << std::endl;}
+	};
+
+	class F : public D {
+	  public:
+		virtual void f(int) override {std::cout << "F::f" << std::endl;}
+	};
+	
+    function declared as 'final' cannot be overridden by 'F::f'
+	
+5. Strongly-typed enums:
+------------------------
+a. "Traditional" enums in C++ have some drawbacks: they export their enumerators in the surrounding scope (which can lead to name collisions, 
+   if two different enums in the same have scope define enumerators with the same name), they are implicitly converted to integral types and 
+   cannot have a user-specified underlying type.
+b. These issues have been fixed in C++ 11 with the introduction of a new category of enums, called "strongly-typed enums". 
+c. They are specified with the "enum class" keywords. 
+d. They no longer export their enumerators in the surrounding scope, are no longer implicitly converted to integral types and 
+   can have a user-specified underlying type (a feature also added for traditional enums).
+
+	enum class Options {None, One, All};
+	Options o = Options::All;
+	
+6. Smart pointers:
+------------------
+There have been tons of articles written on this subject, 
+therefore I just want to mention the smart pointers with reference counting and auto releasing of owned memory that are available:
+	a. unique_ptr: should be used when ownership of a memory resource does not have to be shared (it doesn't have a copy constructor), 
+	   but it can be transferred to another unique_ptr (move constructor exists).
+	   
+	b. shared_ptr: should be used when ownership of a memory resource should be shared (hence the name).
+	
+	c. weak_ptr: holds a reference to an object managed by a shared_ptr, but does not contribute to the reference count; 
+	   it is used to break dependency cycles (think of a tree where the parent holds an owning reference (shared_ptr) to its children, 
+	   but the children also must hold a reference to the parent; if this second reference was also an owning one, a cycle would be created and 
+	   no object would ever be released).
+	   
+	d. On the other hand the auto_ptr is obsolete and should no longer be used.
+
+NOTE: When you should unique_ptr and when you should use shared_ptr depends on the ownership requirements and I recommend reading this discussion.
+      https://stackoverflow.com/questions/15648844/using-smart-pointers-for-class-members
+
+	A. The first example below shows unique_ptr. 
+	--------------------------------------------
+	   If you want to transfer ownership of an object to another unique_ptr use std::move (I'll discuss this function in the last paragraph). 
+	   After the ownership transfer, the smart pointer that ceded the ownership becomes null and get() returns nullptr.
+	   
+		void foo(int* p) {
+			std::cout << *p << std::endl;
+		}
+		std::unique_ptr<int> p1(new int(42));
+		std::unique_ptr<int> p2 = std::move(p1); // transfer ownership
+
+		if(p1)
+			foo(p1.get());
+
+		(*p2)++;
+
+		if(p2)
+			foo(p2.get());
+			
+	B. The second example shows shared_ptr. 
+	---------------------------------------
+	   Usage is similar, though the semantics are different since ownership is shared.
+
+		void foo(int* p) {   }
+		void bar(std::shared_ptr<int> p) {
+			++(*p);
+		}
+		std::shared_ptr<int> p1(new int(42));
+		std::shared_ptr<int> p2 = p1;
+   
+		bar(p1);   
+		foo(p2.get());
+		
+		The first declaration is equivalent to this one. // Fo this std::shared_ptr<int> p1(new int(42));
+		auto p3 = std::make_shared<int>(42);
+		
+		make_shared<T> is a non-member function and has the advantage of allocating memory for the shared object and the smart pointer with a single allocation, 
+		as opposed to the explicit construction of a shared_ptr via the contructor, that requires at least two allocations. 
+		In addition to possible overhead, there can be situations where memory leaks can occur because of that. 
+		In the next example memory leaks could occur if seed() throws an error.
+			void foo(std::shared_ptr<int> p, int init) {
+				*p = init;
+			}
+			foo(std::shared_ptr<int>(new int(42)), seed());
+			
+		NOTE: No such problem exists if using make_shared.
+		
+	C. The third sample shows usage of weak_ptr. 
+	--------------------------------------------
+	   Notice that you always must get a shared_ptr to the referred object by calling lock(), in order to access the object.
+		auto p = std::make_shared<int>(42);
+		std::weak_ptr<int> wp = p; 
+		{
+			auto sp = wp.lock();
+			std::cout << *sp << std::endl;
+		}
+
+		p.reset();
+
+		if(wp.expired())
+			std::cout << "expired" << std::endl;
+
+	  NOTE: If you try to lock on an expired weak_ptr (the object is weakly reference has been released) you get an empty shared_ptr.
+	  
+7. Lambdas:
+-----------
+a. Anonymous functions, called lambda, have been added to C++ and quickly rose to prominence. 
+b. It is a powerful feature borrowed from functional programming, that in turned enabled other features or powered libraries. 
+c. You can use lambdas wherever a function object or a functor or a std::function is expected. 
+   
+   You can read about the syntax here.
+   https://msdn.microsoft.com/en-us/library/dd293603.aspx
+   
+	std::vector<int> v;
+	v.push_back(1);
+	v.push_back(2);
+	v.push_back(3);
+	std::for_each(std::begin(v), std::end(v), [](int n) {std::cout << n << std::endl;});
+	
+	auto is_odd = [](int n) {return n%2==1;};
+	auto pos = std::find_if(std::begin(v), std::end(v), is_odd);
+	if(pos != std::end(v))
+		std::cout << *pos << std::endl;
+		
+d. A bit trickier are recursive lambdas. Imagine a lambda that represents a Fibonacci function. 
+   If you attempt to write it using auto you get compilation error:
+
+	auto fib = [&fib](int n) {return n < 2 ? 1 : fib(n-1) + fib(n-2);};
+	error C3533: 'auto &': a parameter cannot have a type that contains 'auto'
+	error C3531: 'fib': a symbol whose type contains 'auto' must have an initializer
+	error C3536: 'fib': cannot be used before it is initialized
+	error C2064: term does not evaluate to a function taking 1 arguments
+	
+	The problem is auto means the type of the object is inferred from its initializer, yet the initializer contains a reference to it, 
+	therefore needs to know its type. This is a cyclic problem. 
+	The key is to break this dependency cycle and explicitly specify the function's type using std::function.
+
+	std::function<int(int)> lfib = [&lfib](int n) {return n < 2 ? 1 : lfib(n-1) + lfib(n-2);};
+
+8. non-member begin() and end():
+--------------------------------
+a. You probably noticed I have used in the samples above non-member begin() and end() functions. 
+b. These are a new addition to the standard library, promoting uniformity, consistency and enabling more generic programming. 
+c. They work with all STL containers, but more than that they are overloadable, so they can be extended to work with any type. 
+d. Overloads for C-like arrays are also provided.
+
+	Let's take for instance the previous example where I was printing a vector and then looking for its first odd element. 
+	If the std::vector was instead a C-like array, the code might have looked like this:
+
+		int arr[] = {1,2,3};
+		std::for_each(&arr[0], &arr[0]+sizeof(arr)/sizeof(arr[0]), [](int n) {std::cout << n << std::endl;});
+
+		auto is_odd = [](int n) {return n%2==1;};
+		auto begin = &arr[0];
+		auto end = &arr[0]+sizeof(arr)/sizeof(arr[0]);
+		auto pos = std::find_if(begin, end, is_odd);
+		if(pos != end)
+			std::cout << *pos << std::endl;
+			
+	With non-member begin() and end() it could be put as this:
+
+		int arr[] = {1,2,3};
+		std::for_each(std::begin(arr), std::end(arr), [](int n) {std::cout << n << std::endl;});
+
+		auto is_odd = [](int n) {return n%2==1;};
+		auto pos = std::find_if(std::begin(arr), std::end(arr), is_odd);
+		if(pos != std::end(arr))
+			std::cout << *pos << std::endl;
+e. This is basically identical code to the std::vector version. That means we can write a single generic method for all types supported by begin() and end().
+
+	template <typename Iterator>
+	void bar(Iterator begin, Iterator end) {
+		std::for_each(begin, end, [](int n) {std::cout << n << std::endl;});
+
+		auto is_odd = [](int n) {return n%2==1;};
+		auto pos = std::find_if(begin, end, is_odd);
+		if(pos != end)
+			std::cout << *pos << std::endl;
+	}
+
+	template <typename C>
+	void foo(C c) {
+		bar(std::begin(c), std::end(c));
+	}
+
+	template <typename T, size_t N>
+	void foo(T(&arr)[N]) {
+		bar(std::begin(arr), std::end(arr));
+	}
+	
+	int arr[] = {1,2,3};
+	foo(arr);
+
+	std::vector<int> v;
+	v.push_back(1);
+	v.push_back(2);
+	v.push_back(3);
+	foo(v);
+
+
+9. static_assert and type traits:
+---------------------------------
+a. static_assert performs an assertion check at compile-time. 
+b. If the assertion is true, nothing happens. If the assertion is false, the compiler displays the specified error message.	
+	
+	template <typename T, size_t Size>
+	class Vector {
+		static_assert(Size < 3, "Size is too small");
+		T _points[Size];
+	};
+
+	int main() {
+		Vector<int, 16> a1;
+		Vector<double, 2> a2;
+		return 0;
+	}
+	
+	error C2338: Size is too small
+	see reference to class template instantiation 'Vector<T,Size>' being compiled
+	with
+	[
+      T=double,
+      Size=2
+	]
+	
+c. static_assert becomes more useful when used together with type traits. 
+   These are a series of classes that provide information about types at compile time. 
+   They are available in the <type_traits> header. There are several categories of classes in this header: 
+	1. helper classes, for creating compile-time constants, 
+	2. type traits classes, to get type information at compile time, and 
+	3. type transformation classes, for getting new types by applying transformation on existing types.
+	
+	In the following example function add is supposed to work only with integral types.
+
+		template <typename T1, tpename T2>
+		auto add(T1 t1, T2 t2) -> decltype(t1 + t2) {
+			return t1 + t2;
+		}
+		
+		NOTE: However, there are no compiler errors if one writes
+
+		std::cout << add(1, 3.14) << std::endl;
+		std::cout << add("one", 2) << std::endl;
+	
+		The program actually prints 4.14 and "e". 
+		
+	But if we add some compile-time asserts, both these lines would generate compiler errors.
+
+		template <typename T1, typename T2>
+		auto add(T1 t1, T2 t2) -> decltype(t1 + t2) {
+			static_assert(std::is_integral<T1>::value, "Type T1 must be integral");
+			static_assert(std::is_integral<T2>::value, "Type T2 must be integral");
+			return t1 + t2;
+		}
+		error C2338: Type T2 must be integral
+		see reference to function template instantiation 'T2 add<int,double>(T1,T2)' being compiled
+		with
+		[
+			T2=double,
+			T1=int
+		]
+		error C2338: Type T1 must be integral
+		see reference to function template instantiation 'T1 add<const char*,int>(T1,T2)' being compiled
+		with
+		[
+			T1=const char *,
+			T2=int
+		]
+	
+10. Move Semantics:
+-------------------
+a. C++11 has introduced the concept of rvalue references (specified with &&) to differentiate a reference to an lvalue or an rvalue. 
+b. An lvalue is an object that has a name, while an rvalue is an object that does not have a name (a temporary object). 
+c. The move semantics allow modifying rvalues (previously considered immutable and indistinguishable from const T& types).
+d. A C++ class/struct used to have some implicit member functions: 
+	1. default constructor (only if another constructor is not explicitly defined) and 
+	2. copy constructor, 
+	3. a destructor and 
+	4. a copy assignment operator. 
+	
+e. The copy constructor and the copy assignment operator perform a bit-wise (or shallow) copy, i.e. copying the variables bitwise. 
+   That means if you have a class that contains pointers to some objects, they just copy the value of the pointers and not the objects they point to. 
+   This might be OK in some cases, but for many cases you actually want a deep-copy, meaning that you want to copy the objects pointers refer to, 
+   and not the values of the pointers. In this case you have to explicitly write 'copy constructor and copy assignment operator' to perform a deep-copy.
+
+f. What if the object you initialize or copy from is an rvalue (a temporary). You still have to copy its value, but soon after the rvalue goes away. 
+   That means an overhead of operations, including allocations and memory copying that after all, should not be necessary.
+   
+g. Enter the 'move constructor and move assignment operator'. These two special functions take a T&& argument, which is an rvalue. 
+   Knowing that fact, they can modify the object, such as "stealing" the objects their pointers refer to. 
+   For instance, a container implementation (such as a vector or a queue) may have a pointer to an array of elements. 
+   
+   "When an object is instantiating from a temporary, instead of allocating another array, copying the values from the temporary, 
+    and then deleting the memory from the temporary when that is destroyed, we just copy the value of the pointer that refers to the allocated array, 
+    thus saving an allocation, copying a sequence of elements, and a later de-allocation."
+   
+h. The following example shows a dummy buffer implementation. The buffer is identified by a name, has a pointer (wrapper in an std::unique_ptr) to 
+   an array of elements of type T and variable that tells the size of the array.
+   
+   
+	template <typename T>
+	class Buffer {
+		std::string          _name;
+		size_t               _size;
+		std::unique_ptr<T[]> _buffer;
+	  public:
+		// default constructor
+		Buffer(): _size(16), _buffer(new T[16]) {}
+
+		// constructor
+		Buffer(const std::string& name, size_t size): _name(name), _size(size), _buffer(new T[size]) {}
+
+		// copy constructor
+		Buffer(const Buffer& copy): _name(copy._name), _size(copy._size), _buffer(new T[copy._size]) {
+			T* source = copy._buffer.get();
+			T* dest = _buffer.get();
+			std::copy(source, source + copy._size, dest);
+		}
+		
+		// copy assignment operator
+		Buffer& operator=(const Buffer& copy) {
+			if(this != &copy) {
+				_name = copy._name;
+
+				if(_size != copy._size) {
+					_buffer = nullptr;
+					_size = copy._size;
+					_buffer = _size > 0 ? new T[_size] : nullptr;
+				}
+
+				T* source = copy._buffer.get();
+				T* dest = _buffer.get();
+				std::copy(source, source + copy._size, dest);
+			}
+			return *this;
+		}
+
+		// move constructor
+		Buffer(Buffer&& temp): _name(std::move(temp._name)), _size(temp._size), _buffer(std::move(temp._buffer)) {
+			temp._buffer = nullptr;
+			temp._size = 0;
+		}
+		
+		// move assignment operator
+		Buffer& operator=(Buffer&& temp) {
+			assert(this != &temp); // assert if this is not a temporary
+
+			_buffer = nullptr;
+			_size = temp._size;
+			_buffer = std::move(temp._buffer);
+
+			_name = std::move(temp._name);
+
+			temp._buffer = nullptr;
+			temp._size = 0;
+            return *this;
+		}
+	};
+   
+	template <typename T>
+	Buffer<T> getBuffer(const std::string& name) {
+		Buffer<T> b(name, 128);
+		return b;
+	}
+
+	int main() {
+		Buffer<int> b1;
+		Buffer<int> b2("buf2", 64);
+		Buffer<int> b3 = b2;
+		Buffer<int> b4 = getBuffer<int>("buf4");
+		b1 = getBuffer<int>("buf5");
+		return 0;
+	}
+	
+	NOTE: The default copy constructor and copy assignment operator should look familiar. 
+	      What's new to C++11 is the 'move constructor and move assignment operator', implemented in the spirit of the aforementioned move semantics. 
+		  If you run this code you'll see that when b4 is constructed, the move constructor is called. 
+		  Also, when b1 is assigned a value, the move assignment operator is called. 
+		  The reason is the 'value returned by getBuffer() is a temporary, i.e. an rvalue.'	 
+
+	1. You probably noticed the use of std::move in the move constructor, when initializing the name variable and the pointer to the buffer. 
+	   The name is actually a string, and std::string also implements move semantics. Same for the std::unique_ptr. 
+	   However, if we just said _name(temp._name) the copy constructor would have been called. 
+	   For _buffer that would not have been even possible because std::unique_ptr does not have a copy constructor. 
+	   But why wasn't the move constructor for std::string called in this case? 
+		Ans:- Because even if the object the move constructor for Buffer is called with is an rvalue, inside the constructor it is actually an lvalue. 
+		      Why? Because it has a name, "temp" and a named object is an lvalue. 
+			  To make it again an rvalue (and be able to invoke the appropriate move constructor) one must use std::move. 
+			  NOTE:- This (std::move) function just turns an lvalue reference into an rvalue reference.
+
+UPDATE: Though the purpose of this above example was to show how move constructor and move assignment operator should be implemented, 
+the exact details of an implementation may vary. An alternative implementation was provided by Member 7805758 in the comments.
+
+#include<iostream>
+#include<memory>
+using namespace std;
+template <typename T>
+class Buffer {
+   std::string          _name;
+   size_t               _size;
+   std::unique_ptr<T[]> _buffer;
+  public:
+   // constructor
+   Buffer(const std::string& name = "", size_t size = 16): _name(name), _size(size), _buffer(size? new T[size] : nullptr) {}
+ 
+   // copy constructor
+   Buffer(const Buffer& copy): _name(copy._name), _size(copy._size), _buffer(copy._size? new T[copy._size] : nullptr) {
+      T* source = copy._buffer.get();
+      T* dest = _buffer.get();
+      std::copy(source, source + copy._size, dest);
+   }
+ 
+   // copy assignment operator
+   Buffer& operator=(Buffer copy) {
+       swap(*this, copy);
+       return *this;
+   }
+ 
+   // move constructor
+   Buffer(Buffer&& temp):Buffer() {
+      swap(*this, temp);
+   }
+ 
+   friend void swap(Buffer& first, Buffer& second) noexcept
+   {
+       using std::swap;
+       swap(first._name  , second._name);
+       swap(first._size  , second._size);
+       swap(first._buffer, second._buffer);
+   }
+   
+   void show(string obj) { cout << obj << " -> " << _name << ", " << _size << endl; }
+}; 
+
+int main() {
+	Buffer<int> b1("buf1", 32);
+	Buffer<int> b2("buf2", 64);
+	b1.show("b1");
+	b2.show("b2");
+	swap(b1, b2);
+	b1.show("b1");
+	b2.show("b2");
+	return 0;	
+}
+/*OUTPUT:
+b1 -> buf1, 32                                                                                                                 
+b2 -> buf2, 64                                                                                                                 
+b1 -> buf2, 64                                                                                                                 
+b2 -> buf1, 32
+*/
+
+
+ keyword - constexpr:
+ -------------------
+ 1. constexpr that can enable programmers to enable any associated expressions to be evaluated at compile time.
+ 2. With the standardization of C++11, the keyword - 'constexpr' can be implemented for enabling which expressions needs to be evaluated at compile time.
+	constexpr int cube (int a) {
+		return a * a * a;
+	}
+
+	float gk[cube(3)]; // Valid since C++11: variable 'gk' has 27 elements
+	
+3. With the introduction of this keyword, many problems got fixed in C++98 when using numeric limits. 
+   Before the arrival of C++11, an expression such as std::numeric_limits<short>::max() can't be used as an integral constant, 
+   even though it was functionally equivalent to the macro INT_MAX. But now, with the newer advancement of C++11, this kind of expression is termed as 
+   'constexpr' and so you can use it to state different arrays or in compile-time computations (which is generally called as meta-programming).
+   
+keyword noexcept:
+-----------------
+1. This keyword can be used for specifying that any function cannot throw — or is not ready to throw.
+   Here is a code snippet:
+		void test() noexcept;
+		
+2. This declares that test() won't be able to throw. If the exception is not dealt with locally inside test() — and when test() method throws — 
+   the program will get terminated, calling std:: terminate() method that by default calls the std:: abort().
+
+   noexcept focuses on a lot of issues (empty) exception a specification is having:
+   --------------------------------------------------------------------------------
+   a. Runtime checking: 
+      Exceptions in terms of C++ get checked at runtime rather than at compile time, and hence they offer no programmer guarantees whether all exceptions 
+	  got to be handled or not. The runtime failure mode (which internally calls std:: unexpected()) does not lend itself to recovery.
+	  
+   b. Runtime overhead: Checking at runtime needs the compiler producing additional code which may also hamper optimizations.
+   
+   c. Unfeasible in generic code: Contained by any generic code, it is not usually possible to know what types of exceptions will get thrown on 
+      template arguments and hence an exact exception specification can't be written.
+
+What are arrays in C++11:?
+-------------------------
+1. The arrays in C++11 are the instance or examples of the container class array<> — that models a static array. 
+   This encloses an ordinary static C style array which provides the interface and structure of an STL container. 
+2. Conceptually, an array can be defined a series of consecutive elements having constant size. 
+   So, you can neither add elements nor remove elements for changing the size. Only a substitute of any element values can be achievable.
+3. The class array<>, launched to this new C++ standard library is an outcome of a useful wrapper class for ordinary C style arrays 
+   which Bjarne Stroustrup introduced in older C++ standards. It is safer and includes no worse performance than that of a normal array. 
+   For using an array, you must include the header file <array> -- #include <array>
+   
+Initialization of C++11 Array:
+-----------------------------
+1. In case of initialization of arrays in C++11, class array<> got some unique semantics. These are listed in the form of examples:
+
+	std::array<int, 4> g; // Oopz!: the elements of g got undefined value
+	std::array<int, 4> g = {}; // OK: all elements of g have value 0 (int())
+	std::array<int, 6> colln = { 62, 342, 78, 212, 94, 8 };
+	std::array<int, 10> k2 = { 56 }; // one element with value 56 …. followed by rest 9 elements as value 0
+	std::array<int, 4> g6 = { 1, 2, 3, 4, 5, 6 }; // ERROR: too many values
+	
+	//  implementation of new C++ array taking three values in an array and printing its value:
+	#include <array>
+	#include <iostream>
+
+	int main() {
+		std::array<int, 3> arr = {2, 3, 5};
+		for(i=1; i<3; i++) {
+			cout<<arr[i];
+		}
+	}
+	
+	There, the type is definite as a class template inside namespace std structured as:
+
+	namespace std {
+		template 
+		class array;
+	}
+
+2. The elements of such kind of array may have any type T. 
+   The second parameter of template states the number of elements the array has throughout its lifespan. 
+   Thus, size(), which is a predefined member function always yields 'N'.
+   
+Abilities of C++11 Array:
+-------------------------
+1. Arrays have the capability to copy their elements to their in-general static C style array. 
+2. The elements always contain a definite order. Thus, arrays are considered to be a kind of ordered collection. 
+3. Arrays provide random accessing of locations. Thus, you can access each of the elements directly in constant time and 
+   for that, you just have to know its position. 
+4. The iterators are random-accessing iterators, so programmers can use any algorithm of the Standard Template Library.
+5. If programmers have to have a sequence with a rigid number of elements, class array<> will facilitates with the best performance as 
+   memory gets allocated on the stack (as and when possible) and reallocation never happens. Also, programmer's can have random access to arrays.
+
+
+The move semantics of an Array:
+------------------------------
+Programmers can implement move semantics that will be implicitly provided for arrays. Lets' take an example of code snippet:
+
+	std::array<std::string,10> gk1, gk2;
+	. . . .
+	gk1 = std::move(gk2);
+	cout<< gk1;
+	
+	
+C++11 Lambada:
+--------------
+1. C++11 bring in the concept of 'lambdas' (an advanced C++ concept), which allow the definition of inline functions and 
+   can be used as a parameter or local object. Lambdas transform the way the C++ standard library was used earlier. 
+   
+2. Below explained how to implement lambdas and demonstrate how to use lambdas for defining code that can run in parallel.
+
+   SYNTAX OF Lambadas:
+   ------------------
+   a. A 'Lambda' can be defined as a definition of functionality which can be definite inside statements and expressions. 
+      So, programmers can use a lambda as an inline function. The minimal lambda function contains no parameters.
+	  Example:
+		[] {
+			std::cout << "Welcome Lambda" << std::endl;
+		}
+		
+   b. Programmers' can call them directly like this:
+
+		[] {
+			std::cout << "Welcome lambda" << std::endl;
+		}(); // it will print Welcome lambda
+
+	  or can be passed to objects to get called:
+
+		auto lmda = [] {
+			std::cout << "Welcome lambda" << std::endl;
+		};
+		....lmda(); // prints Welcome lambda
+		
+   c. Now you can see that a lambda always begins with a 'lambda introducer': brackets wherein you can specify what is called as 'capture' for accessing 
+      non-static objects inside the lambda. When no requirement is there to get access to outside data, the brackets remain empty, as is the case above. 
+	  You can specify parameters as mutable, an exception specification and the return type. 
+	  Thus, the syntax of a lambda is either:
+		[...] {...}
+	  Or you can write:
+		[...] (...) mutableopt throwSpecopt ->retTypeopt {...}
+		
+   d. A lambda can provide parameters particularly in parentheses, similarly to any other function:
+
+		auto lmda = [](const std::string& str) {
+			std::cout << str << std::endl;
+		};
+		lmda("Welcome lambda"); // It print hello lambda
+		
+   e. It is to be noted that lambdas cannot be templates. A lambda can also return something. 
+      Example, the return type of lambda given below is int:
+
+		[] {
+			return 62;
+		}
+		
+3. Captures(Access to Outer Scope):
+   Inside a lambda introducer (i.e. brackets in the beginning of lambda), programmer's can state a capture for accessing data of outer scope 
+   which is not passed as argument:
+
+	a. [=] means that the outer scope is accepted to the lambda by value.
+	b. [&] means the outer scope gets passed to the lambda via reference. So, programmers can limit the access. 
+	   Example, the following statements becomes:
+			int a = 0;
+			int b = 52;
+			auto ggg = [a, &b] {
+				std::cout << "a: " << a << std::endl;
+				std::cout << "b: " << b << std::endl;
+				++b; // OK
+			};
+			a = b = 67;
+			ggg();
+			ggg();
+			std::cout << "final b: " << b << std::endl;
+			
+4. Different forms of Lambadas:
+   a. All types of lambda are anonymous function objects which are unique for all lambda expression. 
+      So, for declaring objects of this type, programmers need templates or auto. When programmers need the type, they can use decltype().
+
+   b. Alternatively, you can implement the "std::function<> class template" which is done by the C++ standard library for specifying a general type of 
+      functional programming. Which means class template provides the only way for specifying the return type of any function returning a lambda:
+	  
+   Example:
+	#include<functional>
+	#include<iostream>
+	std::function<float(float, float)> returnLambda() {
+		return [](float a, float b) {
+			return a + b;
+		};
+	}
+	int main() {
+		auto lmbda = returnLambda();
+		std::cout << lmbda(8.2, 6.4) << std::endl;
+	}
+	
+	
+	
+Example of Lambda usage(boqian.wwebly.com):
+--------------------------------------------
+#include <iostream>
+#include<vector>
+#include<algorithm>
+using namespace std;
+
+typedef bool (func)(); 
+template <typename func>
+void filter(func f, vector<int> v) {
+    for(auto x: v) {
+        if(f(x))
+            cout << x << " ";
+    }
+    cout << endl;
+}
+
+struct isOdd {
+    bool operator()(int x) {
+        return x % 2;
+    }
+};
+
+struct isEven {
+    bool operator()(int x) {
+        return !(x % 2);
+    }
+};
+
+class isMultipleOf {
+    int m_multi;
+  public:
+    isMultipleOf(int multi):m_multi(multi) {}
+    bool operator()(int x) {
+        return !(x % m_multi); // Here since one line code with return, comp figure out r_type as 0-false,1-true
+    }
+};
+
+class SumUp {
+    int &m_sumup;
+  public:
+    SumUp(int &sum):m_sumup(sum){}
+    void operator()(int x) {
+        m_sumup += x;
+    }
+};
+int main()
+{
+    vector<int> v{2, 4, 5, 6, 8, 10, 1};
+    filter([](int x) { return x > 4; }, v);
+    filter([](int x) { return x > 4 && x < 8; }, v);
+    //int c_odd = count_if(v.begin(), v.end(), isOdd());
+    //int c_odd = count_if(v.begin(), v.end(), [](int x) { return x % 2;}); // OR this is same
+    
+    /* if lambda body is more than one lines statement, compiler won't be able to figure out return type.
+       Hence explicitly define the trailing return type as '-> return_type' */
+    int c_odd = count_if(v.begin(), v.end(), [](int x) -> bool
+                                            { 
+                                                bool b = x % 2;
+                                                cout << x << (b ? " Odd" : " Even") << endl;
+                                                return b;
+                                            });
+    cout << "Number of Odds: " << c_odd << endl;
+    
+    //int c_even = count_if(v.begin(), v.end(), isEven());
+    int c_even = count_if(v.begin(), v.end(), [](int x) { return !(x % 2);}); //OR this is same
+    cout << "Number of Evens: " << c_even << endl;
+    
+    int m = 3;
+    //int c_multi = count_if(v.begin(), v.end(), isMultipleOf(m));
+    // 1. capture local varible 'm' in [] as [m], if we want to use 'm' inside the lamda function body
+    // 2. used [=] it means if lamda body finds any local variable used, capture with default =
+    //int c_multi = count_if(v.begin(), v.end(), [m](int x) { return !(x % m);}); //OR this is same
+    int c_multi = count_if(v.begin(), v.end(), [=](int x) { return !(x % m);}); //OR this is same
+    cout << "Number of Multiple of " << m << " : " << c_multi << endl;
+    
+    int sum = 0;
+    //for_each(v.begin(), v.end(), SumUp(sum));
+    //for_each(v.begin(), v.end(), [&sum](int x) { sum += x;}); //same as above
+    //for_each(v.begin(), v.end(), [&](int x) { sum += x;}); // same as above
+    
+    /*by default: lambda is not mutable so manipulating outer scope variable 'sum' by value, 
+      hence error: error: assignment of read-only variable ‘sum’ */
+    //for_each(v.begin(), v.end(), [=](int x) { sum += x;});
+    
+    /* Error can be removed adding 'mutable', which means even we change value inside lambda 
+       but outer scope variable's value won't change */
+    //for_each(v.begin(), v.end(), [=](int x) mutable { sum += x;});  
+    cout << "Sum : " << sum << endl;
+    return 0;
+}
+
+C++ Threading #5: Unique Lock and Lazy Initialization:
+------------------------------------------------------
+class LogFile {
+	std::mutex _m;
+	std::mutex _m_open;
+	std::once_flag _flag; 
+	ofstream _f;
+  public:
+	LogFile() {
+		_f.open("log.txt");
+	} // Need destructor to close file, not advisable
+	
+	// Case I: first way to use
+	void shared_print(string id, int value) {
+		std::lock_guard<mutex> locker(_m);
+		_f << "From: " << id << ": " << value << endl;
+	}
+	
+	// Case II: second way to use
+	void shared_print(string id, int value) {
+		std::lock_guard<mutex> locker(_m);
+		locker.lock();
+		_f << "From: " << id << ": " << value << endl;
+		locker.unlock();
+	}
+	
+	// Case III: third way to use, more flexibilty then second way
+	void shared_print(string id, int value) {
+		std::unique_lock<mutex> locker(_m);
+		_f << "From: " << id << ": " << value << endl;
+		locker.unlock();
+		//..... N lines of code
+	}
+	
+	// Case III-A: third way to use, more flexibilty then second way
+	void shared_print(string id, int value) {
+		std::unique_lock<mutex> locker(_m, std::defer_lock); // defer_lock means mutex is not yet lock
+		//do something...
+		locker.lock();
+		_f << "From: " << id << ": " << value << endl;
+		locker.unlock();
+		//..... N lines of code
+		
+		locker.lock();
+		//do something...
+		locker.unlock();
+		
+		/* Note that wrapper claas of mutex, lock_guard or unique_lock CANNOT be copied, 
+		   However unique_lock can be moved to another unique_lock, but lock_guard CANNOT move to another lock_guard. */
+		std::unique_lock<mutex> locker2 = std::move(locker);
+		
+		// NOTE: The unique_lock is little bit more heavy weighted than lock_guard.
+	}
+	
+	//Case IV: if file should open only if shared_print is needed then move file open here
+	void shared_print(string id, int value) {
+	    //std::unique_lock<mutex> locker(_m_open); // 3. even file is opened alread, every time locking performance issue
+		if(! _f.is_open()){ // 2. This also should be synchronized because of 2 threads enter case
+			//std::unique_lock<mutex> locker(_m_open); // 1. NOT thread safe if 2 threads enter here.
+			_f.open("log.txt");
+		}
+		
+		// 4. std::once_flag is th best way to open only once.
+		// file will be opened only once by one thread
+		std::call_once(_flag, [&](){ _f.open("log.txt");});
+	}
+};
+
+/*
+C++ Threading #6: Condition Variable:-
+--------------------------------------
+Condition variable is to synchronize the execution order of threads.
+*/
+std:deque<int> q;
+std:mutex mu;
+std::condition_variable cond;
+
+void push() {
+	int count = 10;
+	while(count > 0) {
+		std:unique_lock<mutex> locker(mu);
+		q.puch_back(count);
+		locker.unlock();
+		cond.notify_one(); // Notify one thread, if there is one
+		//cond.notify_all();
+		std::this_thread::sleep_for(chrono::seconds(1));
+		count--;
+	}
+}
+
+void pop() {
+	int data = 0;
+	while(data != 1) {
+		std:unique_lock<mutex> locker(mu);
+		if(!q.empty()){
+			data = q.back();
+			q.pop_back();
+			locker.unlock();
+			cout << "t2 got value from t1: " << data << endl;
+		} else {
+			locker.unlock(); //if queue is empty, unlock and keep looping
+			//take th thread nape, but how we decide to time for snap.			
+			std::this_thread::slepp_for(chrono::milliseconds(10));
+		}
+	}
+}
+
+//solution to use conditional variable
+void pop() {
+	int data = 0;
+	while(data != 1) {
+		std:unique_lock<mutex> locker(mu); // at this point thread is locked
+		/* this will put thread 2 in sleep until notified by thread 1 
+		cond.wait(locker); // before going to sleep, it release the mutex for other thread to lock
+		cond.wait(locker, []() { return !q.empty();}); // spurious wake, means go again back to sleep mode
+		data = q.back();
+		q.pop_back();
+		locker.unlock();
+		cout << "t2 got value from t1: " << data << endl;
+	}
+}
+
+int main() {
+	std::thread t1(odd_func);
+	std::thread t2(even_func);
+	t1.join();
+	t2.join();
+	return 0;
+}
+
+
+/*
+C++ Threading #7: Future, Promise and async():-
+-----------------------------------------------
+Future and promise provide a convenience way to communicate between threads.
+*/
+
+//Case I: Normal when we dont want to return value from child thread
+#include<iostream>
+#include<thread>
+using namespace std;
+
+void fact(int num) {
+	int res = 1;
+	for(int i = num; i > 1; i--)
+		res *= i;
+	cout << "Result is : " << res << endl;
+}
+
+int main() {
+	std::thread t(fact, 4);
+	t.join();
+	return 0;
+}
+
+//Case II: when we want to return value from child thread
+#include<iostream>
+#include<thread>
+using namespace std;
+
+void fact(int num, int& x) {
+	int res = 1;
+	for(int i = num; i > 1; i--)
+		res *= i;
+	cout << "Result is : " << res << endl;
+	x = res;
+}
+// Since x is shared variable between parent & child threads, issue may arrise
+int main() {
+	int x;
+	std::thread t(fact, 4, std::ref(x));
+	t.join();
+	cout << "Parent Thread: " << x << endl;
+	return 0;
+}
+/*OUTPUT:
+Result is : 24                                                                                                                 
+Parent Thread: 24
+*/
+
+//Case III: Use mutax and condition variable to notify once res is assigned in x to protect shared variable
+std::mutex m;
+std::condition_variable cond;
+
+
+//Case IV: use async is a function but thread is a class
+#include<iostream>
+#include<future>
+using namespace std;
+
+int fact(int num ) {
+	int res = 1;
+	for(int i = num; i > 1; i--)
+		res *= i;
+	cout << "Result is : " << res << endl;
+	return res;
+}
+// std::async function is used to create another thread.
+// but std::async function may OR may not create a thread that is controled by another parameter
+int main() {
+	int x;
+	std::future<int> fu = std::async(fact, 4);
+	x = fu.get(); // fu.get function wait till the child class finish and then assigne the return value to x
+	// x = fu.get(); // if u try to call again this will make program crash
+	cout << "Parent Thread: " << x << endl;
+	return 0;
+}
+
+/* when std::async function is used with parameter:-
+1. 'std::launch::deferred' then async function will not create a thread, it will actually defer the execution of function
+   until later on when the get function called. when the get function called then fac() function will be callled in same thread.
+2. 'std::launch::async' then it will create another thread.
+3. call two value together 'std::launch::deferred | std::launch::async', 
+   what this mean is that whether the async will create a new thread will be determined by the implementation.
+*/
+int main() {
+	int x;
+	std::future<int> fu = std::async(std::launch::deferred, fact, 4);
+	//std::future<int> fu = std::async(std::launch::async, fact, 4);
+	//std::future<int> fu = std::async(std::launch::deferred | std::launch::async, fact, 4);
+	// Here in avobe three line, we have used std::future to pass the return value from child thread to parent thread.
+	x = fu.get(); 
+	cout << "Parent Thread: " << x << endl;
+	return 0;
+}
+
+/* we can also use the std::future to pass the parent thread value to child thread NOT at 
+   the time of thread creation but in the future. for that we need the std::promise and one more std::future 
+*/
+#include<iostream>
+#include<future>
+#include<exception>
+using namespace std;
+
+int fact(std::future<int>& f) {
+	int res = 1;
+	
+	int num = f.get();
+	for(int i = num; i > 1; i--)
+		res *= i;
+	cout << "Result is : " << res << endl;
+	return res;
+}
+int main() {
+	int x;
+	
+	std::promise<int> p;
+	std::future<int> f = p.get_future();
+	
+	// by setting the reference of f, telling to child thread i dont have value to be set Now, will set in future, that is my promise.
+	//std::future<int> fu = std::async(std::launch::deferred, fact, std::ref(f));
+	std::future<int> fu = std::async(std::launch::async, fact, std::ref(f));
+	
+	//do something else
+	std::this_thread::sleep_for(chrono::milliseconds(100));
+	p.set_value(4);
+	
+	x = fu.get(); 
+	cout << "Parent Thread: " << x << endl;
+	return 0;
+}
+
+/*
+Note: 
+	//p.set_value(4);
+	//x = fu.get();
+if comment the above two line in main(means breaking the promise what we did earlier), then we will get the exception in fact function at below line:
+	int num = f.get();  // exception: std::future_errc::broken_promise
+	
+we can set the exception explicitely as below in main:
+	p.set_exception(std::make_exception_ptr(std::runtime_error("To error is human")));
+	//p.set_value(4);
+	//x = fu.get();
+	
+NOTE: just like thread and unique_lock, promise & future can be moved NOT copied.
+	std::promise<int> p;
+	std::promise<int> p2 = std::move(p);
+
+	std::future<int> f = p2.get_future();
+	std::future<int> f1 = std::move(f);
+*/
+
+
+/*
+When we have N number of threads & each computes the factorial, then we must have N number of future,
+which is not convenient for writing N number of future. so we will use shared_future.
+shared_future is used in a broadcast kind of model.
+*/
+#include<iostream>
+#include<future>
+using namespace std;
+
+int fact(std::shared_future<int> f) {
+	int res = 1;
+	
+	int num = f.get();
+	for(int i = num; i > 1; i--)
+		res *= i;
+	cout << "Result is : " << res << endl;
+	return res;
+}
+
+int main() {
+	int x;
+	
+	std::promise<int> p;
+	std::future<int> f = p.get_future();
+	std::shared_future<int> sf = f.share();
+	
+	std::future<int> fu1 = std::async(std::launch::async, fact, sf);
+	std::future<int> fu2 = std::async(std::launch::async, fact, sf);
+	std::future<int> fu3 = std::async(std::launch::async, fact, sf);
+	// ... 10 threads
+	p.set_value(4);
+	return 0;
+}
+
+/*
+C++ Threading #8: Using Callable Objects:
+-----------------------------------------
+summarizes the common syntax of using a callable object in function thread(), async(), bind() and call_once().
+*/
+#include<iostream>
+#include<thread>
+using namespace std;
+class A {
+  public:
+	void f(int x, char c){}
+	long g(double x) { return 0;}
+	int operator()(int N) { return 0;}
+};
+
+void foo(int x) {}
+int main() {
+	A a;
+	
+	/* Hre callable object is 'a' and followed by variable number of argument
+	//std::thread t1(a, 6);
+	//std::async(std::launch::async, a, 6);
+	//std::bind(a, 6);
+	//std::call_once(once_flag, a, 6);
+	*/
+	
+	std::thread t1(a, 6);  // copy_of_a() in a different thread
+	std::thread t2(std::ref(a), 6); // a() as functor in a different thread
+	std::thread t3(std::move(a), 6); // a is no longer usuable in main thread
+	std::thread t4(A(), 6); //temp A
+	std::thread t5([](int x) {return x*x;}, 6);
+	std::thread t6(foo, 6);
+	
+	std::thread t7(&A::f, a, 6, 'w'); // copy_of_a.f(6, 'w') in a different thread
+	std::thread t8(&A::f, &a, 6, 'w'); // a.f(6, 'w') in a different thread
+
+	//std::bind(); std::async(); std::call_once();
+	return 0;
+}
+
+/*
+3 ways to get a future:
+-----------------------
+- promise::get_future()
+- packaged_task::get_future()
+- async() returns a future
+*/
+
+// 1. packaged_task
+#include<iostream>
+#include<future>
+using namespace std;
+
+int fact(int num) {
+	int res = 1;
+
+	for(int i = num; i > 1; i--)
+		res *= i;
+	cout << "Result is : " << res << endl;
+	return res;
+}
+
+int main() {
+	/*
+	It's a packaged task that can be transponderail different place in the program and being executed over there.
+	
+	packaged_task is a temprary class that is parameterized with the function signature of this task.
+	so fact is a function that takes int and return int. so this is also a function 'int(int)'.
+	also when the task is executed it should need to take int as parameter as 't(6)'.
+	However we can't get conveniently the return value from 't', because 't' always return  'void'.
+	So we need to add this: int x = t.get_future().get();
+	t is a task being packaged up to a package and this package can passed alone to different places such as: 
+		- differnt functions 
+		- different objects
+		- different threads
+		
+	We can pass additional N no of parameters to the constructor of a thread , but we can't pass the additional parameter in task:
+		std::thread t1(fact, 6); // OK
+		std::packaged_task<int(int)> t(fact, 6); //Error
+		
+	// std::bind is used to bind a function with parameter, which will create the 'function object'.
+	// and then this 'function object' will be passed to the constructor of packaged_task.
+	// Noted that newly created 'function object' is already binded with parameter, so remove paramter passing type '<int()>'
+	// std::packaged_task<int()> t(std::bind(fact, 6));
+	// t.();
+	
+	// Insstead of using the std::packaged_task, we can do this by using ONLY the function object as below:
+	// int main { auto t = std::bind(fact, 6); t(); return 0;}
+	// The main advantage of std::packaged_task is used to link the 'callable object' to a future, that is very important in threading environment.
+	
+	std::packaged_task<int(int)> t(fact);
+	
+	//...do something
+	
+	t(6); // Executed in a different context, other than the place where it is created.
+	// x = t(6); // This won't work, since task always return 'void'.
+	// x = t.get_future().get(); // This is the right way to get return value from the fact.
+	return 0;
+}
+
+
+/*
+Once we created the task queue we shoudn't execute all task from 'main', 
+instead we should get each task from task queue in new thread, and execute.
+Below example explain how to use packaged_task from threading.
+*/ 
+#include<iostream>
+#include<future>
+using namespace std;
+
+int fact(int num) {
+	int res = 1;
+
+	for(int i = num; i > 1; i--)
+		res *= i;
+	cout << "Result is : " << res << endl;
+	return res;
+}
+
+std::deque<std::packaged_task<int()>> task_q;
+std::mutex mu;
+std::condition_variable cond;
+
+void thread_1() {
+	std::packaged_task<int()> t;
+	{
+		std::unique_lock<std::mutex> locker(mu); 
+		// if u dont use condition_variable, change above line as: std::lock_guard<std::mutex> locker(mu); 
+		cond.wait(locker, [](){ return !task_q.empty();});
+		t = std::move(task_q.front());
+		task_q.pop_front();
+	}
+	t();
+}
+
+int main() {
+	std::thread t1(thead_1);
+	std::packaged_task<int()> t(bind(fact, 6));
+	std::future<int> fu = t.get_future();
+	{
+		std::lock_guard<std::mutex> locker(mu);
+		task_q.push_back(std::move(t));
+	}
+	cond.notify_one();
+	cout << fu.get();
+	
+	t1.join();
+	return 0;
+}
+
+
+
+/*
+C++ Threading #10: Review and Time Constrain:-
+-----------------------------------------------
+Some of the library function can be used with a time constrain.  Such as:
+- sleep_for()
+- sleep_until()
+- wait_for()
+- wait_until()
+*/
+
+
+
+
+
+---------------------------------------
+Singaltone Requirment:
+----------------------
+1. One and Only one instance.
+2. Global Access
+3. No Ownership
+4. Lazy Initialization.
+
+Advantage:
+----------
+1. Save Memory: Only one is required so why to create so many.
+2. Singal access point: Logger, database connection.
+3. Flexibility: change anytime you want to.
+
+Usage:
+--------
+1. Multithreaded: threadpool
+2. Database Application: logging (opening multiple tab of Ur FB page)
+3. Configuration Settings: game setting, application setting, etc.
+
+To create singalton class we must have:
+---------------------------------------
+-Static member
+-Private Constructor
+-static function
+
+#include<iostream>
+using namespace std;
+
+class GameSetting {
+	int _brightness;
+	int _width;
+	int _height;
+	static GameSetting *_instance;
+	GameSetting(): _brightness(75), _width(786), _height(1300){}
+	GameSetting(const GameSetting& s) {}
+	GameSetting& operator=(const GameSetting& s) {}
+  public:
+	static GameSetting* getInstance() {
+		if(_instance == NULL) 
+			_instance = new GameSetting();
+		return _instance;
+	}
+	
+	void setWidth(int width) { _width = width; }
+	void setHeight(int height) { _height = height; }
+	void setBrightness(int brightness) { _brightness = brightness; }
+	
+	int getWidth() { return _width; }
+	int getHeight() { return _height; }
+	int getBrightness() { return _brightness; }
+	
+	void show() {
+		cout << "brightness : " << _brightness << endl;
+		cout << "height : " << _height << endl;
+		cout << "width : " << _width << endl;
+	}
+};
+
+GameSetting* GameSetting::_instance = NULL;
+
+void someFunction() {
+	GameSetting *s_obj = GameSetting::getInstance();
+	s_obj->show();
+}
+
+int main() {
+	GameSetting *s_obj = GameSetting::getInstance();
+	s_obj->show();
+	s_obj->setBrightness(100);
+	
+	someFunction();
+	return 0;
+}
+/*OUTPUT:
+brightness : 75                                                                                                                  
+height : 1300                                                                                                                    
+width : 786                                                                                                                      
+brightness : 100                                                                                                                 
+height : 1300                                                                                                                    
+width : 786
+*/
+
+
+
+//FDP Designe:
+-----------------
+#include<iostream>
+using namespace std;
+class Toy {
+  protected:
+	string name;
+	float price;
+  public:
+	virtual void prepareParts() = 0;
+	virtual void combineParts() = 0;
+	virtual void assebleParts() = 0;
+	virtual void applyLabels()  = 0;
+	virtual void showProduct()  = 0;
+};
+
+class Car: public Toy {
+	// make all constructor private or protected
+  public:
+	void prepareParts() { cout << "Prepare Car Parts " << endl; }
+	void combineParts() { cout << "Combine Car Parts " << endl; }
+	void assebleParts() { cout << "Assemling Car Parts " << endl; }
+	void applyLabels() { cout << "Labeling Car " << endl; name = "Car"; price = 200;}
+	
+	void showProduct() { cout << "Name : " << name << ", Price : " << price << endl; }
+};
+
+class Bike: public Toy {
+	// make all constructor private or protected
+  public:
+	void prepareParts() { cout << "Prepare Bike Parts " << endl; } 
+	void combineParts() { cout << "Combine Bike Parts " << endl; }
+	void assebleParts() { cout << "Assemling Bike Parts " << endl; }
+	void applyLabels() { cout << "Labeling Bike" << endl; name = "Bike"; price = 100;}
+	
+	void showProduct() { cout << "Name : " << name << ", Price : " << price << endl; }
+};
+
+class Plane: public Toy {
+	// make all constructor private or protected
+  public:
+	void prepareParts() { cout << "Prepare Plane Parts " << endl; }
+	void combineParts() { cout << "Combine Plane Parts " << endl; }
+	void assebleParts() { cout << "Assemling Plane Parts " << endl; }
+	void applyLabels() { cout << "Labeling Plane" << endl; name = "Plane"; price = 500;}
+	
+	void showProduct() { cout << "Name : " << name << ", Price : " << price << endl; }
+};
+
+class ToyFactory {
+  public:
+	static Toy* createToy(int type) {
+		Toy *t = NULL;
+		switch(type) {
+			case 1:
+				t = new Car;
+				break;
+			case 2:
+				t = new Bike;
+				break;
+			case 3:
+				t = new Plane;
+				break;
+			default:
+				cout << "Invalid toy type." << endl;
+				return NULL;
+		}
+		
+		t->prepareParts();
+		t->combineParts();
+		t->assebleParts();
+		t->applyLabels();
+		
+		return t;
+	}
+};
+
+int main() {
+	int type;
+	while(1) {
+		cout << "Enter Type: ";
+		cin >> type;
+		if(!type)
+			break;
+		Toy *t = ToyFactory::createToy(type);
+		if(t){
+			t->showProduct();
+			delete t;
+		}
+	}
+}
+/*OUTPUT:
+Enter Type: 1                                                                                                                    
+Prepare Car Parts                                                                                                                
+Combine Car Parts                                                                                                                
+Assemling Car Parts                                                                                                              
+Labeling Car                                                                                                                     
+Name : Car, Price : 200                                                                                                          
+Enter Type: 2                                                                                                                    
+Prepare Bike Parts                                                                                                               
+Combine Bike Parts                                                                                                               
+Assemling Bike Parts                                                                                                             
+Labeling Bike                                                                                                                    
+Name : Bike, Price : 100                                                                                                         
+Enter Type: 3                                                                                                                    
+Prepare Plane Parts                                                                                                              
+Combine Plane Parts                                                                                                              
+Assemling Plane Parts                                                                                                            
+Labeling Plane                                                                                                                   
+Name : Plane, Price : 500                                                                                                        
+Enter Type: 4                                                                                                                    
+Invalid toy type.                                                                                                                
+Enter Type: 0 
+*/
+
+
+//Solution1: Implement self assignment operator
+class collar;
+class D {
+	collar* pCollor;
+  public:
+  //Solution1: Implement self assignment operator
+	D& operator=(const D& rhs) {
+		if(this == &rhs)
+			return;
+		collar* pOriginalCollar = pCollor;
+		pCollor = new collor(*rhs.pCollor);
+		delete pOriginalCollar;
+		return *this;
+	}
+	
+	//Solution2: Delegation
+	D& operator=(const D& rhs) {
+		// member-by-member copying of collars or call collars's operator=
+		*pCollor = *rhs.pCollor;
+		return *this;
+	}
+};
+
+
+
+
+
+/*
+Search the data in ascending ordered array of int at some point going decending ordered.
+Example:  2, 5, 9, 20, 35, 46, 30, 23, 16, 12, 5
+*/
+#include<iostream>
+using namespace std;
+void isNumberExist(int numArray[], int size, int item) {
+    bool existFlag = false;
+    for(int i=0; i < size; i++, size--) {
+        if((numArray[i] == item) || (numArray[size-1] == item)) {
+            existFlag = true;
+            break;
+        }
+    }
+    
+    if(existFlag == true)
+        printf("Exist Number: %d\n", item);
+    else
+        printf("Not Exist Number: %d\n", item);
+}
+
+int main() {
+	int intArray[4] = {2, 6, 3, 0};
+	isNumberExist(intArray, 4, 5);
+	return 0;
+}
+
+/*
+Paranthesis checck for valid expression: "({[abc](x)y}x(v))"
+*/
+#include<iostream>
+#include<vector>
+using namespace std;
+void isParanthesisValid(char *str) {
+    bool valid = true;
+    char *tmp = str;
+    vector<char> s;
+    while(*str) {
+        if((*str == '[') || (*str == '{') || (*str == '(')) {
+            s.push_back(*str);
+        } else if ((*str == ']') || (*str == '}') || (*str == ')')) {
+            char c = s.back();
+            s.pop_back();
+            if ((c == '[') || (c == '{') || (c == '(')) {
+                valid = true;
+            } else {
+                valid = false;
+                break;
+            }
+        }
+        str++;
+    }
+    
+    if(valid == true && s.empty())
+        printf("Pranthesis Matched: [%d] %s\n", valid, tmp);
+    else
+        printf("Pranthesis Not Matched: [%d] %s\n", valid, tmp);
+}
+
+int main() {
+	isParanthesisValid((char*)"({[abc](x)y}x(v))");
+	return 0;
+}
+
+/*
+error: void value not ignored as it ought to be
+This is a GCC error message that means the return-value of a function is 'void', but that you are trying to assign it to a non-void variable.
+Example:
+*/
+void myFunction() {
+   //...stuff...
+}
+
+int main() {
+   int myInt = myFunction(); //Compile error!
+   return 0;
+}
+
+NOTE: You aren't allowed to assign void to integers, or any other type.
+In the OP's situation:
+	int a = srand(time(NULL)); is not allowed. srand(), according to the documentation, returns void.
+	
+	
+	
+--------------------------------------------------
+
+Introduction of STL #6: Functors:
+---------------------------------
+/*
+Function Objects(Functors)
+NOTE:
+For defining the functor, put the 'type' before the 'opeartor'.
+For define the type conversion, put the 'type' after the 'operator'.
+*/
+#include<iostream>
+using namespace std;
+
+class Test {
+  public:
+	// Functor
+	void operator()(string str) {
+		cout << "Calling Function Test with parameters.! -> " << str << endl;
+	}
+	
+	operator string(){ return "Test"; } //type conversion function
+};
+
+int main() {
+	Test t;
+	t("Hello");
+	
+	cout << (string)t << endl;
+	return 0;
+}
+/*OUTPUT:
+Calling Function Test with parameters.! -> Hello                                                                               
+Test
+*/
+
+/*
+Function Objects vs. Lambdas:
+-----------------------------
+When you write code, you probably use function pointers and function objects to solve problems and perform calculations, especially when you use STL algorithms.
+Function pointers and function objects each have advantages and disadvantages—for example, 
+	1. function pointers have minimal syntactic overhead but do not retain state within a scope, and 
+	2. function objects can maintain state but require the syntactic overhead of a class definition.
+
+A lambda combines the benefits of function pointers and function objects and avoids their disadvantages. 
+Like a function objects, a lambda is flexible and can maintain state, but unlike a function object, its compact syntax doesn't require an explicit 
+class definition. By using lambdas, you can write code that's less cumbersome and less prone to errors than the code for an equivalent function object.
+*/
+
+#include<iostream>
+#include<vector>
+#include<algorithm>
+using namespace std;
+
+class FunctionObject {
+    int& evenCount;
+    FunctionObject& operator=(const FunctionObject&);
+  public:
+	// Functor - Function Objects
+	void operator()(int num) {
+	    if(num % 2 == 0) {
+	        ++evenCount;
+	        cout << "Even Number: " << num << endl;
+	    } else {
+		    cout << "Odd Number : " << num << endl;
+	    }
+	}
+	
+	explicit FunctionObject(int& _evenCount): evenCount(_evenCount) {}
+};
+
+int main() {
+    std::vector<int> v;
+    v.push_back(2);
+    v.push_back(4);
+    v.push_back(6);
+    v.push_back(8);
+    v.push_back(5);
+    
+    int _evenCountLmbda = 0;
+    for_each(v.begin(), v.end(), [&_evenCountLmbda](int num) {  // Lambdas
+        if(num % 2 == 0) {
+	        ++_evenCountLmbda;
+	        cout << "Even Number: " << num << endl;
+	    } else {
+		    cout << "Odd Number : " << num << endl;
+	    }
+    });
+    cout << "_evenCountLmbda: " << _evenCountLmbda << endl;
+	cout << "-------------------------------" << endl;
+	int _evenCountFunctor = 0;
+    for_each(v.begin(), v.end(), FunctionObject(_evenCountFunctor));
+    cout << "_evenCountFunctor: " << _evenCountFunctor << endl;
+	return 0;
+}
+/*OUTPUT
+Even Number: 2                                                                                                                   
+Even Number: 4                                                                                                                   
+Even Number: 6                                                                                                                   
+Even Number: 8                                                                                                                   
+Odd Number : 5                                                                                                                   
+_evenCountLmbda: 4                                                                                                               
+-------------------------------                                                                                                  
+Even Number: 2                                                                                                                   
+Even Number: 4                                                                                                                   
+Even Number: 6                                                                                                                   
+Even Number: 8                                                                                                                   
+Odd Number : 5                                                                                                                   
+_evenCountFunctor: 4
+*/
