@@ -1695,34 +1695,51 @@ In the OP's situation:
 Introduction of STL #6: Functors:
 ---------------------------------
 /*
-Function Objects(Functors)
+Function Objects(Functors):
+---------------------------
 NOTE:
 For defining the functor, put the 'type' before the 'opeartor'.
 For define the type conversion, put the 'type' after the 'operator'.
+
+Benifits of Functor:
+--------------------
+1. Smart function: capabilities beyond operator()
+	It can remeber state.
+2. It can have its own type.
+
+Regular function can be only differentiated with the function signature.
+If the two regular function is having same signature, they are the same function.
+However Two Functors can be of different type even if they have the exact same function signature.
+Functor also introdued the concept of paramterised function. Example: Test(5)("Test"); 
 */
 #include<iostream>
 using namespace std;
 
 class Test {
+	int _x;
   public:
+	Test(int x=0):_x(x) { }
 	// Functor
 	void operator()(string str) {
-		cout << "Calling Function Test with parameters.! -> " << str << endl;
+		cout << "Calling Function Test with parameters.! -> " << str << ", with state -> " << _x << endl;
 	}
 	
-	operator string(){ return "Test"; } //type conversion function
+	operator string(){ return "Test!"; } //type conversion function
 };
 
 int main() {
-	Test t;
+	Test t(6);
 	t("Hello");
 	
 	cout << (string)t << endl;
+	
+	Test(10)("World");
 	return 0;
 }
 /*OUTPUT:
-Calling Function Test with parameters.! -> Hello                                                                               
-Test
+Calling Function Test with parameters.! -> Hello, with state -> 6                                                              
+Test!                                                                                                                          
+Calling Function Test with parameters.! -> World, with state -> 10
 */
 
 /*
@@ -1798,4 +1815,295 @@ Even Number: 6
 Even Number: 8                                                                                                                   
 Odd Number : 5                                                                                                                   
 _evenCountFunctor: 4
+*/
+
+/* Introduction of STL #6: Functors Continue... 
+	Built-In Functors:
+	------------------
+	less, greater, greater_equal, less_equal, not_equal_to
+	logical_and, logical_not, logical_or
+	multiplies, minus, plus, divide, modulus, negate
+	
+	int x = multiplies<int>()(3,4);	// x = 3 * 4;
+	if(not_equal_to<int>()(x, 10)) cout << x << endl;	// if(x != 10)
+*/
+#include<iostream>
+#include<vector>
+#include<algorithm>
+#include<functional>  // for bind & placeholders::_1
+using namespace std;
+
+//1. solution: Not pretty looking code as it used the constatnt '1', not flexible.
+void addNConst(int num) {
+    cout << num + 1 << " ";
+}
+
+//2. solution: use globale varible to make it flexible, but still globale varible make it nasty, not recomand.
+int temp = 1;
+void addNGloable(int num) {
+    cout << num + temp << " ";
+}
+
+/*3. solution: define template
+     Now it is more flexible by changing like 'addNTemplate<5>' but we cant use like 'addNTemplate<x>' because
+     template variable is resolved at compile time, so it has to be compile time constant.
+*/
+template <int temp>
+void addNTemplate(int num) {
+    cout << num + temp << " ";
+}
+
+/*4. solution: Functor is the best solution. */
+class addNFunctor {
+      int temp;
+    public:
+      addNFunctor(int x) : temp(x) {}
+      void operator()(int num) {
+          cout << num + temp << " ";
+      }
+};
+
+void addNBind(int num, int temp) {
+    cout << num + temp << " ";
+}
+
+int main() {
+	std::vector<int> v = {2, 4, 6, 8};
+	for_each(v.begin(), v.end(), addNConst);    // {3, 5, 7, 9}
+	cout << endl;
+	for_each(v.begin(), v.end(), addNGloable);  // {3, 5, 7, 9}
+	cout << endl;
+	for_each(v.begin(), v.end(), addNTemplate<1>);  // {3, 5, 7, 9} //Error: addNTemplate<x>
+	cout << endl;
+	int val = 1;
+	for_each(v.begin(), v.end(), addNFunctor(val));  // {3, 5, 7, 9} // Functor
+	
+	for_each(v.begin(), v.end(), std::bind(addNBind, std::placeholders::_1, val));  // {3, 5, 7, 9} // using bind
+	return 0;
+}
+/*OUTPUT:
+3 5 7 9                                                                                                                        
+3 5 7 9                                                                                                                        
+3 5 7 9                                                                                                                        
+3 5 7 9
+3 5 7 9
+*/
+
+/* Introduction of STL #6: Functors Continue... 
+	Parameter Binding:
+	------------------
+	ste<int> my_set = {2, 3, 4, 5};
+	std::vector<int> v;
+	
+	int x = multiplies<int>()(3, 4); // x = 3 * 4
+	
+	// Multiply my_set's each element by 10 and save in v.
+	transform(my_set.begin(), my_set.end(),	// source
+				back_inserter(v),			// destination
+				bind(multiplies<int>(), placeholders::_1, 10));	// Functor
+	// Fist parameter of multiplies<int>() is substituted with my_set's element.
+	// OUTPUT: v = {20, 30, 40, 50}
+	
+	NOTE: bind is available in C++11 Only, similar is available in C++03 as bind1st,bind2nd	
+*/
+
+#include<iostream>
+#include<deque>
+#include<set>
+#include<cmath>
+#include<algorithm>
+#include<functional>
+using namespace std;
+
+/* convert regular function to a functor */
+double myPower(double x, double y) {
+	return pow(x, y);
+}
+
+void show(std::deque<int> deq) {
+        cout << "deq elem  : ";
+        for(auto it = std::begin(deq); it != std::end(deq); it++) {
+                cout << *it << " ";
+        }
+        cout << endl;
+}
+
+int main() {
+	std::set<int> my_set = {2, 3, 4, 5};
+	std::deque<int> deq;
+	
+	/* convert regular function to a functor */
+	auto func = function<double (double, double)>(myPower);	// 'function' in C++11 only, in C++03 Use ptr_fun
+	transform(my_set.begin(), my_set.end(),	// source
+				back_inserter(deq),			// destination
+				bind(func, placeholders::_1, 2));	// Functor
+	show(deq);
+}
+/*OUTPUT:
+deq elem  : 4 9 16 25
+*/
+
+#include<iostream>
+#include<deque>
+#include<set>
+#include<cmath>
+#include<algorithm>
+#include<functional>
+using namespace std;
+
+/* convert regular function to a functor */
+double myPower(double x, double y) {
+	return pow(x, y);
+}
+
+void show(std::deque<int> deq) {
+        cout << "deq elem  : ";
+        for(auto it = std::begin(deq); it != std::end(deq); it++) {
+                cout << *it << " ";
+        }
+        cout << endl;
+}
+
+/* Predicate: */
+class NeedToCopy {
+public:
+    bool operator() (int x) {
+        return (x > 4) || (x < 4);
+    }
+};
+
+int main() {
+	std::set<int> my_set = {2, 3, 4, 5, 6};
+	std::deque<int> deq;
+	
+	/* convert regular function to a functor */
+	auto func = function<double (double, double)>(myPower);	// C++11
+	transform(my_set.begin(), my_set.end(),	// source
+				back_inserter(deq),			// destination
+				bind(func, placeholders::_1, 2));	// Functor
+	show(deq);
+	
+	std::deque<int> deq_log;
+	/* construct the functor from the built-in functor 
+	   when (x > 4) || (x < 4), copy from my_set to deq_log */
+	transform(my_set.begin(), my_set.end(),	// source
+				back_inserter(deq_log),			// destination
+				bind(logical_or<bool>(),
+				    bind(greater<int>(), placeholders::_1, 4),
+				    bind(less<int>(), placeholders::_1, 4)));	// Functor
+	/* The code is returning a bool value, therefore when applying to transform, you are back_inserting only 0/1 values 
+	   where 1 indicates the index of the container in which the value is within range, and 0 means it is not. 
+	   There for, the deque<int> d will contain the result  {1,1,0,1,1} instead of {2, 3, 4, 5, 6} which is what I expected.
+	*/
+	show(deq_log);
+	
+	/* but this is not ideal because then how do you handle the -1 return value. 
+	   It would require an extra step to remove. 
+	   when (x > 4) || (x < 4), copy from my_set to deq_log_lmda */
+	std::deque<int> deq_log_lmda;
+	transform(my_set.begin(), my_set.end(),	// source
+				back_inserter(deq_log_lmda), 	// destination
+				[](int x) {return (x > 4) || (x < 4)? x:-1; });
+	show(deq_log_lmda);
+	
+	/* Predicate: */
+	std::deque<int> deq_log_pred;
+	transform(my_set.begin(), my_set.end(),	// source
+				back_inserter(deq_log_pred), 	// destination
+				NeedToCopy());    /* Predicate: */
+	show(deq_log_pred);
+}
+/*OUTPUT:
+deq elem  : 4 9 16 25 36                                                                                                       
+deq elem  : 1 1 0 1 1                                                                                                          
+deq elem  : 2 3 -1 5 6                                                                                                         
+deq elem  : 1 1 0 1 1
+*/
+
+/* Why do we need functos in STL? */
+#include<iostream>
+#include<deque>
+#include<set>
+#include<algorithm>
+#include<functional>
+using namespace std;
+
+void show(std::set<int> se) {
+        cout << "set elem  : ";
+        for(auto it = std::begin(se); it != std::end(se); it++) {
+                cout << *it << " ";
+        }
+        cout << endl;
+}
+
+bool lsb_less(int x, int y) {
+    return (x%10) < (y%10);
+}
+
+class Lsb_less {
+    public:
+    bool operator()(int x, int y) {
+        return (x%10) < (y%10);
+    }
+};
+
+int main() {
+	std::set<int> my_set = {3, 1, 25, 7, 12};   // {1, 3, 7, 12, 25}
+	show(my_set);
+	// is same as:
+	std::set<int, less<int>> my_set_less = {3, 1, 25, 7, 12};
+	show(my_set_less);
+	
+	// below code won't compile because set will take second paramter as 'functor or function pointer' NOT function itself
+	//std::set<int, lsb_less> my_set_lsb = {3, 1, 25, 7, 12}; // {1, 12, 3, 25, 7}  // ERROR
+	
+	//std::set<int, Lsb_less> my_set_lsb = {3, 1, 25, 7, 12}; // {1, 12, 3, 25, 7}
+	//show(my_set_lsb); // Issue -> Not able to make compile error - free
+	
+}
+/*OUTPUT:
+set elem  : 1 3 7 12 25                                                                                                        
+set elem  : 1 3 7 12 25
+*/
+
+
+/* Predicate: 
+	A functor or function that:
+		1. Returns a boolean
+		2. Does not modify data
+	Predicate is used for comparison or condition check.
+*/
+/* Why do we need functos in STL? */
+#include<iostream>
+#include<deque>
+#include<set>
+#include<algorithm>
+#include<functional>
+using namespace std;
+class NeedToCopy {
+public:
+    bool operator() (int x) {
+        return (x > 4) || (x < 4);
+    }
+};
+
+void show(std::deque<int> se) {
+        cout << "set elem  : ";
+        for(auto it = std::begin(se); it != std::end(se); it++) {
+                cout << *it << " ";
+        }
+        cout << endl;
+}
+
+int main() {
+	/* Predicate: */
+	std::set<int> my_set = {2, 3, 4, 5, 6};
+	std::deque<int> deq_log_pred;
+	transform(my_set.begin(), my_set.end(),	// source
+				back_inserter(deq_log_pred), 	// destination
+				NeedToCopy());    /* Predicate: */
+	show(deq_log_pred);
+}
+/*OUTPUT:
+set elem  : 1 1 0 1 1
 */
