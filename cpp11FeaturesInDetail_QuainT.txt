@@ -1,0 +1,2086 @@
+Ten C++11 Features Every C++ Developer Should Use:
+--------------------------------------------------                                           
+auto
+nullptr
+range-based for loop
+override & final
+strongly types enum
+smart pointers
+lambadas function
+non-memebr begin and end
+static_assert & type traits
+move semantics
+
+//Ques:- what is auto keyword in c++?
+//Ans:-  it is used for type deduction.
+
+#include <iostream>
+#include <typeinfo>
+using namespace std;
+class Base {};
+
+int main(){
+    auto x = 20;
+    auto y = 20.5;
+    Base b;
+    auto z1 = b;
+    auto z2 = new Base();
+    
+    cout << " type of x: " << typeid(x).name() << endl;
+    cout << " type of y: " << typeid(y).name() << endl;
+    cout << " type of z1: " << typeid(z1).name() << endl;
+    cout << " type of z2: " << typeid(z2).name() << endl;
+    return 0;
+}
+/*
+OUTPUT:
+ type of x: i                                                                                                                                                                               
+ type of y: d                                                                                                                                                                               
+ type of z1: 4Base                                                                                                                                                                          
+ type of z2: P4Base
+*/
+
+//Ques:- What is constructor delegation?
+// Ans:- we don't want the assign part again and again in every constructor.
+//  avoid writing unnecessary code multi times. write heavy lifting part(assignment part) in on place &
+//  call it from rest of constructor.
+#include <iostream>
+using namespace std;
+class Base {
+	int _x, _y;
+	public:
+		Base():Base(0,0) {}
+		Base(int a):Base(a, 0) {}
+		Base(int a, int b):_x{a}, _y{b} {}
+		
+		void print() { cout << _x << "  " << _y << endl; }
+};
+
+int main() {
+	Base b1;
+	Base b2(10);
+	Base b3(10, 20);
+	
+	b1.print();
+	b2.print();
+	b3.print();
+	return 0;
+}
+
+/*OUTPUT:
+0  0                                                                                                                                                                                        
+10  0                                                                                                                                                                                       
+10  20 
+*/
+
+
+//Qes:- Use of friend function and classes in c++
+#include <iostream>
+using namespace std;
+class Base {
+	int x;
+	public:
+	Base() {}
+	Base(int x): x{x} {}
+	
+	//Class Base is telling that fun is my friend , used sometime in testing purposes for private data-member state.
+	friend void fun(Base &);
+};
+
+void fun(Base &obj) {
+	cout << obj.x << endl;
+	obj.x = 20;
+	cout << obj.x << endl;
+}
+
+int main() {
+	Base b(10);
+	fun(b);
+	return 0;
+}
+/*OUTPUT:
+10
+20
+*/
+
+
+//friend claas:- Admin class has all the right what Employee class having.so Admin can change the detail for employee.
+// A->B->C->D  : C's friend function fun() can only access the private protected data member of C's only NOT A's or B's.
+                 Thumb Up Rule: what ever class C can access, fun() can access to. 
+				 "If someone is your friend it's your friend only, Not your Day or Mother's friend."
+
+				 
+/*
+dynamic_cast in C++
+-------------------
+SYNTAX: dynamic_cast<new_type>(expression)
+
+dynamic_cast is used at runtime to find out correct down-cast.
+NOTE:
+	1. Need(Must have) at least one virtual function in base class.
+	2. if the cast is successful, dynamic_cast returns a value of type new_type.
+	3. if the cast fails and new_type is pointer type, it returns a null pointer of that type.
+	4. if the cast fails and new_type is reference type, it throws an exception that matches a handler of type std:bad_cast.
+*/
+
+#include <iostream>
+using namespace std;
+
+class Base {
+	virtual void print() { cout << "Base.!" << endl; }
+};
+
+class Derived1: public Base {
+	void print() { cout << "Derived1.!" << endl; }
+};
+
+class Derived2: public Base {
+	void print() { cout << "Derived2.!" << endl; }
+};
+
+/* Derived -> Base : up-cast, Base ->Derived : down-cast
+   Base class pointer is having object of Derived1 class, it is called up-cast.
+   Now Base class pointer is holding object of type Derived1 and now if we try to cast to Derived2 class pointer(called down-cast), will Fail since Derived1 & Derived2 is NOT related to each other.
+*/
+int main() {
+	Derived1 d1;
+	
+	Base *bp = dynamic_cast<Base*>(&d1);  // OK
+	
+	Derived2 *dp2 = dynamic_cast<Derived2*>(bp);  // This is where dynamic_cast is used, where it FAIL Since incorrect down-cast
+	if(dp2 == nullptr){
+		cout << " NULL -> dp2" << endl;
+	} else {
+		cout << " NOT NULL -> dp2" << endl;
+	}
+	
+	Base *bp1 = dynamic_cast<Base*>(&d1);  // OK
+	Derived1 *dp1 = dynamic_cast<Derived1*>(bp1);  // OK Since correct down-cast
+	if(dp1 == nullptr){
+		cout << " NULL -> dp1" << endl;
+	} else {
+		cout << " NOT NULL -> dp1" << endl;
+	}
+	
+	try {
+		// warning: dynamic_cast of 'Derived1 d1' to 'class Derived2&' can never succeed
+	    Derived2 &dr = dynamic_cast<Derived2&>(d1);  // throwing an instance of 'std::bad_cast'
+	} catch (exception &e){
+	    cout << e.what() << endl;
+	}
+	return 0;
+}
+/*OUTPUT:
+ NULL -> dp2                                                                                                                                                                                
+ NOT NULL -> dp1                                                                                                                                                                            
+ std::bad_cast
+
+BOTTOM LINES:
+1. work only on polymorphic base class (at least one virtual function in base class.)
+   because it use this information to decide about wrong down-cast.
+2. it is used for up-cast(D->B) and down-cast(B->D), but it is mainly used for correct down-cast.
+3. Using this cast has run time overhead, bcz it checks object types at run time using RTTI(Run Time Type Information.)
+4. If we are sure that we will never cast to wrong object then we should always avoid this cast and use static_cast.
+*/
+
+/*
+reinterpret_cast:
+   1. it can perform dangerous conversions because it can typecast any pointer to any other pointer.
+*/
+
+#include <iostream>
+using namespace std;
+
+class Mango {
+public: 
+	void eatMango() { cout << "eating Mango." << endl; }
+};
+
+class Banana {
+public: 
+	void eatBanana() { cout << "eating Banana." << endl; }
+	
+	/* Exp-RelatedChange, compiler actually internally change this way, if call is this: newBanana->eatBanana(newBanana, 1, 2) */
+	// void eatBanana(const Banana *this, int a, int b) { cout << "eating Banana." << endl; } 
+};
+
+int main() {
+	Banana *b = new Banana();
+	Mango *m = new Mango();
+	Banana *newBanana = reinterpret_cast<Banana*>(m);
+	
+	/* this will Work since compiler is actually changing the below call as:
+	   Banana::eatBanana(newBanana);
+	   
+	   Exp-RelatedChange:
+		newBanana->eatBanana(newBanana, 1, 2)
+	*/
+	newBanana->eatBanana(); //OK, This will work, but actual object is type of 'Mango', but will call to 'Banana'->eatBanana(), which is dangerous conversion.
+	return 0;
+}
+/*OUTPUT:
+eating Banana. 
+*/
+
+/*
+reinterpret_cast:
+   1. it is used when you want to work with bits.
+*/
+
+#include <iostream>
+using namespace std;
+
+struct myStruct {
+	int x;	// 4 bytes
+	int y;	// 4 bytes
+	char c;	// 4 bytes
+	bool b;
+};
+
+int main() {
+	myStruct s;
+	s.x=5; s.y=10; s.c='a'; s.b=true;
+	
+	int *p = reinterpret_cast<int*>(&s);
+	cout << *p << endl;  // 5
+	p++;
+	cout << *p << endl;  // 10
+	
+	//p++;
+	//cout << *p << endl;  // some random value: 
+	
+	p++;
+	char *c = reinterpret_cast<char*>(p);
+	cout << *c << endl;
+	
+	c++;
+	bool *b = reinterpret_cast<bool*>(c);
+	cout << *b << endl;
+	
+	return 0;
+}
+
+/* OUTPUT:
+5                                                                                                                                                                                           
+10                                                                                                                                                                                          
+a                                                                                                                                                                                           
+1
+
+BOTTOM LINE:
+	The result of reinterpret_cast cannot safely be used for anything other than being cast back to its original type.
+	we should be very careful when using this cast.
+	If we use this type of cast then it becomes non-portable product.
+*/
+
+
+/*
+const_cast:
+	The expression const_cast<T>(v) can be used to change the const or volatile qualifiers of pointers or references.
+	Where T must be a pointer, reference, or pointer-to-member type.
+	
+	1. When the actual referred object/variable is not const.
+*/
+#include <iostream>
+using namespace std;
+
+int main() {
+	/*we should NOT use const_cast at this situation */
+	const int a1 = 10;
+	const int *b1 = &a1;
+	int *d1 = const_cast<int*>(b1);
+	*d1 = 15;  // invalid and undefined behavior.
+	cout << "a1: " << a1 << endl;
+	
+	/* This is the situation where we should use const_cast */
+	int a2 = 20;  // When the actual referred object/variable is not const.
+	const int *b2 = &a2;
+	int *d2 = const_cast<int*>(b2); // Here b2 used to change the const or volatile qualifiers of pointers or references.
+	*d2 = 30; //valid code
+	cout << "a2: " << a2 << endl;
+	
+	return 0;
+}
+/*OUTPUT:
+a1: 10                                                                                                                                                                                      
+a2: 30
+*/
+
+/*
+const_cast:
+	2. when we need to call some 3'rd party library where it is taking variable/object as non-const but not changing that.
+*/
+
+#include <iostream>
+using namespace std;
+void thirdPLibrary(int *x) {
+	int k = 10;
+	cout << "k+*x : " << k + *x << endl;
+}
+
+int main() {
+	const int x = 20;
+	const int *px = &x;
+	thirdPLibrary(const_cast<int*>(px));
+	//thirdPLibrary((px));// error: invalid conversion from ‘const int*’ to ‘int*’ [-fpermissive]
+	return 0;
+}
+/*OUTPUT:
+k+*x : 30
+
+BOTTOM LINE:
+NEVER USE THIS:
+	1. Use only when you have to.
+	2. use only when the actual variable/object is not const.
+	3. Use when we are dealing with 3'rd party library and some API want  data in non-const form but we have it in const.
+	   (Actually we cant do anything in that case, but make sure that API is not changing our variable value.)
+*/
+
+
+/*
+static_cast in c++:
+-------------------
+1. it performs implicit conversions between types.
+
+Ques:- why to use static_cast when implicit conversion is involved.?
+Ans- Because C-Style cast is hard to find in code, but you can search static_cast keyword. 
+*/
+
+#include<iostream>
+using namespace std;
+
+int main() {
+	float f = 3.5;
+	int a;
+	a = f;
+	cout << "a: " << a << endl;
+	a = static_cast<int>(f);
+	cout << "a: " << a << endl;
+	return 0;
+}
+/*OUTPUT:
+a: 3                                                                                                                                                                                        
+a: 3
+*/
+
+/*
+2. Use static_cast when conversion between types is provided through conversion operator or conversion constructor.
+*/
+#include<iostream>
+using namespace std;
+class Int {
+	int x;
+  public:
+	Int(int x=0):x(x) { cout << "conversion constructor" << endl; }
+	operator string() { cout << "conversion operator" << endl;  return to_string(x); }
+};
+
+int main() {
+	Int obj(3);
+	
+	string str1 = obj;  //conversion operator for string
+	/*The rule of conversion constructor tells that if you class has any constructor with one parameter and  
+	  you are initilizing the same data type parameter into the object, we will call that constructor
+	*/
+	obj = 20;  // conversion constructor
+	
+	string str2 = static_cast<string>(obj);
+	obj = static_cast<Int>(30);
+	return 0;
+}
+/*OUTPUT:
+conversion constructor                                                                                                                                                                      
+conversion operator                                                                                                                                                                         
+conversion constructor                                                                                                                                                                      
+conversion operator                                                                                                                                                                         
+conversion constructor
+*/
+
+/*
+3. static_cast is more restrictive that C-Style.
+Example: char* to int* is allowd in C style but not with static_cast.
+*/
+#include<iostream>
+using namespace std;
+int main() {
+	char c; // 1 byte data
+	int *p = (int*)&c;  // 4 byte data, C-Style casting 
+	*p = 5;  // PASS at compile time but FAIL at run time, thats why dangerous.
+	
+	// error: invalid static_cast from type ‘char*’ to type ‘int*’ at COMPILE TIME
+	int* ip = static_cast<int*>(&c); // FAIL at compile time error, because not compatible pointer type. C++ Style casting 
+	return 0;
+}
+
+
+/* 
+4. static_cast avoid cast from derived to private base pointer.
+*/
+#include<iostream>
+using namespace std;
+class Base {};
+class Derived: private Base {}; // if you make public, then even with static_cast it will work
+int main() {
+	Derived d1;
+	Base *bp1 = (Base*)&d1; //Allowed at compile time
+	
+	//error: ‘Base’ is an inaccessible base of ‘Derived’
+	Base *bp2 = static_cast<Base*>(&d1); //NOT allowed at compile time.
+	return 0;
+}
+
+
+
+/*
+5. Use for all upcasts, but never use for confused down cast, because there is no runtime checks performed.
+*/
+#include<iostream>
+using namespace std;
+class Base {};
+class Derived1: public Base {};
+class Derived2: public Base {};
+int main() {
+	Derived1 d1;
+	Derived2 d2;
+	
+	Base *bp1 = static_cast<Base*>(&d1); // OK, upcasting
+	Base *bp2 = static_cast<Base*>(&d2); // OK, upcasting
+	
+	// never use for 'confused' down cast. since it will compile successfully so for below use the dynamic_cast
+	Derived1 *d1p = static_cast<Derived1*>(&bp2); //Fail, switching from Derived2 -> Derived1
+	Derived2 *d2p = static_cast<Derived2*>(&bp1); //Fail, switching from Derived1 -> Derived2
+	
+	return 0;
+}
+
+/*
+5. static_cast should be preferred when converting to void* OR from void*.
+*/
+#include<iostream>
+using namespace std;
+
+int main() {
+	int i = 10;
+	void *v = static_cast<void*>(&i);
+	int *ip = static_cast<int*>(v);
+	return 0;
+}
+
+
+/*
+//Strongly-typed enum:
+
+#include <iostream>
+#include<vector>
+using namespace std;
+enum class Color { RED=0, GREEN, BLUE, WHITE };
+enum class Season { WINTER=0, SUMMMER, AUTUMAN, SPRING };
+
+int main() {
+    Color c = Color::GREEN;
+    Season s = Season::WINTER;
+    if (c == Color::RED)
+        cout << "Color::RED"<< endl;
+    else if(c == Color::BLUE)
+        cout << "Color::BLUE"<< endl;
+    else
+        cout << "Color::WHITE"<< endl;
+    return 0;
+}
+*/
+
+/*
+Overloading new and delete operator:
+------------------------------------
+/*
+There are actually two things that happen in the above statement–memory allocation and object construction; 
+the new keyword is responsible for both. One step in the process is to call operator new in order to allocate memory; 
+the other step is to actually invoke the constructor. Operator new only allows us to change the memory allocation method, 
+but does not do anything with the constructor calling method. Keyword new is responsible for calling the constructor, not operator new.
+
+What are the operators that cannot be overloaded in C++?
+(A) . (Member Access or Dot operator)
+(B) ?: (Ternary or Conditional Operator )
+(C) :: (Scope Resolution Operator)
+(D) .* (Pointer-to-member Operator )
+(E) Object size Operator   (sizeof) 
+(F) Object type Operator   (typeid) 
+
+List of operators that can be overloaded are:
+----------------------------------------------
++    -    *    /      %        ^
+&    |    ~    !,        =
+    =      ++        --
+    ==    !=      &&        ||
++=    -=    /=    %=      ^=        &=
+|=    *=    =      []        ()
+->    ->*    new    new []      delete    delete []
+
+Which of the following operators are overloaded by default by the compiler in every user defined classes even if user has not written?
+    Assign operator is by default available in all user defined classes even if user has not implemented. The default assignement does shallow copy.
+    But comparison operator “==” is not overloaded.
+
+NOTE: new and delete operator can be global, but Converstion Operator must be a member function.
+*/
+#include <iostream>
+using namespace std;
+class Test {
+    //int x;
+  public:
+    int x;
+    Test(int _x):x(_x) { cout << "Constructor Called.!" << endl; }
+    Test():Test(0) {}
+    ~Test() { cout << "Destructor Called.!" << endl; }
+    
+    void* operator new(size_t);  // new can be global BY PREFIXING friend keyword as: friend void* operator new(size_t);
+    void operator delete(void*); // delete can be global BY PREFIXING friend keyword as: friend void operator delete(void*);
+    Test& operator()(int); //  function call operator overloading.
+    bool operator==(const Test &t); //comparision operator
+    
+    /*Which of the following operators should be preferred to overload as a global function rather than a member method?
+    //Ans:- Insertion Operator <<
+    Explanation: cout is an object of ostream class which is a compiler defined class.
+    When we do “cout << obj" where obj is an object of our class, the compiler first looks for an operator function in ostream, then it looks for a global function.
+    One way to overload insertion operator is to modify ostream class which may not be a good idea. So we make a global method. Following is an example.
+    */
+    friend ostream & operator << (ostream &out, const Test &t);
+    
+    // Overloading -> operator
+    Test* operator->(void);
+    
+    // How does C++ compiler differs between overloaded postfix and prefix operators?
+    // Ans:- A postfix ++ has a dummy parameter.
+    Test operator ++(int); // postfix ++ has a dummy parameter.
+    Test & operator ++();
+};
+
+//comparision operator
+bool Test::operator==(const Test &t) {
+    if(x == t.x)
+        return true;
+    else
+        return false;
+}
+
+void* Test::operator new(size_t s) { // Here new can be global BY REMOVING CLASS_NAME:: as: void* operator new(size_t s) {
+    void *storage = malloc(s);
+    cout << "new Called.!" << endl;
+    return storage;
+}
+
+void Test::operator delete(void* storage) { // Here delete can be global BY REMOVING CLASS_NAME:: as: void operator delete(void* storage) {
+    cout << "free Called.!" << endl;
+    free(storage);
+}
+
+// prefix ++ (++x).
+Test& Test::operator ++() {
+    cout << "++prefix Called.!" << endl;
+    x++;
+    return *this;
+}
+
+// postfix ++ has a dummy parameter.(x++)
+Test Test::operator ++(int dummy) {
+    cout << "postfix++ Called.!" << endl;
+    Test t(x);
+    x++;
+    return t;
+}
+
+ostream& operator << (ostream &out, const Test &t) {
+    out << "x : " << t.x;
+    return out;
+}
+/*
+The function call operator, when overloaded, does not modify how functions are called. 
+Rather, it modifies how the operator is to be interpreted when applied to objects of a given type.
+If you overload a function call operator for a class its declaration will have the following form:
+        return_type operator()(parameter_list) 
+*/
+Test& Test::operator()(int _x) {
+    x = _x;
+    return *this;
+}
+
+// Overloading -> operator
+Test* Test::operator->(void) {
+    cout << "Overloading -> operator" << endl;
+    return this; 
+} 
+
+int main() {
+    Test *t = new Test(10);
+    delete t;
+    cout << "-----------------------" << endl;
+    Test *x = new Test;
+    delete x;
+    cout << "-----------------------" << endl;
+    Test *z = new Test;
+    ++(*z);
+    cout << *z << endl;
+    (*z)++;
+    cout << *z << endl;
+    delete z;
+    cout << "-----------------------" << endl;
+    Test *x1 = new Test(100);
+    Test *x2 = new Test(1);
+    *x2 = *x1; // Assign operator is by default available in all user defined classes even if user has not implemented. The default assignement does shallow copy.
+    cout << *x2 << endl;
+    cout << "*x1 == *x2 --> " << (*x1 == *x2) << endl;
+    delete x1;
+    delete x2;
+    cout << "-----------------------" << endl;
+    Test T(5); 
+    Test* Tptr = &T; 
+    cout << "T.x = " << T.x << endl;  // Accessing x normally 
+    cout << "Tptr->x = " << Tptr->x << endl;  // Accessing x using normal object pointer  
+    cout << "T->x = " << T->x << endl; // Accessing x using -> operator
+    cout << "-----------------------" << endl;
+    Test y;
+    y(30);
+    cout << y << endl;;
+    return 0;
+}
+/*
+OUTPUT:
+new Called.!                                                                                                                                                                                  
+Constructor Called.!                                                                                                                                                                          
+Destructor Called.!                                                                                                                                                                           
+free Called.!                                                                                                                                                                                 
+-----------------------                                                                                                                                                                       
+new Called.!                                                                                                                                                                                  
+Constructor Called.!                                                                                                                                                                          
+Destructor Called.!                                                                                                                                                                           
+free Called.!                                                                                                                                                                                 
+-----------------------                                                                                                                                                                       
+new Called.!                                                                                                                                                                                  
+Constructor Called.!                                                                                                                                                                          
+++prefix Called.!                                                                                                                                                                             
+x : 1                                                                                                                                                                                         
+postfix++ Called.!                                                                                                                                                                            
+Constructor Called.!                                                                                                                                                                          
+Destructor Called.!                                                                                                                                                                           
+x : 2                                                                                                                                                                                         
+Destructor Called.!                                                                                                                                                                           
+free Called.!                                                                                                                                                                                 
+-----------------------                                                                                                                                                                       
+new Called.!                                                                                                                                                                                  
+Constructor Called.!                                                                                                                                                                          
+new Called.!                                                                                                                                                                                  
+Constructor Called.!                                                                                                                                                                          
+x : 100                                                                                                                                                                                       
+*x1 == *x2 --> 1                                                                                                                                                                              
+Destructor Called.!                                                                                                                                                                           
+free Called.!                                                                                                                                                                                 
+Destructor Called.!                                                                                                                                                                           
+free Called.!                                                                                                                                                                                 
+-----------------------                                                                                                                                                                       
+Constructor Called.!                                                                                                                                                                          
+T.x = 5                                                                                                                                                                                       
+Tptr->x = 5                                                                                                                                                                                   
+Overloading -> operator                                                                                                                                                                       
+T->x = 5                                                                                                                                                                                      
+-----------------------                                                                                                                                                                       
+Constructor Called.!                                                                                                                                                                          
+x : 30                                                                                                                                                                                        
+Destructor Called.!                                                                                                                                                                           
+Destructor Called.! 
+*/
+
+
+
+/*
+Overloading this [ ] operator
+*/
+#include <iostream>
+using namespace std;
+class Test {
+    int *x;
+    int size;
+  public:
+    Test(std::initializer_list<int> ls) {
+        cout << "[ Start ] : Constructor Called.!" << endl;
+        size = ls.size();
+        x = (int*)malloc(sizeof(int) * size);
+        int index = 0;
+        for(auto _x: ls){
+            x[index++] = _x;
+        }
+        cout << "[ End ]   : Constructor Called.!" << endl;
+    }
+    
+    ~Test() { 
+        cout << "[ Start ] : Destructor Called.!" << endl;
+        if(x) {
+            free(x);
+            x = nullptr;
+        }
+        cout << "[ End ]   : Destructor Called.!" << endl;
+    }
+    /*Which of the following operators should be preferred to overload as a global function rather than a member method?
+    //Ans:- Insertion Operator <<
+    Explanation: cout is an object of ostream class which is a compiler defined class.
+    When we do “cout << obj" where obj is an object of our class, the compiler first looks for an operator function in ostream, then it looks for a global function.
+    One way to overload insertion operator is to modify ostream class which may not be a good idea. So we make a global method. Following is an example.
+    */
+    friend ostream & operator << (ostream &out, const Test &t);
+    
+    int operator[](int i);
+};
+
+int Test::operator[](int i) { 
+    return x[i]; 
+} 
+
+ostream& operator << (ostream &out, const Test &t) {
+    out << "{ ";
+    for(auto i=0; i < t.size; i++){
+        out << t.x[i] << " ";
+    }
+    out << "}";
+    return out;
+}
+
+int main() {
+    Test t1{10, 20, 30, 40, 50};
+    Test t2{100, 500};
+    cout << t1 << " : " << t2 << endl;
+    cout << t1[1] << " : " << t2[1] << endl;
+    return 0;
+}
+/*OUTPUT:
+[ Start ] : Constructor Called.!                                                                                                                                                              
+[ End ]   : Constructor Called.!                                                                                                                                                              
+[ Start ] : Constructor Called.!                                                                                                                                                              
+[ End ]   : Constructor Called.!                                                                                                                                                              
+{ 10 20 30 40 50 } : { 100 500 }                                                                                                                                                              
+20 : 500                                                                                                                                                                                      
+[ Start ] : Destructor Called.!                                                                                                                                                               
+[ End ]   : Destructor Called.!                                                                                                                                                               
+[ Start ] : Destructor Called.!                                                                                                                                                               
+[ End ]   : Destructor Called.!
+*/
+
+
+/*
+How can we restrict dynamic allocation of objects of a class using new?
+Ans:- By making an empty private new and new[] operators.
+
+Explanation: If we declare new and [] new operators as PRIVATE, then the objects cannot be created anywhere (within the class and outside the class)
+
+*/
+#include <iostream>
+using namespace std;
+class Test {
+  private: // MAKING public will work, OK
+    void* operator new(size_t size) {} // error: ‘static void* Test::operator new(size_t)’ is private
+    void* operator new[](size_t size) {} // error: ‘static void* Test::operator new [](size_t)’ is private
+};
+
+int main() {
+    Test *obj = new Test;
+    Test *arr = new Test[10];
+    return 0;
+}
+
+/*
+Ques:- How delete[] know how many objects to delete?
+Ans:- 1. Over allocation
+	  2. Associative Array
+*/
+
+// 1. Over allocation technique
+#include<iostream>
+int const size = 10;
+class Base {
+	public:
+		int _b;
+};
+/*
+WORDSIZE is here: 4 byte
+temp: 0-1-2-3-4-5-6-....-43  -> (4 + 10 * 4 = 0----43)
+p   :         4-5-6-....-43
+*/
+int main() {
+	Base *bp = new Base[size];
+	/*
+	char *temp = (char*)operator new[](WORDSIZE + size * sizeof(Base));
+	Base *p = (Base*)(temp + WORDSIZE);
+	*(size_t*)temp = size;
+	for(int i=0; i<size; i++) {
+		new(p+i) Base();  // placement new
+	}
+	*/
+	delete[] bp;
+	/*
+	size_t size = *(size_t*) ((char*)bp - WORDSIZE);
+	while(size-- != 0) {
+		(bp + size)->~Base(); // call destructor explicitly whenever we call placement new.
+	}
+	operator delete[] ((char*)bp - WORDSIZE);
+	*/
+	return 0;
+}
+
+
+// 2. Associative Array technique
+#include<iostream>
+int const size = 10;
+class Base {
+	public:
+		int _b;
+};
+/*
+WORDSIZE is here: 4 byte
+temp: 0-1-2-3-4-5-6-....-43  -> (4 + 10 * 4 = 0----43)
+p   :         4-5-6-....-43
+*/
+int main() {
+	Base *bp = new Base[size];
+	/* // this whole thing is to just store 'size'
+	Base *bp = (Base*) operator new[](size * sizeof(Base));
+	for(size_t i=0; i<size; i++) {
+		new(bp+i) Base();  // placement new
+	}
+	AssociativeArray.insert(bp, size);
+	*/
+	
+	delete[] bp;
+	/*
+	size_t size = AssociativeArray.lookup(bp);
+	while(size-- != 0) {
+		(bp + size)->~Base(); // call destructor explicitly whenever we call placement new.
+	}
+	operator delete[] (bp);
+	*/
+	return 0;
+}
+
+/*
+Ques:- what is structural padding && packing in C/C++?
+Ans:- It is a way to speed up the CPU optimization.
+
+#pragma pack(1) // It tells the compiler DO NOT do padding here. (disable padding)
+*/
+
+// Case I: Padding, if WORDSIZE is 4 bytes.
+struct Base {
+	char a;
+	char b;
+	int i;
+};
+sizeof(Base) -> 8 bytes because of byte padding
+|a|b|-|-|i|i|i|i|
+ 0 1 2 3 4 5 6 7
+ 
+ 
+// Case II: Packing(disable padding), if WORDSIZE is 4 bytes.
+#pragma pack(1)
+struct Base {
+	char a;
+	char b;
+	int i;
+};
+sizeof(Base) -> 6 bytes because of byte packing
+|a|b|i|i|i|i|
+ 0 1 2 3 4 5
+ 
+/*
+How vector works internally.?
+when size reach more than the capacity, then capacity get doubled from the previous capacity.like (1,2,4,8,16,32...)
+New array is created and copied the previous array's data. 
+*/
+#include<iostream>
+#include<vector>
+using namespace std;
+int main() {
+	vector<int> v;
+	cout << "size  : " << v.size() << endl;
+	cout << "capacity  : " << v.capacity() << endl;
+	
+	v.push_back(1);
+	cout << "size  : " << v.size() << endl;
+	cout << "capacity  : " << v.capacity() << endl;
+	
+	v.push_back(3);
+	cout << "size  : " << v.size() << endl;
+	cout << "capacity  : " << v.capacity() << endl;
+}
+
+//How To Write Your Own atoi Function In C & C++?
+int myAtoI(char *str) {
+	int res = 0;
+	int sign = 1;
+	int i = 0;
+	
+	if(str[0] == '-') {
+		sign = -1;
+		i++;
+	}
+
+	for(; str[i] != '\0'; i++) 
+		res = res *10 + str[i] - '0';
+		
+	return sign *res;
+}
+
+int main() {
+	char str[] = "-1234";
+	int val = myAtoI(str);
+	printf("%d", val);
+	return 0;
+}
+
+/*
+Ques:- How to stop someone from taking address of your class.?
+&(address operator get overloaded automatically. so
+1. Overload & operator and keep it private. OR
+2. delete * operator from your class.
+*/
+
+#include<iostream>
+using namespace std;
+
+class Base {
+	int x;
+  public:
+	Base() {}
+	Base(int x):x{x} {}
+	Base* operator&()=delete; // delete * operator from your class.
+  private:  // Overload & operator and keep it private
+	Base* operator&() {
+		cout << "Bingo.!" << endl;
+		return this;
+	}
+};
+
+int main() {
+	Base b;
+	Base *bp = &b;
+	
+	cout << &b < endl;
+	cout << bp < endl;
+}
+
+/*
+Ques:- Why We must/should return reference from Copy Assignment Operator in C++?
+Ans:- to support chaining assignment.
+*/
+#include<iostream>
+using namespace std;
+
+class Base {
+	int x;
+  public:
+	Base():Base(0) {}
+	Base(int x):x{x} {}
+	Base& operator=(const Base& rhs) { // return by reference, Correct
+		x = rhs.x;
+		return *this;
+	}
+	
+	/*
+	Base operator=(const Base& rhs) { // return by value, Wrong
+		x = rhs.x;
+		return *this;
+	}
+	*/
+	
+	void show() { cout << "x: " << x << endl; }
+};
+
+int main() {
+    int a = 10, b, c = 2;
+	(b=c) = a;
+	cout << "B: " << b << endl;
+	cout << "C: " << c << endl;
+	Base b1(10);
+	Base b2, b3;
+	(b2 = b3)  = b1;
+	b1.show();b2.show();b3.show();
+}
+/*
+OUTPUT:
+return by reference Copy Assignment Operator:
+x: 10                                                                                                                                                                                       
+x: 10                                                                                                                                                                                       
+x: 0
+
+return by value Copy Assignment Operator:
+x: 10                                                                                                                                                                                       
+x: 0                                                                                                                                                                                        
+x: 0
+*/
+
+/*Ques:- SMART POINTERS in C++ (std::unique_ptr, std::shared_ptr, std::weak_ptr) */
+#include<iostream>
+#include<memory>
+using namespace std;
+
+class Employee {
+    int x;
+    public:
+        Employee(int _x=0):x(_x) {
+            cout << "Constructor called.!" << endl;
+        }
+        
+        ~Employee() {
+            cout << "Destructor called.!" << endl;
+        }
+        
+        void print() { cout << "Hello -> " << x << endl; }
+};
+
+int main() {
+    {
+        std::unique_ptr<Employee> up = std::make_unique<Employee>(5);
+        up->print();
+    }
+    cout << "Exit unique_ptr" << endl;
+    
+    // shared_ptr increase the ref count, when the ref count is zero then destructor is actually called.
+    {
+        std::shared_ptr<Employee> sp1;
+        {
+           std::shared_ptr<Employee> sp2 = std::make_shared<Employee>(10); 
+           sp1 = sp2;
+           sp2->print();
+        }
+        sp1->print();
+    }
+    cout << "Exit shared_ptr" << endl;
+    
+    //weak_ptr dosen't increase the ref count, it simply use the object if it still pointing to valid memory location
+    {
+        std::weak_ptr<Employee> wp;
+        {
+           std::shared_ptr<Employee> sp = std::make_shared<Employee>(15); 
+           wp = sp;
+           sp->print();
+        }
+        cout << "Weak pointer demo." << endl;
+    }
+    cout << "Exit weak_ptr" << endl;
+    
+    return 0;
+}
+/*OUTPUT:
+Constructor called.!                                                                                                                                                                          
+Hello -> 5                                                                                                                                                                                    
+Destructor called.!                                                                                                                                                                           
+Exit unique_ptr                                                                                                                                                                               
+Constructor called.!                                                                                                                                                                          
+Hello -> 10                                                                                                                                                                                   
+Hello -> 10                                                                                                                                                                                   
+Destructor called.!                                                                                                                                                                           
+Exit shared_ptr                                                                                                                                                                               
+Constructor called.!                                                                                                                                                                          
+Hello -> 15                                                                                                                                                                                   
+Destructor called.!                                                                                                                                                                           
+Weak pointer demo.                                                                                                                                                                            
+Exit weak_ptr
+*/
+
+//Ques: Shallow Copy(bitwise copy) Example for dynamic allocated member.
+#include<iostream>
+#include<string.h>
+
+using namespace std;
+
+class String {
+    char *m_buffer;
+    unsigned int m_size;
+    public:
+        String(const char *string) {
+            cout << "Constructor called.!" << endl;
+            m_size = strlen(string);
+            m_buffer = new char[m_size + 1];
+            memcpy(m_buffer, string, m_size);
+            m_buffer[m_size] = 0;
+        }
+        
+        ~String() {
+            cout << "Destructor called.!" << endl;
+            delete[] m_buffer;
+        }
+        
+        friend std::ostream& operator<<(std::ostream&stream, const String& str);
+};
+
+std::ostream& operator<<(std::ostream&stream, const String& str){
+    stream << str.m_buffer;
+    return stream;
+}
+
+int main() {
+
+    String st("Hello world");
+    String sc = st;
+    cout << st << endl;
+    cout << sc << endl;
+    return 0;
+}
+/*OUTPUT:
+Constructor called.!                                                                                                                                                                        
+Hello world                                                                                                                                                                                 
+Hello world                                                                                                                                                                                 
+Destructor called.!                                                                                                                                                                         
+Destructor called.!                                                                                                                                                                         
+*** Error in `/home/a.out': double free or corruption (fasttop): 0x0000000000827c20 ***                                                                                                     
+Aborted
+*/
+
+//Ques:- Deep copy do the copying member into new allocated memory space.
+#include<iostream>
+#include<string.h>
+
+using namespace std;
+
+class String {
+    char *m_buffer;
+    unsigned int m_size;
+    public:
+        String(const char *string) {
+            cout << "Constructor called.!" << endl;
+            m_size = strlen(string);
+            m_buffer = new char[m_size + 1];
+            memcpy(m_buffer, string, m_size);
+            m_buffer[m_size] = 0;
+        }
+        
+        /* //shallow copy looks similer
+        String(const String& other){
+            memcpy(this, &other, sizeof(String));
+        } 
+        //OR
+        String(const String& other):m_buffer(other.m_buffer), m_size(other.m_size) { }
+        */
+        //deep copy looks similer
+        String(const String& other):m_size(other.m_size){
+            m_buffer = new char[m_size + 1];
+            memcpy(m_buffer, other.m_buffer, m_size);
+            m_buffer[m_size] = 0;
+        }
+        ~String() {
+            cout << "Destructor called.!" << endl;
+            delete[] m_buffer;
+        }
+        
+        char& operator[](int index){ return m_buffer[index]; }
+        friend std::ostream& operator<<(std::ostream&stream, const String& str);
+};
+
+std::ostream& operator<<(std::ostream&stream, const String& str){
+    stream << str.m_buffer;
+    return stream;
+}
+
+int main() {
+
+    String st("Hello world");
+    String sc = st;
+    sc[0] = 'h';
+    cout << st << endl;
+    cout << sc << endl;
+    return 0;
+}
+/*OUTPUT:
+Constructor called.!                                                                                                                                                                          
+Hello world                                                                                                                                                                                   
+hello world                                                                                                                                                                                   
+Destructor called.!                                                                                                                                                                           
+Destructor called.!
+*/
+
+/*
+Advanced C++: Exceptions in Destructors :
+------------------------------------------
+Don't let exceptions to escape from destructor, because the result could be disastrous.
+Ans:- C++ don't like having more than one exception pending at any point of time.
+      NOTE: that's why we should NOT throw exception from destructor.
+      whenever exception happens, all the local object get destroyed (calling destructor) from stack, before catching up the exception.
+*/
+
+#include<iostream>
+#include<string.h>
+
+using namespace std;
+class Emp {
+    std::string _name;
+    public:
+        Emp(std::string name=""):_name(name) { cout << "constructor called.! -> " << _name << endl; }
+        ~Emp() { cout << "destructor called.! -> " << _name << endl; }
+        void show() { cout << "_name : " << _name << endl; }
+};
+
+int main() {
+    try {
+        Emp e1("abc");
+        Emp e2("xyz");
+        throw 10; // All the local object will get destroyed in LIFO order from stAck, then exception will catched.
+        e1.show();
+        e2.show();
+    } catch (int x) {
+        cout << "Exception thrown.!" << endl;
+    }
+    cout << "Exit.! " << endl;
+    return 0;
+}
+/*OUTPUT:
+constructor called.! -> abc                                                                                                                                                                 
+constructor called.! -> xyz                                                                                                                                                                 
+destructor called.! -> xyz                                                                                                                                                                  
+destructor called.! -> abc                                                                                                                                                                  
+Exception thrown.!                                                                                                                                                                          
+Exit.!
+*/
+
+/*
+C++ don't like having more than one exception pending at any point of time from the same scope.
+In below program, Two exception is in pending from object e1 and e2, before catch.
+
+NOTE: that's why we should NOT throw exception from destructor.
+*/
+
+#include<iostream>
+#include<string.h>
+
+using namespace std;
+class Emp {
+    std::string _name;
+    public:
+        Emp(std::string name=""):_name(name) { cout << "constructor called.! -> " << _name << endl; }
+        ~Emp() { 
+            cout << "START: destructor called.! -> " << _name << endl;  
+            throw 10;
+            cout << "END  : destructor called.! -> " << _name << endl;
+        }
+        void show() { cout << "_name : " << _name << endl; }
+};
+
+int main() {
+    try {
+        Emp e1("abc");
+        Emp e2("xyz");
+        e1.show();
+        e2.show();
+    } catch (int x) {
+        cout << "Exception thrown.!" << endl;
+    }
+    cout << "Exit.! " << endl;
+    return 0;
+}
+/*OUTPUT:
+constructor called.! -> xyz                                                                                                                                                                 
+_name : abc                                                                                                                                                                                 
+_name : xyz                                                                                                                                                                                 
+START: destructor called.! -> xyz                                                                                                                                                           
+terminate called after throwing an instance of 'int'                                                                                                                                        
+Aborted 
+*/
+
+/* 1. solution: destructor shallow the exception 
+
+*/
+#include<iostream>
+#include<string.h>
+
+using namespace std;
+class Emp {
+    std::string _name;
+    public:
+        Emp(std::string name=""):_name(name) { cout << "constructor called.! -> " << _name << endl; }
+        /* 1. solution: destructor shallow the exception */
+        ~Emp() { 
+            try { // Enclose ALL the exception prone code here
+                cout << "START: destructor called.! -> " << _name << endl;  
+                throw 10;
+                cout << "END  : destructor called.! -> " << _name << endl;
+            } catch (int x) {
+                cout << "Exception thrown.! -> " << x << endl;
+            } catch(...) { cout << "Any exception if above ALL doesn't match." << endl; } 
+			// (...) dangerous: this will mask of any kind of exception, and wont capture meaning full info
+        }
+        void show() { cout << "_name : " << _name << endl; }
+};
+
+int main() {
+    {
+        Emp e1("abc");
+        Emp e2("xyz");
+        e1.show();
+        e2.show();
+    }
+    cout << "Exit.! " << endl;
+    return 0;
+}
+/*OUTPUT:
+constructor called.! -> abc                                                                                                                                                                   
+constructor called.! -> xyz                                                                                                                                                                   
+_name : abc                                                                                                                                                                                   
+_name : xyz                                                                                                                                                                                   
+START: destructor called.! -> xyz                                                                                                                                                             
+Any exception if above ALL doesn't match.                                                                                                                                                     
+START: destructor called.! -> abc                                                                                                                                                             
+Any exception if above ALL doesn't match.                                                                                                                                                     
+Exit.!
+*/
+
+/* 2. Solution : Move the exception-prone code into different function from destructor */
+#include<iostream>
+#include<string.h>
+
+using namespace std;
+class Emp {
+    std::string _name;
+    public:
+        Emp(std::string name=""):_name(name) { cout << "constructor called.! -> " << _name << endl; }
+        ~Emp() { cout << "destructor called.! -> " << _name << endl;  }
+        /* 2. Solution : Move the exception-prone code into different function from destructor */
+        void prepareToDestr() { throw 10; }
+        void show() { cout << "_name : " << _name << endl; }
+};
+
+int main() {
+    try {
+        Emp e1("abc");
+        Emp e2("xyz");
+        e1.show();
+        e2.show();
+        e1.prepareToDestr();
+        e2.prepareToDestr();
+    } catch(int x) { cout << "Exception ! -> " << x << endl; }
+    cout << "Exit.! " << endl;
+    return 0;
+}
+/*OUTPUT:
+constructor called.! -> abc                                                                                                                                                                   
+constructor called.! -> xyz                                                                                                                                                                   
+_name : abc                                                                                                                                                                                   
+_name : xyz                                                                                                                                                                                   
+_name : abc                                                                                                                                                                                   
+destructor called.! -> xyz                                                                                                                                                                    
+destructor called.! -> abc                                                                                                                                                                    
+Exception ! -> 10                                                                                                                                                                             
+Exit.!
+*/
+
+/* Advanced C++ 5: Virtual Function in Constructor or Destructor:
+-----------------------------------------------------------------
+Calling virtual function in constructor or destructor is not a good idea.
+*/
+#include<iostream>
+#include<string.h>
+
+using namespace std;
+class Dog {
+    public:
+        //Dog() { cout << "Dog constructor called.! -> " << endl; }
+        
+        /*calling the virtual function bark() from the constructor will even call the Dog's bark(), 
+          because at this point YellowDog's object is not yet instantiated (YellowDog's constructor is not yet called)
+          NOTE: thats why we should avoid calling virtual function from constructor */
+        Dog() { cout << "Dog constructor called.! -> " << endl; bark(); }
+        
+        // if we don't make bark as virtual, even object of type YellowDog will call the Dog's bark() from the seeCat() Not the YellowDog's bark()
+        //void bark() { cout << "I am just a Dog " << endl; }
+        
+        // if we make bark as virtual, object of type YellowDog will call the YellowDog's bark() from the seeCat()
+        virtual void bark() { cout << "I am just a Dog " << endl; }
+        
+        void seeCat() { bark(); }
+        
+        /* whenever YellowDog's object get destory, it will first call the YellowDog's destructor and then Dog's destructor.
+           Hence calling the virtual function bark() from the destructor's of Dog will even call the Dog's bark() as at this point YellowDog's object is already 
+           destroyed by calling YellowDog's destructor.
+           Note: it is not a good idea to call the memeber function of an object which is already get destroyed.
+        */
+        ~Dog() { cout << "Dog destructor called.! -> " << endl; bark(); }
+};
+
+class YellowDog: public Dog {
+    public:
+        YellowDog() { cout << "YellowDog constructor called.! -> " << endl; }
+        void bark() { cout << "I am just a Yellow Dog " << endl; }
+        ~YellowDog() { cout << "YellowDog destructor called.! -> " << endl; }
+};
+
+int main() {
+    YellowDog y;
+    y.seeCat();
+    cout << "Exit.! " << endl;
+    return 0;
+}
+/*OUTPUT:
+Dog constructor called.! ->                                                                                                                                                                   
+I am just a Dog                                                                                                                                                                               
+YellowDog constructor called.! ->                                                                                                                                                             
+I am just a Yellow Dog                                                                                                                                                                        
+Exit.!                                                                                                                                                                                        
+YellowDog destructor called.! ->                                                                                                                                                              
+Dog destructor called.! ->                                                                                                                                                                    
+I am just a Dog
+*/
+
+/*
+Advanced C++: Dynamic Polymorphism with virtual keyword
+*/
+
+#include<iostream>
+#include<string.h>
+
+using namespace std;
+struct TreeNode {
+    struct TreeNode* left;
+    struct TreeNode*right;
+    int data;
+};
+
+class Generic_Parser {
+    public:
+        void parse_preorder(struct TreeNode *node) {
+            if(node) {
+                process_node(node);
+                parse_preorder(node->left);
+                parse_preorder(node->right);
+            }
+        }
+    private:
+        virtual void process_node(struct TreeNode *node) { cout << "Generic Parser!" << endl; }
+};
+
+class EmpChart_Parser: public Generic_Parser {
+    private:
+        virtual void process_node(struct TreeNode *node) { cout << "EmpChart Parser!" << endl; }
+};
+
+int main() {
+    struct TreeNode *node = new TreeNode();
+    EmpChart_Parser ep;
+    ep.parse_preorder(node);
+    cout << "Exit.! " << endl;
+    return 0;
+}
+/*OUTPUT:
+EmpChart Parser!                                                                                                                                                                            
+Exit.!
+*/
+
+/*
+Advanced C++: Dynamic Polymorphism without using virtual keyword(AT COMPILE TIME), which satisfy the below condition as well.
+1. IS-A relationship between base and derived class.
+2. Base class defines "generic" algorithm that is used by derived class.
+3. The "generic" algorithm is customized by the derived class.
+
+This is called curiously recurring template pattern(static polymorphism, simulated polymorphism)
+*/
+
+#include<iostream>
+#include<string.h>
+
+using namespace std;
+struct TreeNode {
+    struct TreeNode* left;
+    struct TreeNode*right;
+    int data;
+};
+
+template <typename T>
+class Generic_Parser {
+    public:
+        void parse_preorder(struct TreeNode *node) {
+            if(node) {
+                process_node(node);
+                parse_preorder(node->left);
+                parse_preorder(node->right);
+            }
+        }
+        
+        void process_node(struct TreeNode *node) { 
+            static_cast<T*>(this)->process_node(node);
+        }
+};
+
+class EmpChart_Parser: public Generic_Parser<EmpChart_Parser> {
+    public:
+        void process_node(struct TreeNode *node) { cout << "EmpChart Parser!" << endl; }
+};
+
+int main() {
+    struct TreeNode *node = new TreeNode();
+    EmpChart_Parser ep;
+    ep.parse_preorder(node);
+    cout << "Exit.! " << endl;
+    return 0;
+}
+/*OUTPUT:
+EmpChart Parser!                                                                                                                                                                            
+Exit.!
+*/
+
+
+/* Generalized static polymorphism: HAPPENING AT COMPILE TIME */
+#include<iostream>
+#include<vector>
+using namespace std;
+
+template <typename T>
+T max(std::vector<T> v) {
+    T max = v[0];
+    // error: need ‘typename’ before ‘std::vector::iterator’ because ‘std::vector’ is a dependent scope
+    typename std::vector<T>::iterator it; // use typename before this
+    for(it = v.begin(); it != v.end(); it++) {
+        if(*it > max)
+            max = *it;
+    }
+    return max;
+}
+
+int main() {
+    std::vector<int> v;
+    v.push_back(2);
+    v.push_back(4);
+    v.push_back(6);
+    cout << "Max: " << max<int>(v) << endl;
+    cout << "Exit.! " << endl;
+    return 0;
+}
+/*OUTPUT:
+Max: 6                                                                                                                                                                                      
+Exit.!
+*/
+
+/* 
+Advanced C++: Multiple Inheritance - Devil or Angel:
+-----------------------------------------------------
+   Initialization of the virtual base class will be from the most derived class. 
+
+   Interface Segregation Principal:
+	Split large interfaces into smaller and more specific ones so that client only need to know
+	about the methods that are of interest to them.
+	
+   Abstract Class : A class has one or more pure virtual functions. 
+   
+   Pure Abstract Class:
+		A class containing only pure virtual functions.
+			- no data
+			- no concrete functions
+
+Summary:
+---------
+1. Multiple Inheritance is an important technique e.g- ISP
+2. Derive only from PACs when using Multiple Inheritance 			
+*/
+
+/* Generalised static olymorphism
+*/
+#include<iostream>
+#include<vector>
+using namespace std;
+
+class File {
+    public:
+        string name;
+        void open() { cout << "File open called.!" << endl; }
+        File(std::string fname) { cout << "File constructor called.!" << endl; }
+};
+
+class InputFile : virtual public File {
+    public:
+        InputFile(std::string fname) : File(fname) { cout << "InputFile constructor called.!" << endl; }
+};
+
+class OutputFile : virtual public File {
+    public:
+        OutputFile(std::string fname) : File(fname) { cout << "OutputFile constructor called.!" << endl; }
+};
+
+class IOFile : public InputFile, public OutputFile {
+    public:
+        IOFile(std::string fname) : InputFile(fname), OutputFile(fname) , File(fname) { cout << "IOFile constructor called.!" << endl; }
+};
+
+
+int main() {
+    IOFile f("gpp");
+    f.open();
+    f.OutputFile::open();
+    f.InputFile::open();
+    cout << "Exit.! " << endl;
+    return 0;
+}
+/*OUTPUT:
+File constructor called.!                                                                                                                                                                     
+InputFile constructor called.!                                                                                                                                                                
+OutputFile constructor called.!                                                                                                                                                               
+IOFile constructor called.!                                                                                                                                                                   
+File open called.!                                                                                                                                                                            
+File open called.!                                                                                                                                                                            
+File open called.!                                                                                                                                                                            
+Exit.!
+*/
+
+/* Advanced C++: Duality Of Public Inheritance - Interface & Implementation 
+   ------------------------------------------------------------------------
+	The Duality of Public Inheritance	
+		- Inheritance of Interface
+		- Inheritance of Implementation
+		
+	NOTE: A Non pure_virtual is providing a inheritance of the interface as well as a default implementation. 
+	
+	Type of Inheritance in C++:
+	---------------------------
+		1. Pure virtual public function - inherit interface ONLY.
+		2. Non-virtual public function - inherit both interface and implementation.
+		3. Impure virtual public function - inherit interface and default implementation.
+		4. Protected function - inherit implementation ONLY.
+		
+		As a s/w designer, it is very important to separate the concepts of interest and implementation.
+	
+*/
+
+#include<iostream>
+using namespace std;
+
+class Dog {
+	public:
+		virtual void bark() = 0; // bark will be just inheritance of interface NOT Inheritance of Implementation
+		void run() { cout << "I am running Dog." << endl; } // Here run() is inheritance of the interface as well as a default implementation.
+		virtual void eat() { cout << "I am eating Dog." << endl; } // Here run() is inheritance of the interface as well as a re-implementation(override).
+};
+
+class YellowDog : public Dog {
+	public:
+		virtual void bark() { cout << "I am YellowDog." << endl; }
+		virtual void eat() { cout << "I am eating YellowDog." << endl; }
+};
+
+
+int main() {
+    YellowDog y;
+    y.run();
+    y.eat();
+    y.bark();
+    cout << "Exit.! " << endl;
+    return 0;
+}
+/*OUTPUT:
+I am running Dog.                                                                                                                                                                           
+I am eating YellowDog.                                                                                                                                                                      
+I am YellowDog.                                                                                                                                                                             
+Exit.!
+*/
+
+/*
+Interface Inheritance:
+----------------------
+	1. subtyping
+	2. Polymorphism
+  virtual void bark() = 0;
+Pitfalls:
+	- Be careful of interface bloat.
+	- Interfaces do not reveal implementation.
+	
+Implementation Inheritance:
+---------------------------
+	- Increase code complexity
+	- Not encouraged
+	
+  public:
+		void run() { cout << "I am running Dog." << endl; } 
+		virtual void eat() { cout << "I am eating Dog." << endl; } 
+  protected:
+		virtual void sleep(){ cout << "I am sleeping Dog." << endl; } 
+
+Guidelines for Implementation Inheritance:
+------------------------------------------
+	1. Don't use inheritance for code reuse, use composition.
+	2. Minimize the implementation in base classes. Base classes should be thin.
+	3. Minimize the level of hierarchies in implementation inheritance.
+	
+"Inheritance is evil??"
+	- "Inheritance is often useful, but more often overused(abused)."
+	
+Code reuse: composition is better than inheritance:
+	1. Less code coupling between reused code and re-user of the code.
+		a. Child class automatically inherits ALL parent class's public members.
+		b. Child class can access parent's protected members.
+			- Inheritance breaks encapsulation.
+		Move all the activity of Dog to ActivityManager class from the class Dog.
+			// code reuse with composition
+			class ActivityManager { /* common activity */ }
+			class Dog { ... }
+			
+		There are two big enemies for encapsulation: 1. friend 	2. inheritance
+		
+	2. Dynamic binding
+		a. Inheritance is bound at compile time.
+		b. composition can be bound either at compile time or at run time.
+		
+		class OutdoorActivityManager : public ActivityManager {...}
+		class IndoorActivityManager : public ActivityManager {...}
+		
+	3. Composition has more Flexible code construction
+		Dog				-HAS-	ActivityManager
+		BullDog			-HAS-	OutdoorActivityManager
+		ShepheredDog	-HAS-	IndoorActivityManager
+*/
+
+
+/*
+Advanced C++: Inheritance - Public, Protected, and Private:
+-------------------------------------------------------------
+Access control:
+	1. None of the Derived classes can access anything that is private in Base.
+	2. DerivedAsPublic inherits public members of Base as public and protected members of Base as protected.
+	3. DerivedAsPrivate inherits public and protected members of Base as private.
+	4. DerivedAsProtected inherits public and protected members of Base as protected.
+	
+Casting:
+	1. Anyone can cast a DerivedAsPublic* to Base*. NOTE:- DerivedAsPublic is a special kind of Base.
+	2. DerivedAsPrivate's members and friend can cast a DerivedAsPrivate* to Base*.
+	3. DerivedAsProtected's members, friends, and children can cast a DerivedAsProtected* to Base*.
+*/
+
+#include<iostream>
+using namespace std;
+
+class Base {
+	public:
+		void showAsPublic() { cout << "Public Access control.!" << endl; }
+	protected:
+		void showAsProtected() { cout << "Protected Access control.!" << endl; }
+	private:
+		void showAsPrivate() { cout << "Private Access control.!" << endl; }
+};
+
+class DerivedAsPublic : public Base {
+	public:
+		void show() {
+			showAsPublic();		// OK. DerivedAsPublic's public function
+			showAsProtected();	// OK. DerivedAsPublic's protected function
+			//showAsPrivate();	// Error. Base's private function
+		}
+};
+
+class DerivedAsPrivate : private Base {
+	public:
+		void show() {
+			showAsPublic();		// OK. DerivedAsPrivate's private function
+			showAsProtected();	// OK. DerivedAsPrivate's private function
+			//showAsPrivate();	// Error. Base's private function
+		}
+};
+
+class DerivedAsProtected : protected Base {
+	public:
+		using Base::showAsPublic; // use this syntax to access the public function of Base class which is inherited as protected.
+		using Base::showAsProtected; // use this syntax to access the protected function of Base class which is inherited as protected.
+		void show() {
+			showAsPublic();		// OK. DerivedAsProtected's protected function
+			showAsProtected();	// OK. DerivedAsProtected's protected function
+			//showAsPrivate();	// Error. Base's private function
+		}
+};
+
+int main() {
+	DerivedAsPublic d1;
+	d1.showAsPublic();		//OK. showAsPublic() is DerivedAsPublic's public function
+	
+	DerivedAsProtected d2;
+	// use "using Base::showAsPublic;" syntax in DerivedAsProtected class to access the public function of Base class which is inherited as protected to make it work.
+	d2.showAsPublic();		// Error. showAsPublic() is DerivedAsProtected's protected function
+	// use "using Base::showAsProtected;" syntax in DerivedAsProtected class to access the protected function of Base class which is inherited as protected to make it work.
+	d2.showAsProtected();   // Error. showAsProtected() is DerivedAsProtected's protected function
+	
+	Base* pBase = &d1;	//OK
+	//pBase = &d2;		// Error. Can't cast DerivedAsProtected's address to Base pointer.
+}
+/*OUTPUT:
+Public Access control.!                                                                                                                                                                     
+Public Access control.!                                                                                                                                                                     
+Protected Access control.!
+*/
+
+
+/*
+public inheritance : IS-A relationship, e.g- DerivedAsPublic IS-A kind of a Base.
+private inheritance: similar to HAS-A relation.
+*/
+
+#include<iostream>
+using namespace std;
+
+class Ring {
+	public:
+		void tinkle() { cout << "Ring tinkle.!" << endl; }
+};
+
+/* Composition */
+class DogWithComposition {
+		Ring m_ring;
+	public:
+		void tinkle() { m_ring.tinkle(); } // call forwarding
+};
+
+/*Private Inheritance */
+class DogWithPrivateInheritance : private Ring {
+	public:
+		using Ring::tinkle;
+};
+
+int main() {
+    DogWithComposition dc;
+    dc.tinkle();
+    
+    DogWithPrivateInheritance dpi;
+    dpi.tinkle();
+}
+/*OUTPUT:
+Ring tinkle.!                                                                                                                                                                               
+Ring tinkle.!
+*/
+
+/*
+Demystifying operator new/delete:
+---------------------------------
+What happens when following code is executed.?
+	Dog *pDog = new Dog();
+	
+	1. operator new is called to allocate memory.
+	2. Dog's constructor is called to create Dog.
+	3. If step 2 throws an exception, call operator delete to free the memory allocated in step 1.
+	
+	delete pDog;
+	1. Dog's destructor is called.
+	2. operator delete is called to free the memory.
+
+Note: new handler is a function invoked when operator new failed to allocate memory.
+	  set_new_handler() installs a new handler and returns current new handler.
+	
+	void* operator new(std::size_t size) throw(std::bad_alloc) {
+		while(true) {
+			void* pMem = malloc(size);	// Allocate memory
+			if(pMem)
+				return pMem;	// return the memory if successful
+				
+			std::new_handler Handler = std::set_new_handler(0);	//Get new Handler
+			std::set_new_handler(Handler);
+			
+			if(Handler)
+				(*Handler)();	// Invoke new handler
+			else	
+				throw bad_alloc();	//if new handler is null, throw exception
+		}
+	}
+*/
+
+#include<iostream>
+using namespace std;
+
+void customNew4Dog(std::size_t size) { cout << "customNew4Dog called!" << endl; }
+void customDelete4Dog() { cout << "customDelete4Dog called!" << endl; }
+void customNew4YellowDog(std::size_t size) { cout << "customNew4YellowDog called!" << endl; }
+void customDelete4YellowDog() { cout << "customDelete4YellowDog called!" << endl; }
+
+class Dog {
+  public:
+    Dog() { cout << "Dog constructor called!" << endl; };
+	static void* operator new(std::size_t size) /* throw (std::bad_alloc) */ {
+		if(size == sizeof(Dog)) {
+		    cout << "customNew4Dog called!" << endl;
+			customNew4Dog(size);
+		} else	{
+		    cout << "Actuall type object creation called!" << endl;
+			::operator new(size);
+		}
+	}
+	/* we can't use virtual with static keyword to support virtual destructor with static
+	   virtual static void operator delete(void* pMem) throw() // Error
+	*/
+	static void operator delete(void* pMem) throw() {
+		cout << "Deleting a Dog.!" << endl;
+		customDelete4Dog();
+		free(pMem);
+	}
+	
+	~Dog() { cout << "Dog destructor called!" << endl; }; // Use this to make virtual destructor without using "virtual static"
+};
+
+class YellowDog : public Dog {
+	int age;
+  public:
+    YellowDog() { cout << "Dog constructor called!" << endl; }
+	static void* operator new(std::size_t size) /* throw(std::bad_alloc) */ {
+	    customNew4YellowDog(size);
+	}
+	static void operator delete(void* pMem) throw() {
+		cout << "Deleting a YellowDog.!" << endl;
+		customDelete4YellowDog();
+		free(pMem);
+	}
+	~YellowDog() { cout << "YellowDog destructor called!" << endl; }
+};
+
+int main() {
+	Dog* pDog = new YellowDog();
+	delete pDog;
+}
+
+/*
+Advanced C++: Resource Managing Class:
+--------------------------------------
+When you class owns another object by its pointer, you should either: 
+	a) define deep copying for copy constructor and assignment operator; 
+	b) delete copy constructor and assignment operator, and use clone() function. 
+	
+Solution 1: Define copy constructor and copy assignment operator for DEEP copying
+Solution 2: Delete copy constructor and copy assignment operator, define clone() function.
+*/
+
+//Error-prone code 
+#include<iostream>
+#include<vector>
+using namespace std;
+
+class Person {
+	public:
+		Person(string name) { pName = new string(name); cout << "constructor called.!" << endl; }
+		~Person() { delete pName;  cout << "destructor called.!" << endl; }
+		void printName() { cout << "Name: " << *pName << endl; }
+	private:
+		string* pName;
+};
+
+int main() {
+	vector<Person> prsn;
+	prsn.push_back(Person("ABC"));
+	/*  1. "ABC" is constructed.
+		2. A shallow copy of "ABC" is saved in the vector prsn.
+		3. "ABC" is destroyed.
+	*/
+	
+	prsn.back().printName(); // Hence object in vector is pointing to the already destroyed object.
+}
+/*
+constructor called.!                                                                                                                                                                        
+destructor called.!                                                                                                                                                                         
+Segmentation fault (core dumped
+*/
+
+/* Solution 1: Define copy constructor and copy assignment operator for DEEP copying */
+#include<iostream>
+#include<vector>
+using namespace std;
+
+class Person {
+	public:
+	    Person() : pName(nullptr) {}
+		Person(string name) { pName = new string(name); cout << "constructor called.!" << endl; }
+		~Person() { if(pName) { delete pName;  cout << "destructor called.!" << endl; } }
+		void printName() { cout << "Name: " << *pName << endl; }
+		
+		Person(const Person& obj) { pName = new string(*(obj.pName_())); cout << "deep copy constructor called.!" << endl; }
+		Person& operator=(const Person& obj) { if(this != &obj) { cout << "deep copy assignment opearator called.!" << endl; pName = new string(*(obj.pName_())); } }
+		string* pName_() const { return pName; }
+	private:
+		string* pName;
+};
+
+int main() {
+	vector<Person> prsn;
+	prsn.push_back(Person("ABC"));
+	
+	prsn.back().printName();
+}
+/*OUTPUT:
+constructor called.!                                                                                                                                                                        
+deep copy constructor called.!                                                                                                                                                              
+destructor called.!                                                                                                                                                                         
+Name: ABC                                                                                                                                                                                   
+destructor called.!
+*/
+
+/* Solution 2: Delete copy constructor and copy assignment operator, define clone() function. */
+#include<iostream>
+#include<vector>
+using namespace std;
+
+class Person {
+	public:
+	    Person() : pName(nullptr) {}
+		Person(string name) { pName = new string(name); cout << "constructor called.!" << endl; }
+		~Person() { if(pName) { delete pName;  cout << "destructor called.!" << endl; } }
+		void printName() { cout << "Name: " << *pName << endl; }
+	private:
+	    Person(const Person& obj);
+	    Person& operator=(const Person& obj);
+		string* pName;
+};
+
+int main() {
+	vector<Person*> prsn;
+	prsn.push_back(new Person("ABC"));
+	
+	prsn.back()->printName();
+	delete prsn.back();
+}
+/*OUTPUT:
+constructor called.!                                                                                                                                                                        
+Name: ABC                                                                                                                                                                                   
+destructor called.! 
+*/
+
+OR,
+
+#include<iostream>
+#include<vector>
+using namespace std;
+
+class Person {
+	public:
+	    Person() : pName(nullptr) {}
+		Person(string name) { pName = new string(name); cout << "constructor called.!" << endl; }
+		~Person() { if(pName) { delete pName;  cout << "destructor called.!" << endl; } }
+		void printName() { cout << "Name: " << *pName << endl; }
+		Person* clone() { return (new Person(*(pName))); }
+	    Person(const Person& obj) = delete;
+	    Person& operator=(const Person& obj) = delete;
+	private:
+		string* pName;
+};
+
+int main() {
+	vector<Person*> prsn;
+	prsn.push_back(new Person("ABC"));
+	
+	prsn.back()->printName();
+	delete prsn.back();
+}
+/*OUTPUT:
+constructor called.!                                                                                                                                                                        
+Name: ABC                                                                                                                                                                                   
+destructor called.!
+*/
+
+/*
+Advanced C++.Resource Acquisition is Initialization.:
+------------------------------------------------------
+	1. The only code that can be guaranteed to be executed after the exception is thrown are
+	   the destructor of objects residing on the stack.
+	2. Resource management therefore needs to be tied to the lifespan of the suitable objects
+	   in order to gain automatic deallocation and reclamation.
+	   
+	class Lock {
+		private:
+			Mutex_t* m_pm;
+		public:
+			explicit Lock(Mutex_t* pm) { Mutex_lock(pm); m_pm = pm; }
+			~Lock() { Mutex_unlock(m_pm); }
+	};
+	
+	void func() {
+		Lock mylock(&mu);
+		// Do something
+	} // The mutex will always be released when mylock is destroyed from the stack.
+*/
