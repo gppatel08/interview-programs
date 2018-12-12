@@ -17,20 +17,23 @@ Ten C++11 Features Every C++ Developer Should Use:
 --------
 a. Before C++11 the auto keyword was used for storage duration specification. 
 b. In the new standard its purpose was changed towards type inference. 
-c. auto is now a sort of placeholder for a type, telling the compiler it has to deduce the actual type of a variable that is being declared from its initializer. 
+c. auto is now a sort of placeholder for a type, telling the compiler it has to deduce the actual type of a variable that is being 
+   declared from its initializer. 
 d. It can be used when declaring variables in different scopes such as namespaces, blocks or initialization statement of for loops.
 	auto i = 42;        // i is an int
 	auto l = 42LL;      // l is an long long
 	auto p = new foo(); // p is a foo*
 	
 e. Using auto usually means less code (unless your type is int which is one letter shorter). 
-   Think of iterators in STL that you always had to write while iterating over containers. It makes obsolete creating typedefs just for the sake of simplicity.
+   Think of iterators in STL that you always had to write while iterating over containers. 
+   It makes obsolete creating typedefs just for the sake of simplicity.
 	std::map<std::string, std::vector<int>> map;
 	for(auto it = begin(map); it != end(map); ++it) { }
 	
 f. auto cannot be used as the return type of a function. 
    However, you can use auto in place of the return type of function, but in this case the function must have a trailing return type. 
-   In this case auto does not tell the compiler it has to infer the type, it only instructs it to look for the return type at the end of the function.
+   In this case auto does not tell the compiler it has to infer the type, it only instructs it to look for the return type at the 
+   end of the function.
    
    In the example below the return type of function compose is the return type of operator+ that sums values of types T1 and T2.
 	template <typename T1, typename T2>
@@ -43,7 +46,8 @@ f. auto cannot be used as the return type of a function.
 -----------
 a. Zero used to be the value of null pointers, and that has drawbacks due to the implicit conversion to integral types. 
 b. The keyword nullptr denotes a value of type std::nullptr_t that represents the null pointer literal. 
-c. Implicit conversions exists from nullptr to null pointer value of any pointer type and any pointer-to-member types, but also to bool (as false). 
+c. Implicit conversions exists from nullptr to null pointer value of any pointer type and any pointer-to-member types, 
+   but also to bool (as false). 
 d. But no implicit conversion to integral types exist.
 
 	void foo(int* p) {}
@@ -65,9 +69,10 @@ e. For backward compatibility 0 is still a valid null pointer value.
 3. Range-based for loops:
 -------------------------
 a. C++11 augmented the for statement to support the "foreach" paradigm of iterating over collections. 
-b. In the new form, it is possible to iterate over C-like arrays, initializer lists and anything for which the non-member begin() and end() functions are overloaded.
-c. This for each for is useful when you just want to get and do something with the elements of a collection/array and don't care about indexes, 
-   iterators or number of elements.
+b. In the new form, it is possible to iterate over C-like arrays, initializer lists and anything for which the non-member begin() 
+   and end() functions are overloaded.
+c. This for each for is useful when you just want to get and do something with the elements of a collection/array and 
+   don't care about indexes, iterators or number of elements.
 
 	std::map<std::string, std::vector<int>> map;
 	std::vector<int> v;
@@ -90,14 +95,14 @@ c. This for each for is useful when you just want to get and do something with t
 	
 4. Override and final:
 ----------------------
-a. I always founded the virtual methods badly designed in C++ because there wasn't (and still isn't) a mandatory mechanism to mark virtual methods as 
-   overridden in derived classes. 
-b. The virtual keyword is optional and that makes reading code a bit harder, because you may have to look through the top of the hierarchy to check 
-   if the method is virtual. 
+a. I always founded the virtual methods badly designed in C++ because there wasn't (and still isn't) a mandatory mechanism to mark 
+   virtual methods as overridden in derived classes. 
+b. The virtual keyword is optional and that makes reading code a bit harder, because you may have to look through the top of the 
+   hierarchy to check if the method is virtual. 
 c. I have always used, and encouraged people to use the virtual keyword on derived classes also, to make the code easier to read. 
 
 d. However, there are subtle errors that can still arise. 
-    d.1 Take for instance the following example:
+        d.1 Take for instance the following example:
 	--------------------------------------------
 	class B {
 	  public:
@@ -109,8 +114,9 @@ d. However, there are subtle errors that can still arise.
 		virtual void f(int) {std::cout << "D::f" << std::endl;}
 	};
 	
-	D::f is supposed to override B::f. However, the signature differ, one takes a short, one takes an int, therefor B::f is just another method with the 
-	same name (and overload) and not an override. You may call f() through a pointer to B and expect to print D::f, but it's printing B::f. 
+	D::f is supposed to override B::f. However, the signature differ, one takes a short, one takes an int, therefor B::f is just 
+	another method with the same name (and overload) and not an override. You may call f() through a pointer to B and expect to 
+	print D::f, but it's printing B::f. 
 	
 	d.2 Here is another subtle error: 
 	---------------------------------
@@ -151,7 +157,7 @@ e. Fortunately there is now a way to describe your intentions. Two new special i
 	   If it's in a derived classes you can use both the override and final specifiers. 
 
 	The second example would become:
-    --------------------------------
+        --------------------------------
 	class B {
 	  public:
 		virtual void f(int) {std::cout << "B::f" << std::endl;}
@@ -171,9 +177,9 @@ e. Fortunately there is now a way to describe your intentions. Two new special i
 	
 5. Strongly-typed enums:
 ------------------------
-a. "Traditional" enums in C++ have some drawbacks: they export their enumerators in the surrounding scope (which can lead to name collisions, 
-   if two different enums in the same have scope define enumerators with the same name), they are implicitly converted to integral types and 
-   cannot have a user-specified underlying type.
+a. "Traditional" enums in C++ have some drawbacks: they export their enumerators in the surrounding scope (which can lead to name 
+   collisions, if two different enums in the same have scope define enumerators with the same name), they are implicitly converted 
+   to integral types and cannot have a user-specified underlying type.
 b. These issues have been fixed in C++ 11 with the introduction of a new category of enums, called "strongly-typed enums". 
 c. They are specified with the "enum class" keywords. 
 d. They no longer export their enumerators in the surrounding scope, are no longer implicitly converted to integral types and 
@@ -184,27 +190,25 @@ d. They no longer export their enumerators in the surrounding scope, are no long
 	
 6. Smart pointers:
 ------------------
-There have been tons of articles written on this subject, 
-therefore I just want to mention the smart pointers with reference counting and auto releasing of owned memory that are available:
-	a. unique_ptr: should be used when ownership of a memory resource does not have to be shared (it doesn't have a copy constructor), 
-	   but it can be transferred to another unique_ptr (move constructor exists).
+There have been tons of articles written on this subject, therefore I just want to mention the smart pointers with reference counting and auto releasing of owned memory that are available:
+	a. unique_ptr: should be used when ownership of a memory resource does not have to be shared (it doesn't have a copy 
+	   constructor), but it can be transferred to another unique_ptr (move constructor exists).
 	   
 	b. shared_ptr: should be used when ownership of a memory resource should be shared (hence the name).
 	
 	c. weak_ptr: holds a reference to an object managed by a shared_ptr, but does not contribute to the reference count; 
-	   it is used to break dependency cycles (think of a tree where the parent holds an owning reference (shared_ptr) to its children, 
-	   but the children also must hold a reference to the parent; if this second reference was also an owning one, a cycle would be created and 
-	   no object would ever be released).
+	   it is used to break dependency cycles (think of a tree where the parent holds an owning reference (shared_ptr) to 
+	   its children, but the children also must hold a reference to the parent; if this second reference was also an owning one, 
+	   a cycle would be created and no object would ever be released).
 	   
 	d. On the other hand the auto_ptr is obsolete and should no longer be used.
 
-NOTE: When you should unique_ptr and when you should use shared_ptr depends on the ownership requirements and I recommend reading this discussion.
-      https://stackoverflow.com/questions/15648844/using-smart-pointers-for-class-members
+NOTE: When you should unique_ptr and when you should use shared_ptr depends on the ownership requirements and 
+      I recommend reading this discussion. https://stackoverflow.com/questions/15648844/using-smart-pointers-for-class-members
 
 	A. The first example below shows unique_ptr. 
 	--------------------------------------------
-	   If you want to transfer ownership of an object to another unique_ptr use std::move (I'll discuss this function in the last paragraph). 
-	   After the ownership transfer, the smart pointer that ceded the ownership becomes null and get() returns nullptr.
+        If you want to transfer ownership of an object to another unique_ptr use std::move (I'll discuss this function in the last            paragraph). After the ownership transfer, the smart pointer that ceded the ownership becomes null and get() returns nullptr.
 	   
 		void foo(int* p) {
 			std::cout << *p << std::endl;
@@ -237,8 +241,10 @@ NOTE: When you should unique_ptr and when you should use shared_ptr depends on t
 		The first declaration is equivalent to this one. // Fo this std::shared_ptr<int> p1(new int(42));
 		auto p3 = std::make_shared<int>(42);
 		
-		make_shared<T> is a non-member function and has the advantage of allocating memory for the shared object and the smart pointer with a single allocation, 
-		as opposed to the explicit construction of a shared_ptr via the contructor, that requires at least two allocations. 
+		make_shared<T> is a non-member function and has the advantage of allocating memory for the shared object and 
+		the smart pointer with a single allocation, as opposed to the explicit construction of a shared_ptr via the 
+		contructor, that requires at least two allocations. 
+		
 		In addition to possible overhead, there can be situations where memory leaks can occur because of that. 
 		In the next example memory leaks could occur if seed() throws an error.
 			void foo(std::shared_ptr<int> p, int init) {
@@ -263,7 +269,8 @@ NOTE: When you should unique_ptr and when you should use shared_ptr depends on t
 		if(wp.expired())
 			std::cout << "expired" << std::endl;
 
-	  NOTE: If you try to lock on an expired weak_ptr (the object is weakly reference has been released) you get an empty shared_ptr.
+           NOTE: If you try to lock on an expired weak_ptr (the object is weakly reference has been released) you get 
+	         an empty shared_ptr.
 	  
 7. Lambdas:
 -----------
@@ -294,8 +301,8 @@ d. A bit trickier are recursive lambdas. Imagine a lambda that represents a Fibo
 	error C3536: 'fib': cannot be used before it is initialized
 	error C2064: term does not evaluate to a function taking 1 arguments
 	
-	The problem is auto means the type of the object is inferred from its initializer, yet the initializer contains a reference to it, 
-	therefore needs to know its type. This is a cyclic problem. 
+	The problem is auto means the type of the object is inferred from its initializer, yet the initializer contains a reference 
+	to it, therefore needs to know its type. This is a cyclic problem. 
 	The key is to break this dependency cycle and explicitly specify the function's type using std::function.
 
 	std::function<int(int)> lfib = [&lfib](int n) {return n < 2 ? 1 : lfib(n-1) + lfib(n-2);};
@@ -329,7 +336,8 @@ d. Overloads for C-like arrays are also provided.
 		auto pos = std::find_if(std::begin(arr), std::end(arr), is_odd);
 		if(pos != std::end(arr))
 			std::cout << *pos << std::endl;
-e. This is basically identical code to the std::vector version. That means we can write a single generic method for all types supported by begin() and end().
+e. This is basically identical code to the std::vector version. That means we can write a single generic method for all types 
+   supported by begin() and end().
 
 	template <typename Iterator>
 	void bar(Iterator begin, Iterator end) {
@@ -382,8 +390,8 @@ b. If the assertion is true, nothing happens. If the assertion is false, the com
 	see reference to class template instantiation 'Vector<T,Size>' being compiled
 	with
 	[
-      T=double,
-      Size=2
+         T=double,
+         Size=2
 	]
 	
 c. static_assert becomes more useful when used together with type traits. 
@@ -442,23 +450,25 @@ d. A C++ class/struct used to have some implicit member functions:
 	4. a copy assignment operator. 
 	
 e. The copy constructor and the copy assignment operator perform a bit-wise (or shallow) copy, i.e. copying the variables bitwise. 
-   That means if you have a class that contains pointers to some objects, they just copy the value of the pointers and not the objects they point to. 
-   This might be OK in some cases, but for many cases you actually want a deep-copy, meaning that you want to copy the objects pointers refer to, 
-   and not the values of the pointers. In this case you have to explicitly write 'copy constructor and copy assignment operator' to perform a deep-copy.
+   That means if you have a class that contains pointers to some objects, they just copy the value of the pointers and not the 
+   objects they point to. This might be OK in some cases, but for many cases you actually want a deep-copy, meaning that you want to 
+   copy the objects pointers refer to, and not the values of the pointers. In this case you have to explicitly write 
+   'copy constructor and copy assignment operator' to perform a deep-copy.
 
-f. What if the object you initialize or copy from is an rvalue (a temporary). You still have to copy its value, but soon after the rvalue goes away. 
-   That means an overhead of operations, including allocations and memory copying that after all, should not be necessary.
+f. What if the object you initialize or copy from is an rvalue (a temporary). You still have to copy its value, but soon after 
+   the rvalue goes away. That means an overhead of operations, including allocations and memory copying that after all, should not 
+   be necessary.
    
 g. Enter the 'move constructor and move assignment operator'. These two special functions take a T&& argument, which is an rvalue. 
    Knowing that fact, they can modify the object, such as "stealing" the objects their pointers refer to. 
    For instance, a container implementation (such as a vector or a queue) may have a pointer to an array of elements. 
    
    "When an object is instantiating from a temporary, instead of allocating another array, copying the values from the temporary, 
-    and then deleting the memory from the temporary when that is destroyed, we just copy the value of the pointer that refers to the allocated array, 
-    thus saving an allocation, copying a sequence of elements, and a later de-allocation."
+    and then deleting the memory from the temporary when that is destroyed, we just copy the value of the pointer that refers to the 
+    allocated array, thus saving an allocation, copying a sequence of elements, and a later de-allocation."
    
-h. The following example shows a dummy buffer implementation. The buffer is identified by a name, has a pointer (wrapper in an std::unique_ptr) to 
-   an array of elements of type T and variable that tells the size of the array.
+h. The following example shows a dummy buffer implementation. The buffer is identified by a name, has a pointer (wrapper in an 
+   std::unique_ptr) to an array of elements of type T and variable that tells the size of the array.
    
    
 	template <typename T>
@@ -516,7 +526,7 @@ h. The following example shows a dummy buffer implementation. The buffer is iden
 
 			temp._buffer = nullptr;
 			temp._size = 0;
-            return *this;
+                        return *this;
 		}
 	};
    
@@ -536,17 +546,20 @@ h. The following example shows a dummy buffer implementation. The buffer is iden
 	}
 	
 	NOTE: The default copy constructor and copy assignment operator should look familiar. 
-	      What's new to C++11 is the 'move constructor and move assignment operator', implemented in the spirit of the aforementioned move semantics. 
+	      What's new to C++11 is the 'move constructor and move assignment operator', implemented in the spirit of the 
+	      aforementioned move semantics. 
 		  If you run this code you'll see that when b4 is constructed, the move constructor is called. 
 		  Also, when b1 is assigned a value, the move assignment operator is called. 
 		  The reason is the 'value returned by getBuffer() is a temporary, i.e. an rvalue.'	 
 
-	1. You probably noticed the use of std::move in the move constructor, when initializing the name variable and the pointer to the buffer. 
+	1. You probably noticed the use of std::move in the move constructor, when initializing the name variable and 
+	   the pointer to the buffer. 
 	   The name is actually a string, and std::string also implements move semantics. Same for the std::unique_ptr. 
 	   However, if we just said _name(temp._name) the copy constructor would have been called. 
 	   For _buffer that would not have been even possible because std::unique_ptr does not have a copy constructor. 
 	   But why wasn't the move constructor for std::string called in this case? 
-		Ans:- Because even if the object the move constructor for Buffer is called with is an rvalue, inside the constructor it is actually an lvalue. 
+		Ans:- Because even if the object the move constructor for Buffer is called with is an rvalue, inside the constructor 
+		      it is actually an lvalue. 
 		      Why? Because it has a name, "temp" and a named object is an lvalue. 
 			  To make it again an rvalue (and be able to invoke the appropriate move constructor) one must use std::move. 
 			  NOTE:- This (std::move) function just turns an lvalue reference into an rvalue reference.
@@ -584,8 +597,7 @@ class Buffer {
       swap(*this, temp);
    }
  
-   friend void swap(Buffer& first, Buffer& second) noexcept
-   {
+   friend void swap(Buffer& first, Buffer& second) noexcept {
        using std::swap;
        swap(first._name  , second._name);
        swap(first._size  , second._size);
@@ -616,7 +628,8 @@ b2 -> buf1, 32
  keyword - constexpr:
  -------------------
  1. constexpr that can enable programmers to enable any associated expressions to be evaluated at compile time.
- 2. With the standardization of C++11, the keyword - 'constexpr' can be implemented for enabling which expressions needs to be evaluated at compile time.
+ 2. With the standardization of C++11, the keyword - 'constexpr' can be implemented for enabling which expressions needs to be 
+    evaluated at compile time.
 	constexpr int cube (int a) {
 		return a * a * a;
 	}
@@ -625,8 +638,9 @@ b2 -> buf1, 32
 	
 3. With the introduction of this keyword, many problems got fixed in C++98 when using numeric limits. 
    Before the arrival of C++11, an expression such as std::numeric_limits<short>::max() can't be used as an integral constant, 
-   even though it was functionally equivalent to the macro INT_MAX. But now, with the newer advancement of C++11, this kind of expression is termed as 
-   'constexpr' and so you can use it to state different arrays or in compile-time computations (which is generally called as meta-programming).
+   even though it was functionally equivalent to the macro INT_MAX. But now, with the newer advancement of C++11, this kind of 
+   expression is termed as 'constexpr' and so you can use it to state different arrays or in compile-time computations (which is 
+   generally called as meta-programming).
    
 keyword noexcept:
 -----------------
@@ -634,29 +648,30 @@ keyword noexcept:
    Here is a code snippet:
 		void test() noexcept;
 		
-2. This declares that test() won't be able to throw. If the exception is not dealt with locally inside test() — and when test() method throws — 
-   the program will get terminated, calling std:: terminate() method that by default calls the std:: abort().
+2. This declares that test() won't be able to throw. If the exception is not dealt with locally inside test() — and when test() 
+   method throws — the program will get terminated, calling std:: terminate() method that by default calls the std:: abort().
 
    noexcept focuses on a lot of issues (empty) exception a specification is having:
    --------------------------------------------------------------------------------
    a. Runtime checking: 
-      Exceptions in terms of C++ get checked at runtime rather than at compile time, and hence they offer no programmer guarantees whether all exceptions 
-	  got to be handled or not. The runtime failure mode (which internally calls std:: unexpected()) does not lend itself to recovery.
+      Exceptions in terms of C++ get checked at runtime rather than at compile time, and hence they offer no programmer guarantees 
+      whether all exceptions  got to be handled or not. The runtime failure mode (which internally calls std:: unexpected()) does 
+      not lend itself to recovery.
 	  
    b. Runtime overhead: Checking at runtime needs the compiler producing additional code which may also hamper optimizations.
    
-   c. Unfeasible in generic code: Contained by any generic code, it is not usually possible to know what types of exceptions will get thrown on 
-      template arguments and hence an exact exception specification can't be written.
+   c. Unfeasible in generic code: Contained by any generic code, it is not usually possible to know what types of exceptions will 
+      get thrown on template arguments and hence an exact exception specification can't be written.
 
 What are arrays in C++11:?
 -------------------------
 1. The arrays in C++11 are the instance or examples of the container class array<> — that models a static array. 
    This encloses an ordinary static C style array which provides the interface and structure of an STL container. 
-2. Conceptually, an array can be defined a series of consecutive elements having constant size. 
-   So, you can neither add elements nor remove elements for changing the size. Only a substitute of any element values can be achievable.
+2. Conceptually, an array can be defined a series of consecutive elements having constant size. So, you can neither add elements nor 
+   remove elements for changing the size. Only a substitute of any element values can be achievable.
 3. The class array<>, launched to this new C++ standard library is an outcome of a useful wrapper class for ordinary C style arrays 
-   which Bjarne Stroustrup introduced in older C++ standards. It is safer and includes no worse performance than that of a normal array. 
-   For using an array, you must include the header file <array> -- #include <array>
+   which Bjarne Stroustrup introduced in older C++ standards. It is safer and includes no worse performance than that of a normal 
+   array. For using an array, you must include the header file <array> -- #include <array>
    
 Initialization of C++11 Array:
 -----------------------------
@@ -668,7 +683,7 @@ Initialization of C++11 Array:
 	std::array<int, 10> k2 = { 56 }; // one element with value 56 …. followed by rest 9 elements as value 0
 	std::array<int, 4> g6 = { 1, 2, 3, 4, 5, 6 }; // ERROR: too many values
 	
-	//  implementation of new C++ array taking three values in an array and printing its value:
+	// implementation of new C++ array taking three values in an array and printing its value:
 	#include <array>
 	#include <iostream>
 
@@ -697,8 +712,9 @@ Abilities of C++11 Array:
 3. Arrays provide random accessing of locations. Thus, you can access each of the elements directly in constant time and 
    for that, you just have to know its position. 
 4. The iterators are random-accessing iterators, so programmers can use any algorithm of the Standard Template Library.
-5. If programmers have to have a sequence with a rigid number of elements, class array<> will facilitates with the best performance as 
-   memory gets allocated on the stack (as and when possible) and reallocation never happens. Also, programmer's can have random access to arrays.
+5. If programmers have to have a sequence with a rigid number of elements, class array<> will facilitates with the best performance 
+   as memory gets allocated on the stack (as and when possible) and reallocation never happens. Also, programmer's can have random 
+   access to arrays.
 
 
 The move semantics of an Array:
@@ -740,8 +756,9 @@ C++11 Lambada:
 		};
 		....lmda(); // prints Welcome lambda
 		
-   c. Now you can see that a lambda always begins with a 'lambda introducer': brackets wherein you can specify what is called as 'capture' for accessing 
-      non-static objects inside the lambda. When no requirement is there to get access to outside data, the brackets remain empty, as is the case above. 
+   c. Now you can see that a lambda always begins with a 'lambda introducer': brackets wherein you can specify what is called as 
+      'capture' for accessing non-static objects inside the lambda. When no requirement is there to get access to outside data, 
+      the brackets remain empty, as is the case above. 
 	  You can specify parameters as mutable, an exception specification and the return type. 
 	  Thus, the syntax of a lambda is either:
 		[...] {...}
@@ -763,8 +780,8 @@ C++11 Lambada:
 		}
 		
 3. Captures(Access to Outer Scope):
-   Inside a lambda introducer (i.e. brackets in the beginning of lambda), programmer's can state a capture for accessing data of outer scope 
-   which is not passed as argument:
+   Inside a lambda introducer (i.e. brackets in the beginning of lambda), programmer's can state a capture for accessing data of 
+   outer scope which is not passed as argument:
 
 	a. [=] means that the outer scope is accepted to the lambda by value.
 	b. [&] means the outer scope gets passed to the lambda via reference. So, programmers can limit the access. 
@@ -782,11 +799,12 @@ C++11 Lambada:
 			std::cout << "final b: " << b << std::endl;
 			
 4. Different forms of Lambadas:
-   a. All types of lambda are anonymous function objects which are unique for all lambda expression. 
-      So, for declaring objects of this type, programmers need templates or auto. When programmers need the type, they can use decltype().
+   a. All types of lambda are anonymous function objects which are unique for all lambda expression. So, for declaring objects of 
+      this type, programmers need templates or auto. When programmers need the type, they can use decltype().
 
-   b. Alternatively, you can implement the "std::function<> class template" which is done by the C++ standard library for specifying a general type of 
-      functional programming. Which means class template provides the only way for specifying the return type of any function returning a lambda:
+   b. Alternatively, you can implement the "std::function<> class template" which is done by the C++ standard library for specifying 
+      a general type of functional programming. Which means class template provides the only way for specifying the return type of 
+      any function returning a lambda:
 	  
    Example:
 	#include<functional>
@@ -1144,7 +1162,8 @@ int main() {
 	std::promise<int> p;
 	std::future<int> f = p.get_future();
 	
-	// by setting the reference of f, telling to child thread i dont have value to be set Now, will set in future, that is my promise.
+        /* by setting the reference of f, telling to child thread i dont have value to be set Now, will set in future, 
+	   that is my promise. */
 	//std::future<int> fu = std::async(std::launch::deferred, fact, std::ref(f));
 	std::future<int> fu = std::async(std::launch::async, fact, std::ref(f));
 	
@@ -1161,10 +1180,11 @@ int main() {
 Note: 
 	//p.set_value(4);
 	//x = fu.get();
-if comment the above two line in main(means breaking the promise what we did earlier), then we will get the exception in fact function at below line:
+    if comment the above two line in main(means breaking the promise what we did earlier), then we will get the exception in 
+    fact function at below line:
 	int num = f.get();  // exception: std::future_errc::broken_promise
 	
-we can set the exception explicitely as below in main:
+    we can set the exception explicitely as below in main:
 	p.set_exception(std::make_exception_ptr(std::runtime_error("To error is human")));
 	//p.set_value(4);
 	//x = fu.get();
@@ -1300,7 +1320,8 @@ int main() {
 	
 	// Insstead of using the std::packaged_task, we can do this by using ONLY the function object as below:
 	// int main { auto t = std::bind(fact, 6); t(); return 0;}
-	// The main advantage of std::packaged_task is used to link the 'callable object' to a future, that is very important in threading environment.
+	/* The main advantage of std::packaged_task is used to link the 'callable object' to a future, that is very important in 
+	   threading environment. */
 	
 	std::packaged_task<int(int)> t(fact);
 	
@@ -1672,7 +1693,8 @@ int main() {
 
 /*
 error: void value not ignored as it ought to be
-This is a GCC error message that means the return-value of a function is 'void', but that you are trying to assign it to a non-void variable.
+This is a GCC error message that means the return-value of a function is 'void', but that you are trying to assign it to a 
+non-void variable.
 Example:
 */
 void myFunction() {
@@ -1745,14 +1767,16 @@ Calling Function Test with parameters.! -> World, with state -> 10
 /*
 Function Objects vs. Lambdas:
 -----------------------------
-When you write code, you probably use function pointers and function objects to solve problems and perform calculations, especially when you use STL algorithms.
+When you write code, you probably use function pointers and function objects to solve problems and perform calculations, 
+especially when you use STL algorithms.
 Function pointers and function objects each have advantages and disadvantages—for example, 
 	1. function pointers have minimal syntactic overhead but do not retain state within a scope, and 
 	2. function objects can maintain state but require the syntactic overhead of a class definition.
 
 A lambda combines the benefits of function pointers and function objects and avoids their disadvantages. 
-Like a function objects, a lambda is flexible and can maintain state, but unlike a function object, its compact syntax doesn't require an explicit 
-class definition. By using lambdas, you can write code that's less cumbersome and less prone to errors than the code for an equivalent function object.
+Like a function objects, a lambda is flexible and can maintain state, but unlike a function object, its compact syntax doesn't 
+require an explicit class definition. By using lambdas, you can write code that's less cumbersome and less prone to errors than 
+the code for an equivalent function object.
 */
 
 #include<iostream>
