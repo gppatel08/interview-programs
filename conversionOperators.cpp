@@ -4,7 +4,7 @@
   Sometimes it is required to convert one concrete type to another concrete type or primitive type implicitly. 
   Conversion operators play smart role in such situations.
 
-  For example consider the following class */
+  For example consider the following class example */
 
 #include <iostream>
 #include <cmath>
