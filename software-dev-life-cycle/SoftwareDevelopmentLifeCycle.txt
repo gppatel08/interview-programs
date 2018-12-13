@@ -1,0 +1,149 @@
+Software Development Life Cycle (SDLC) is a process used by the software industry to design, develop and test high quality softwares. 
+The SDLC aims to produce a high-quality software that meets or exceeds customer expectations, reaches completion within times and cost estimates.
+
+What is SDLC?
+SDLC is a process followed for a software project, within a software organization. It consists of a detailed plan describing how to develop, maintain, 
+replace and alter or enhance specific software. The life cycle defines a methodology for improving the quality of software and the overall development process.
+
+A typical Software Development Life Cycle consists of the following stages:
+	Stage 1: Planning and Requirement Analysis
+	Stage 2: Defining Requirements
+	Stage 3: Designing the Product Architecture
+	Stage 4: Building or Developing the Product
+	Stage 5: Testing the Product
+	Stage 6: Deployment in the Market and Maintenance
+
+	Software Delivery Life Cycle (SDLC) is the process of designing, developing, and testing software products and applications. 
+	With the right SDLC process in place, companies can deploy faster, better react to market pressure, and release higher-quality business applications.
+
+	Broadly speaking, there are two main SDLC methodologies for change and development projects – Waterfall and Agile. 
+	Ultimately, the method you choose would determine the practices and phases of your software delivery process. 
+	For example, would you test at the end of the process or continuously throughout it?
+	
+	1. Requirement Gathering - Collecting all the questions and requirements from users and clients(All the What and Ifs).
+	2. Design - Designing the software paths and functionality with tools and diagrams.
+	3. Develop - Developing (coding) the actual product
+	4. Testing - Testing the software, finding bugs and fixing them
+	5. Maintenance - Putting the software in use and maintain it , fixing the errors if they occur.
+
+	1. Requirement gathering - Gather the requirements regarding the software you are going to develop through various sources. 
+	   Best source will be the end user for whom you will be developing the actual product.
+ 
+	2. Design - This phase begins when the requirements are well understood. You need to draw various UML diagrams, decide which technology to use 
+	   for development, resources, Dead Line (estimated time), etc.
+  
+	3. Development or Coding - This is the phase where you actually develop the product. Code is written based on the decision taken in Design phase. 
+	   Developers perform Unit Testing and Integration testing to ensure everything is working fine. Code gets reviewed by Sr. members in the team, and 
+	   once the development is completed, the product is sent forward for testing.
+
+	4. Testing - The developed product is tested by testers (QA Engineers). The go for both positive (as per requirements) as well as 
+	   negative (how to break the product, moto is to find flaws) testing. If defects are found  the product is resent to the development team to fix it. 
+	   Once the defect gets fixed testers check it again and perform regression testing( testing the whole product). 
+	   Once all is good, the product will become ready to handover it to client.
+
+	5. Deployment/Maintenance - Once all the above phases are completed, the product is installed on end users/clients machine. 
+	   And in future if end user/client faces some issues maintenance done by the organisation who developed it. 
+
+Requirement Phase:
+==================
+Requirement gathering and analysis is the most important phase in software development lifecycle. 
+Business Analyst collects the requirement from the Customer/Client as per the clients business needs and documents the requirements in the 
+Business Requirement Specification (document name varies depends upon the Organization. 
+Some examples are Customer Requirement Specification (CRS), Business Specification (BS) etc., and provides the same to Development Team.
+
+Analysis Phase:
+===============
+Once the requirement gathering and analysis is done the next step is to define and document the product requirements and get them approved by the customer. 
+This is done through SRS (Software Requirement Specification) document. SRS consists of all the product requirements to be designed and developed during 
+the project life cycle. Key people involved in this phase are Project Manager, Business Analysist and Senior members of the Team. 
+The outcome of this phase is Software Requirement Specification.
+
+Design Phase:
+=============
+It has two steps:
+	1. HLD – High Level Design – It gives the architecture of the software product to be developed and is done by architects and senior developers
+	2. LLD – Low Level Design – It is done by senior developers. It describes how each and every feature in the product should work and how every component 
+	   should work. Here, only the design will be there and not the code
+The outcome from this phase is High Level Document and Low Level Document which works as an input to the next phase.
+
+Development Phase:
+==================
+Developers of all levels (seniors, juniors, freshers) involved in this phase. This is the phase where we start building the software and start writing 
+the code for the product. The outcome from this phase is Source Code Document (SCD) and the developed product.
+
+Testing Phase:
+==============
+When the software is ready, it is sent to the testing department where Test team tests it thoroughly for different defects. 
+They either test the software manually or using automated testing tools depends on process defined in STLC (Software Testing Life Cycle) and 
+ensure that each and every component of the software works fine. Once the QA makes sure that the software is error-free, it goes to the next stage, 
+which is Implementation. The outcome of this phase is the Quality Product and the Testing Artifacts.
+
+Deployment & Maintenance Phase:
+===============================
+After successful testing, the product is delivered/deployed to the customer for their use. Deployment is done by the Deployment/Implementation engineers. 
+Once when the customers start using the developed system then the actual problems will come up and needs to be solved from time to time. 
+Fixing the issues found by the customer comes in the maintenance phase. 100% testing is not possible – because, the way testers test the product is 
+different from the way customers use the product. Maintenance should be done as per SLA (Service Level Agreement).
+
+
+Systems Development Life Cycle (SDLC) gives structure to the madness of transitioning from the beginning to the end of your project without forgetting a step.
+A number of different SDLC methodologies are used today to guide professionals through their project-based work.
+Here are the key pros and cons of six of the most common SDLC methodologies:
+	1. Waterfall Model
+	2. V-Shaped Model
+	3. Iterative Model
+	4. Spiral Model
+	5. Big Bang Model
+	6. Agile Model
+	7. Rapid Application Development (RAD Model)
+	8. Prototyping Models.
+
+1. Waterfall Model:
+===================
+Waterfall is the oldest and most straightforward of the structured SDLC methodologies — finish one phase, then move on to the next. 
+No going back. Each stage relies on information from the previous stage and has its own project plan. Waterfall is easy to understand and simple to manage.
+
+But early delays can throw off the entire project timeline. And since there is little room for revisions once a stage is completed, 
+problems can’t be fixed until you get to the maintenance stage. This model doesn’t work well if flexibility is needed or if the project is long term and ongoing.
+
+2. V-Shaped Model:
+==================
+Also known as the Verification and Validation model.
+V-shaped model grew out of Waterfall and is characterized by a corresponding testing phase for each development stage. 
+Like Waterfall, each stage begins only after the previous one has ended.
+
+This model is useful when there are no unknown requirements, as it’s still difficult to go back and make changes.
+
+3. Iterative Model:
+===================
+The Iterative model is repetition incarnate. 
+Instead of starting with fully known requirements, you implement a set of software requirements, then test, evaluate and pinpoint further requirements. 
+A new version of the software is produced with each phase, or iteration. Rinse and repeat until the complete system is ready.
+
+One advantage over other SDLC methodologies: This model gives you a working version early in the process and makes it less expensive to implement changes. 
+One disadvantage: Resources can quickly be eaten up by repeating the process again and again.
+
+4. Spiral Model:
+================
+One of the most flexible SDLC methodologies, the Spiral model takes a cue from the Iterative model and its repetition; 
+the project passes through four phases over and over in a “spiral” until completed, allowing for multiple rounds of refinement. 
+This model allows for the building of a highly customized product, and user feedback can be incorporated from early on in the project. 
+But the risk you run is creating a never-ending spiral for a project that goes on and on.
+
+5. Big Bang Model:
+==================
+A bit of an anomaly among SDLC methodologies, the Big Bang model follows no specific process, and very little time is spent on planning. 
+The majority of resources are thrown toward development, and even the client may not have a solid grasp of the requirements. 
+NOTE: This is one of the SDLC methodologies typically used for small projects with only one or two software engineers.
+
+Big Bang is not recommended for large or complex projects, as it’s a high-risk model; if the requirements are misunderstood in the beginning, 
+you could get to the end and realize the project may have to be started all over again.
+
+6. Agile Model:
+===============
+By breaking the product into cycles, the Agile model quickly delivers a working product and is considered a very realistic development approach. 
+The model produces ongoing releases, each with small, incremental changes from the previous release. At each iteration, the product is tested.
+
+This model emphasizes interaction, as the customers, developers and testers work together throughout the project. 
+But since this model depends heavily on customer interaction, the project can head the wrong way if the customer is not clear on the direction 
+he or she wants to go.
