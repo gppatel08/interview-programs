@@ -1,0 +1,344 @@
+JSON and Go
+--------------
+JSON (JavaScript Object Notation) is a simple data interchange format. Syntactically it resembles the objects and lists of JavaScript. 
+It is most commonly used for communication between web back-ends and JavaScript programs running in the browser, but it is used in many other places, too.
+	"json.org, provides a wonderfully clear and concise definition of the standard."
+	
+Go's json package gives to read and write JSON data from Go programs.
+
+Encoding:
+---------
+To encode JSON data we use the Marshal function: func Marshal(v interface{}) ([]byte, error)
+Given the Go data structure, Message:
+	type Message struct {
+		Name string
+		Body string
+		Time int64
+	}
+
+and an instance of Message:
+	m := Message{"Alice", "Hello", 1294706395881547000}
+
+we can marshal a "JSON-encoded version of m" using json.Marshal:
+	b, err := json.Marshal(m)
+	
+If all is well, err will be nil and b will be a []byte containing this JSON data:
+	b == []byte(`{"Name":"Alice","Body":"Hello","Time":1294706395881547000}`)
+	
+Only data structures that can be represented as valid JSON, will be encoded:
+	1. JSON objects only support strings as keys; to encode a Go map type it must be of the form map[string]T 
+	   (where T is any Go type supported by the json package).
+	2. Channel, complex, and function types CAN NOT be encoded.
+	3. Cyclic data structures are NOT supported; they will cause Marshal to go into an INFINITE loop.
+	4. Pointers will be encoded as the values they point to (or 'null' if the pointer is nil).
+	
+The json package only accesses the exported fields of struct types (those that begin with an UPPERCASE letter). 
+Therefore only the "exported fields of a struct" will be present in the JSON output.
+
+
+Decoding:
+---------
+To decode JSON data we use the Unmarshal function: func Unmarshal(data []byte, v interface{}) error
+
+We must first create a place where the decoded data will be stored: 
+	var m Message
+and call json.Unmarshal, passing it a []byte of JSON data and a pointer to m
+	err := json.Unmarshal(b, &m)
+If b contains valid JSON that fits in m, after the call err will be nil and the data from b will have been stored in the struct m, as if by an assignment like:
+	m = Message{
+		Name: "Alice",
+		Body: "Hello",
+		Time: 1294706395881547000,
+	}
+	
+Ques: How does Unmarshal identify the fields in which to store the decoded data? 
+Ans:  For a given JSON key "Foo", Unmarshal will look through the destination struct's fields to find (in order of preference):
+	A. An exported field with a tag of "Foo" (see the Go spec for more on struct tags),
+	B. An exported field named "Foo", or
+	C. An exported field named "FOO" or "FoO" or some other case-insensitive match of "Foo".
+
+Ques: What happens when the structure of the JSON data doesn't exactly match the Go type?
+Ans:  Unmarshal will decode only the fields that it can find in the destination type. 
+	type Message struct {
+		Name string
+		Body string
+		Time int64
+	}
+	
+	b := []byte(`{"Name":"Bob","Food":"Pickle"}`)
+	var m Message
+	err := json.Unmarshal(b, &m)
+	
+In this above case, only the Name field of m will be populated, and the Food field will be ignored. 
+This behavior is particularly useful when you wish to pick only a few specific fields out of a large JSON blob. 
+It also means that any unexported fields in the destination struct will be unaffected by Unmarshal.
+
+Ques: But what if you don't know the structure of your JSON data beforehand?
+ANs:  
+Generic JSON with interface{}
+The interface{} (empty interface) type describes an interface with zero methods. 
+Every Go type implements at least zero methods and therefore satisfies the empty interface.
+
+The empty interface serves as a "general container type":
+	var i interface{}
+	i = "a string"
+	i = 2011
+	i = 2.777
+A type assertion accesses the underlying concrete type:
+	r := i.(float64)
+	fmt.Println("the circle's area", math.Pi*r*r)
+	
+Or, if the underlying type is unknown, a "type switch" determines the type:
+	switch v := i.(type) {
+	case int:
+		fmt.Println("twice i is", v*2)
+	case float64:
+		fmt.Println("the reciprocal of i is", 1/v)
+	case string:
+		h := len(v) / 2
+		fmt.Println("i swapped by halves is", v[h:]+v[:h])
+	default:
+		// i isn't one of the types above
+	}
+	
+NOTE: The json package uses map[string]interface{} and []interface{} values to store arbitrary JSON objects and arrays; 
+      it will happily unmarshal any valid JSON blob into a plain interface{} value. 
+	  
+The default concrete Go types are:
+	a. bool for JSON booleans,
+	b. float64 for JSON numbers,
+	c. string for JSON strings, and
+	d. nil for JSON null.
+	
+Decoding arbitrary data:
+------------------------
+Consider this JSON data, stored in the variable b:
+	b := []byte(`{"Name":"Wednesday","Age":6,"Parents":["Gomez","Morticia"]}`)
+
+Without knowing this above data's structure, we can decode it into an interface{} value with Unmarshal:
+	var f interface{}
+	err := json.Unmarshal(b, &f)
+	
+
+At this point the Go value in f would be a map whose keys are strings and whose values are themselves stored as empty interface values([string]interface{}):
+	f = map[string]interface{}{
+		"Name": "Wednesday",
+		"Age":  6,
+		"Parents": []interface{}{
+			"Gomez",
+			"Morticia",
+		},
+	}
+To access this data we can use a "type assertion" to access f's underlying map[string]interface{}:
+	m := f.(map[string]interface{})
+We can then iterate through the map with a range statement and use a "type switch" to access its values as their concrete types:
+
+for k, v := range m {
+    switch vv := v.(type) {
+    case string:
+        fmt.Println(k, "is string", vv)
+    case float64:
+        fmt.Println(k, "is float64", vv)
+    case []interface{}:
+        fmt.Println(k, "is an array:")
+        for i, u := range vv {
+            fmt.Println(i, u)
+        }
+    default:
+        fmt.Println(k, "is of a type I don't know how to handle")
+    }
+}
+In this way you can work with unknown JSON data while still enjoying the benefits of type safety.
+
+
+Reference Types:
+-----------------
+NOTE: Unmarshal allocated a new slice behind the scenes for supported reference types (pointers, slices, and maps).
+Let's define a Go type to contain the data from the previous example:
+	type FamilyMember struct {
+		Name    string
+		Age     int
+		Parents []string  // point is for this field
+	}
+	
+    var m FamilyMember
+    err := json.Unmarshal(b, &m)
+	
+Unmarshaling that data into a FamilyMember value works as expected, but if we look closely we can see a remarkable thing has happened. 
+With the var statement we allocated a FamilyMember struct, and then provided a pointer to that value to Unmarshal, 
+but at that time the Parents field was a nil slice value. To populate the Parents field, Unmarshal allocated a new slice behind the scenes. 
+This is typical of how Unmarshal works with the supported reference types (pointers, slices, and maps).
+
+Consider unmarshaling into this data structure:
+	type Foo struct {
+		Bar *Bar
+	}
+If there were a Bar field in the JSON object, Unmarshal would allocate a new Bar and populate it. If not, Bar would be left as a "nil pointer".
+
+
+From this a useful pattern arises: if you have an application that receives a few distinct message types, you might define "receiver" structure like
+	type IncomingMessage struct {
+		Cmd *Command
+		Msg *Message
+	}
+and the sending party can populate the Cmd field and/or the Msg field of the top-level JSON object, depending on the type of message they want to communicate. 
+Unmarshal, when decoding the JSON into an IncomingMessage struct, will only allocate the data structures present in the JSON data. 
+To know which messages to process, the programmer need simply test that either Cmd or Msg is not nil.
+
+Streaming Encoders and Decoders:
+--------------------------------
+The json package provides Decoder and Encoder types to support the common operation of reading and writing streams of JSON data. 
+The NewDecoder and NewEncoder functions wrap the io.Reader and io.Writer interface types.
+	func NewDecoder(r io.Reader) *Decoder
+	func NewEncoder(w io.Writer) *Encoder
+Here's an example program that reads a series of JSON objects from standard input, removes all but the Name field from each object, 
+and then writes the objects to standard output:
+
+package main
+
+import (
+    "encoding/json"
+    "log"
+    "os"
+)
+
+func main() {
+    dec := json.NewDecoder(os.Stdin)
+    enc := json.NewEncoder(os.Stdout)
+    for {
+        var v map[string]interface{}  // input data format must be like this: {"Name":"Wednesday","Age":6,"Parents":["Gomez","Morticia"]}
+        if err := dec.Decode(&v); err != nil {
+            log.Println(err)
+            return
+        }
+        for k := range v {
+            if k != "Name" {
+                delete(v, k)
+            }
+        }
+        if err := enc.Encode(&v); err != nil {
+            log.Println(err)
+        }
+    }
+}
+Due to the ubiquity of Readers and Writers, these Encoder and Decoder types can be used in a broad range of scenarios, 
+such as reading and writing to HTTP connections, WebSockets, or files.
+
+
+Share Memory By Communicating:
+-------------------------------
+Go's concurrency primitives - goroutines and channels - provide an elegant and distinct means of structuring concurrent software. 
+(These concepts have an interesting history that begins with C. A. R. Hoare's Communicating Sequential Processes.) 
+Instead of explicitly using locks to mediate access to shared data, Go encourages the use of channels to pass references to data between goroutines. 
+This approach ensures that only one goroutine has access to the data at a given time. 
+The concept is summarized in the document Effective Go (a must-read for any Go programmer):
+	"Do not communicate by sharing memory; instead, share memory by communicating."
+	
+Go Concurrency Patterns: Timing out, moving on:
+-----------------------------------------------
+A good example is timeouts. Although Go's channels do not support them directly, they are easy to implement. 
+Say we want to receive from the channel ch, but want to wait at most one second for the value to arrive. 
+We would start by creating a signalling channel and launching a goroutine that sleeps before sending on the channel:
+
+timeout := make(chan bool, 1)
+go func() {
+    time.Sleep(1 * time.Second)
+    timeout <- true
+}()
+
+We can then use a select statement to receive from either ch or timeout. 
+If nothing arrives on ch after one second, the timeout case is selected and the attempt to read from ch is abandoned.
+
+select {
+case <-ch:
+    // a read from ch has occurred
+case <-timeout:
+    // the read from ch has timed out
+}
+
+NOTE: The timeout channel is buffered with space for 1 value, allowing the timeout goroutine to send to the channel and then exit. 
+      The goroutine doesn't know (or care) whether the value is received. 
+	  This means the goroutine won't hang around forever if the ch receive happens before the timeout is reached. 
+	  The timeout channel will eventually be deallocated by the garbage collector.
+	  
+In this example we used time.Sleep to demonstrate the mechanics of goroutines and channels. 
+In real programs you should use ` time.After`, a function that returns a channel and sends on that channel after the specified duration.
+
+
+Let's look at another variation of this pattern. In below program that reads from multiple replicated databases simultaneously. 
+The program needs only one of the answers, and it should accept the answer that arrives first.
+
+The function Query takes a slice of database connections and a query string. 
+It queries each of the databases in parallel and returns the first response it receives:
+
+func Query(conns []Conn, query string) Result {
+    ch := make(chan Result)
+    for _, conn := range conns {
+        go func(c Conn) {
+            select {
+            case ch <- c.DoQuery(query):
+            default:
+            }
+        }(conn)
+    }
+    return <-ch  // Problem Point : However, if the result arrives before the main function has made it to the receive, the send could fail since no one is ready.
+}
+
+In this example, the closure does a non-blocking send, which it achieves by using the send operation in select statement with a default case. 
+If the send cannot go through immediately the default case will be selected. Making the send non-blocking guarantees that none of the goroutines launched 
+in the loop will hang around. However, if the result arrives before the main function has made it to the receive, the send could fail since no one is ready.
+SOLUTION:
+---------
+This problem is a textbook example of what is known as a race condition, but the fix is trivial. 
+We just make sure to buffer the channel ch (by adding the buffer length as the second argument to make), guaranteeing that the first send has a place to 
+put the value. This ensures the send will always succeed, and the first value to arrive will be retrieved "regardless of the order of execution".
+
+func Query(conns []Conn, query string) Result {
+    ch := make(chan Result, 1)
+    for _, conn := range conns {
+        go func(c Conn) {
+            select {
+            case ch <- c.DoQuery(query):
+            default:
+            }
+        }(conn)
+    }
+    return <-ch
+}
+
+Concurrency is not parallelism:
+--------------------------------
+No introduction to Go is complete without a demonstration of its "goroutines and channels."
+
+But when people hear the word concurrency they often think of parallelism, a related but quite distinct concept. 
+In programming, concurrency is the composition of independently executing processes, while parallelism is the simultaneous execution of (possibly related) computations. 
+	"Concurrency is about dealing with lots of things at once. Parallelism is about doing lots of things at once."
+	
+	"If you have only one processor, your program still be concurrent but it cannot be parallel."
+	"On the other hand, a well-written concurrent program might run efficiently in parallel on multiprocessor. That property could be important."
+	"tinyurl.com/goconcnotpar for more detail"
+	
+GOROUTINE:
+----------
+It's an independently executing function, launched by a go statement.
+It has its own call stack, which grows and shrinks as required.
+It is very cheap. It's practical to have thousands, even hundreds of thousands of goroutines.
+It's not a thread.
+There might be only one thread in a program with thousands of goroutines.
+Instead, goroutines are mutliplexed dynamically onto threads as needed to keep all the goroutines running.
+
+CHANNELS:
+--------
+A channel in GO provides a connection between two goroutines, allowing then to communicate.
+	// declaring and initializing
+	var c chan int
+	c = make(chan int)
+	c := make(chan int)
+	c <- 1  // sending on a channel
+	val <- c  // receiving from a channel, the arrow indicates the direction of data flow.
+	
+NOTE for Experts:
+Go channels can also be created with buffer.
+Buffering removes Synchronization.
+Dont communicate by sharing memroy, Share memory by communicating.
+	
