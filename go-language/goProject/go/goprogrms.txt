@@ -1,0 +1,1671 @@
+
+Short variable declarations:-
+Inside a function, the := short assignment statement can be used in place of a var declaration with implicit type like ( x:= 10).
+Outside a function, every statement begins with a keyword (var, func, and so on) and so the := construct is not available.
+
+package main
+import "fmt"
+var x int = 19 // Work fine
+
+//syntax error: non-declaration statement outside function body
+//x int = 19 // Error
+
+//syntax error: non-declaration statement outside function body
+//x := 19 // Error
+
+func main() {  
+    f := func(i int) int { return i + 5 }
+    fmt.Println(f(x))
+}
+-----------------------------------------
+Dynamically initialize array size in go:-
+
+1. Error since arrays are not dynamic
+package main
+import "fmt"
+
+func main() {
+  var elems, mean int
+  sum := 0
+  fmt.Print("Number of elements? ")
+  fmt.Scan(&elems)
+  var array = new([elems]int) // no, arrays are not dynamic
+
+  for i := 0; i < elems; i++ {  // correct but less idiomatic
+    fmt.Printf("%d . Number? ", i+1)  //  error: non-constant array bound elems
+    fmt.Scan(&array[i])
+    sum += array[i];
+  }
+  fmt.Printf("Total Sum : %d", sum)
+}
+OUTPUT:-
+error: non-constant array bound elems
+
+2. SUCCESS Execution
+package main
+import "fmt"
+
+func main() {
+  var elems int
+  sum := 0
+  fmt.Print("Number of elements? ")
+  fmt.Scan(&elems)
+
+  var slice = make([]int,elems) // or slice := make([]int, elems) // work ok
+
+  for i, v := range slice {
+    fmt.Printf("%d . Number? ", i+1)
+    fmt.Scan(&v)
+    sum += v;
+  }
+  fmt.Printf("Total Sum : %d", sum)
+}
+OUTPUT:-
+Number of elements? Total Sum : 0
+------------------------------------------------
+The difference between new and make may become clearer by letting Go print out the type of the value created by new and make:
+package main
+import "fmt"
+
+func main() {
+    fmt.Printf("%T  %v\n", new([10]int), new([10]int))
+    fmt.Printf("%T  %v\n", make([]int, 10), make([]int, 10))
+}
+OUTPUT:-
+*[10]int  &[0 0 0 0 0 0 0 0 0 0]
+[]int  [0 0 0 0 0 0 0 0 0 0]
+
+NOTE:-
+  As can be seen from the type, to access an array element of new([10]int) we would first need to dereference the pointer.
+  Both new and make require a Go type as their 1st argument. 
+  However, the expression [elems]int is not a Go type (unless elems is a Go constant, which isn't the case here).
+
+1. For further reference, see http://golang.org/doc/go_spec.html#Allocation and http://golang.org/doc/go_spec.html#The_zero_value.
+2. To get a better understanding of whether the result of new is usable, it may be helpful to lookup whether 'len' and 'cap' work with zero (nil) values: 
+   http://golang.org/doc/go_spec.html#Length_and_capacity
+   
+See The Go Programming Language Specification
+  http://golang.org/ref/spec#Array_types
+  http://golang.org/ref/spec#Constants
+
+  It says:"The length is part of the array's type; it must evaluate to a non- negative constant representable by a value of type int. "
+  Constants by no means vary.
+------------------------------------------------
+From the Go specification:
+  The notation ... specifies an array length equal to the maximum element index plus one.
+   [...] means an array.
+   [] means a slice.
+   
+1. FAIL ERROR Since testStrings is declared as slice which try to assign the Array
+package main
+import "fmt" 
+
+var testStrings []string
+
+func main() {
+    testStrings = [...]string{"apple","banana","kiwi"}
+
+    fmt.Println(testStrings)
+}
+OUTPUT:-
+Cannot use [3]string literal (type [3]string) as type []string in assignment
+   
+2. SUCCESS Execution & Compilation
+package main
+import (
+    "fmt"
+)
+
+var arrtestStrings [3]string
+var slicetestStrings []string
+
+func main() {
+    arrtestStrings = [...]string{"apple", "banana", "kiwi"}
+    slicetestStrings = []string{"apple", "banana", "kiwi"}
+    fmt.Println(arrtestStrings)
+    fmt.Println(slicetestStrings)
+}
+OUTPUT:-
+[apple banana kiwi]
+[apple banana kiwi]
+---------------------------------------
+1. //FAIL if we put the "s <- "Hello.!!" without closer.
+package main
+import "fmt"
+
+func main() {
+  s := make(chan string)
+  s <- "Hello.!!"
+  fmt.Println(<-s)
+}
+OUTPUT:-
+fatal error: all goroutines are asleep - deadlock!
+
+goroutine 1 [chan send]:
+main.main()
+	/tmp/sandbox479024952/main.go:6 +0x60
+
+2. //SUCCESS if we put the s <- "Hello.!!" in the closer call.
+package main
+import "fmt"
+
+func main() {
+  s := make(chan string)
+  go func() {
+    s <- "Hello.!!"
+  }()
+  fmt.Println(<-s)
+}
+OUTPUT:-
+Hello.!!
+-----------------------------------
+// Multiple Return Values
+// If you only want a subset of the returned values, use the blank identifier _.
+package main
+import "fmt"
+
+func vals(a int, b int) (int, int) {
+    a += 1
+    b += 1
+    return a, b
+}
+
+func main(){
+  x, y := vals(5, 10)
+  fmt.Println(x, "  ", y)
+
+  _, y = vals(5, 14)
+  fmt.Println(x, "  ", y)
+}
+OUTPUT:-
+6    11
+6    15
+-----------------------
+/* Accepting a variable number of arguments is another nice feature of Go functions
+   Variadic Functions :- 
+   Variadic functions can be called with any number of trailing arguments. For example, fmt.Println is a common variadic function.
+   Variadic functions can be called in the usual way with individual arguments.
+   If you already have multiple args in a slice, apply them to a variadic function using func(slice...) like this.
+   Another key aspect of functions in Go is their ability to form closures, which is NEXT program.
+*/
+package main
+import "fmt"
+
+func sums(typename string, nums ...int) {
+    fmt.Println(typename, "-> ", nums)
+    total := 0
+    for index, value := range nums {
+        fmt.Println("nums[", index, "] : ", value)
+        total += value
+    }
+    fmt.Println("Total Sum : ", total)
+}
+
+func main(){
+  sums("INT-Args", 5, 10, 15, 20, 25)
+
+  number := []int{5, 10, 15, 20, 25}
+  sums("INT-Args", number...)
+}
+OUTPUT:-
+INT-Args ->  [5 10 15 20 25]
+nums[ 0 ] :  5
+nums[ 1 ] :  10
+nums[ 2 ] :  15
+nums[ 3 ] :  20
+nums[ 4 ] :  25
+Total Sum :  75
+INT-Args ->  [5 10 15 20 25]
+nums[ 0 ] :  5
+nums[ 1 ] :  10
+nums[ 2 ] :  15
+nums[ 3 ] :  20
+nums[ 4 ] :  25
+Total Sum :  75
+--------------------------------------
+/* Closures
+   Go supports anonymous functions, which can form closures. Anonymous functions are useful when you want to define a function inline 
+   without having to name it.
+   This function intSeq returns another function, which we define anonymously in the body of intSeq. 
+   The returned function closes over the variable i to form a closure.
+   We call intSeq, assigning the result (a function) to nextInt. This function value captures its own i value, 
+   which will be updated each time we call nextInt.
+   See the effect of the closure by calling nextInt a few times.
+   To confirm that the state is unique to that particular function, create and test a new one.
+*/
+package main
+import "fmt"
+
+func intReturn(x int) func () int {
+    i := 0
+    return func() int {
+        i += x
+        return i
+    }
+}
+
+func main(){
+  oldInteger := intReturn(10)
+  fmt.Println("Old-Int : ", oldInteger ())
+  fmt.Println("Old-Int : ", oldInteger ())
+  fmt.Println("Old-Int : ", oldInteger ())
+
+  newInteger := intReturn(100)
+  fmt.Println("New-Int : ", newInteger())
+  fmt.Println("New-Int : ", newInteger())
+
+  fmt.Println("Old-Int : ", oldInteger ())
+}
+OUTPUT:-
+Old-Int :  10
+Old-Int :  20
+Old-Int :  30
+New-Int :  100
+New-Int :  200
+Old-Int :  40
+-----------------------------------
+Recursion
+Go supports recursive functions. This fact function calls itself until it reaches the base case of fact(0).
+package main
+import "fmt"
+
+func calculateFact(x int) int {
+    if x == 0 {
+        return 1
+    }
+    fmt.Print(x)
+    if x > 1 {
+        fmt.Print(" * ")
+    }
+    return x * calculateFact(x-1)
+}
+
+func main(){
+  num := 6
+  fmt.Print("calculateFact [ ", num, " ] : ")
+  fact := calculateFact(num)
+  fmt.Print(" = ", fact)
+}
+OUTPUT:-
+calculateFact [ 6 ] : 6 * 5 * 4 * 3 * 2 * 1 = 720
+----------------------------------------------------
+Pointers
+  Go supports pointers, allowing you to pass references to values and records within your program.
+  zeroval has an int parameter, so arguments will be passed to it by value. 
+  zeroval will get a copy of ival distinct from the one in the calling function.
+  
+  zeroptr in contrast has an *int parameter, meaning that it takes an int pointer. 
+  The *iptr code in the function body then dereferences the pointer from its memory address to the current value at that address. 
+  Assigning a value to a dereferenced pointer changes the value at the referenced address.
+  
+  The &i syntax gives the memory address of i, i.e. a pointer to i.
+  zeroval doesn’t change the i in main, but zeroptr does because it has a reference to the memory address for that variable.
+  
+package main
+import "fmt"
+
+func passByValue(x int) {
+    x = x + 10
+}
+
+func passByReference(x *int) {
+    *x = *x + 10
+}
+
+func main(){
+  num := 6
+  fmt.Println("Initial value : ", num)
+  passByValue(num)
+  fmt.Println("passByValue -> Now Num : ", num)
+  passByValue(num)
+  fmt.Println("passByValue -> Now Num : ", num)
+
+  passByReference(&num)
+  fmt.Println("passByReference -> Now Num : ", num)
+  passByReference(&num)
+  fmt.Println("passByReference -> Now Num : ", num)
+
+  var x int = 5
+  var no *int = &x
+  passByReference(no)
+  fmt.Println("passByReference -> [ ", &x, " = ", no, " ] : ", x, " = ", *no)
+}
+OUTPUT:-
+Initial value :  6
+passByValue -> Now Num :  6
+passByValue -> Now Num :  6
+passByReference -> Now Num :  16
+passByReference -> Now Num :  26
+passByReference -> [  0x10414044  =  0x10414044  ] :  15  =  15
+----------------------------------------------------------------
+Structs
+  Go’s structs are typed collections of fields. They’re useful for grouping data together to form records.
+  You can name the fields when initializing a struct.
+  Omitted fields will be zero-valued.
+  An & prefix yields a pointer to the struct.
+  Access struct fields with a dot.
+  You can also use dots with struct pointers - the pointers are automatically dereferenced.
+  Structs are mutable.
+  
+package main
+import "fmt"
+
+type Person struct{
+  name string
+  age int
+}
+
+func main(){
+  fmt.Println("Person : ", Person{"Guru", 30})
+  fmt.Println("Person : ", Person{age:30})
+  fmt.Println("Person : ", Person{name:"Guru", age:30})
+  fmt.Println("Person : ", Person{age: 30, name:"Guru"})
+  fmt.Println("Person : ", &Person{name:"Guru", age:30})
+
+  p := Person{name: "kumar", age: 18}
+  fmt.Println("Name   : ", p.name, ", Age : ", p.age)
+  p.name = "patel"
+  fmt.Println("Name   : ", p.name, ", Age : ", p.age)
+
+  ptr := &p
+  fmt.Println("Name   : ", ptr.name, ", Age : ", ptr.age)
+  ptr.name = "Omkara"
+  ptr.age = 50
+  fmt.Println("Name   : ", p.name, ", Age : ", p.age)
+}
+OUTPUT:-
+Person :  {Guru 30}
+Person :  { 30}
+Person :  {Guru 30}
+Person :  {Guru 30}
+Person :  &{Guru 30}
+Name   :  kumar , Age :  18
+Name   :  patel , Age :  18
+Name   :  patel , Age :  18
+Name   :  Omkara , Age :  50
+--------------------------------------------------------
+/*Methods
+  Go supports methods defined on struct types.
+  Methods can be defined for either pointer or value receiver types. 
+  Go automatically handles conversion between values and pointers for method calls. 
+  You may want to use a pointer receiver type to avoid copying on method calls or to allow the method to mutate the receiving struct.
+*/  
+package main
+import "fmt"
+
+type Rectangle struct{
+  w, h int
+}
+
+func (r Rectangle) displayWidthHeight() {
+  fmt.Println("height : width  = ", r.h, r.w)
+}
+
+/* area method has a receiver type of Rectangle. */
+func (r Rectangle) area() int {
+  return r.w * r.h
+}
+
+/* changeWidthHeight method has a receiver type of *Rectangle. */
+func (r *Rectangle) changeWidthHeight() {
+  r.w *= 2 
+  r.h *= 2
+}
+
+func main(){
+  x := Rectangle{10, 20}
+  x.displayWidthHeight()
+  fmt.Println("Rectangle Area  = ", x.area())
+  x.changeWidthHeight();
+  x.displayWidthHeight()
+
+  x_ptr := &x
+  x_ptr.displayWidthHeight()
+  fmt.Println("Rectangle Area  = ", x_ptr.area())
+  x_ptr.changeWidthHeight();
+  x_ptr.displayWidthHeight()
+}
+OUTPUT:-
+height : width  =  20 10
+Rectangle Area  =  200
+height : width  =  40 20
+height : width  =  40 20
+Rectangle Area  =  800
+height : width  =  80 40
+--------------------------------------
+Interfaces
+  Interfaces are named collections of method signatures.
+  To implement an interface in Go, we just need to implement all the methods in the interface. 
+  If a variable has an interface type, then we can call methods that are in the named interface. 
+  Here’s a generic measure function taking advantage of this to work on any geometry.
+  
+  The circle and rect struct types both implement the geometry interface so we can use instances of these structs as arguments to measure.
+*/
+package main
+import "fmt"
+import "math"
+
+type Geometry interface {
+  area() float64
+}
+
+type Circle struct{
+  r float64
+}
+
+type Rectangle struct{
+  w, h float64
+}
+
+func (r Rectangle) area() float64 {
+  return r.w * r.h
+}
+
+func (c Circle) area() float64 {
+  return 2 * math.Pi * c.r * c.r
+}
+
+func measure(g Geometry ) {
+  fmt.Println("Geometry      : ", g)
+  fmt.Println("Geometry Area : ", g.area())
+}
+
+func main(){
+  x := Rectangle{10, 20}
+  y := Circle{10}
+
+  measure(x)
+  measure(y)
+}
+OUTPUT:-
+Geometry      :  {10 20}
+Geometry Area :  200
+Geometry      :  {10}
+Geometry Area :  628.3185307179587
+----------------------------------------------------
+Goroutines
+  A goroutine is a lightweight thread of execution.
+  f(s). Here’s how we’d call that in the usual way, running it synchronously.
+  go f(s). This new goroutine will execute concurrently with the calling one.
+  we can also start a goroutine for an anonymous function call.
+  When we run this program, we see the output of the blocking call first, then the interleaved output of the two goroutines. 
+  This interleaving reflects the goroutines being run concurrently by the Go runtime.
+  
+package main
+import "fmt"
+
+func goroutineTest(caller string) {
+  for i:= 0; i < 3; i++ {
+    fmt.Println(caller, " : ", i)
+  }
+  fmt.Println(caller, " End ")
+}
+
+func main(){
+  goroutineTest("Normal Functional call")
+
+  go goroutineTest("Go Routine Functional call")
+
+  go func(caller string) {
+    for i:= 0; i < 3; i++ {
+      fmt.Println(caller, " : ", i)
+    }
+    fmt.Println(caller, " End ")
+  }("Go Routine Anonymous Function call")
+
+  fmt.Scanln()
+  fmt.Println("Main End ")
+}
+
+--------------------------------
+Channels
+  Channels are the pipes that connect concurrent goroutines. 
+  You can send values into channels from one goroutine and receive those values into another goroutine.
+  Create a new channel with make(chan val-type). Channels are typed by the values they convey.
+  Send a value into a channel using the channel <- syntax. Here we send "ping" to the messages channel we made above, from a new goroutine.
+  The <-channel syntax receives a value from the channel. 
+  "Hello from Goroutine.!!" message is successfully passed from one goroutine to another via our channel.
+  By default sends and receives block until both the sender and receiver are ready. 
+  This property allowed us to wait at the end of our program for the "Hello from Goroutine.!!" message without having to use any other synchronization.
+  
+package main
+import "fmt"
+
+func main() {
+  messages := make(chan string)
+
+  go func() { messages <- "Hello from Goroutine.!!" }()
+
+  msg := <-messages
+  fmt.Println(msg)
+}
+OUTPUT:-
+Hello from Goroutine.!!
+
+//Another Program for channel in detail
+package main
+import "fmt"
+
+func main() {
+  message := make(chan string)
+
+  go func(msg string) {
+    for i := 0; i < 3; i++ {
+      fmt.Println(msg, " : ", i)
+    }
+    fmt.Println("Send msg to channel message : ", msg)
+    message <- msg
+  }("Guru Prasad Patel")
+
+  fmt.Println("Ready to Receive message from channel message")
+  msg := <-message
+  fmt.Println("Received message from channel message into msg: ", msg)
+}
+OUTPUT:-
+Ready to Receive message from channel message
+Guru Prasad Patel  :  0
+Guru Prasad Patel  :  1
+Guru Prasad Patel  :  2
+Send msg to channel message :  Guru Prasad Patel
+Received message from channel message into msg:  Guru Prasad Patel
+------------------------------------
+Channel Buffering
+  By default channels are unbuffered, meaning that they will only accept sends (chan <-) if there is a corresponding receive (<- chan) 
+  ready to receive the sent value. Buffered channels accept a limited number of values without a corresponding receiver for those values.
+  Here we make a channel of strings buffering up to 2 values.
+  Because this channel is buffered, we can send these values into the channel without a corresponding concurrent receive.
+  Later we can receive these two values as usual.
+  
+// 1. if N element Sender side, and N element expecting Receiver side, then work fine
+package main
+import "fmt"
+
+func main() {
+  message := make(chan string, 3)
+
+  go func(msg string) {
+    for i := 0; i < 3; i++ {
+      message <- msg
+      fmt.Println(msg, " : ", i)
+    }
+    fmt.Println("Send msg to channel message done.!")
+    
+  }("Guru Prasad Patel")
+
+  var msg string
+  msg = <-message
+  fmt.Println(msg)
+  msg = <-message
+  fmt.Println(msg)
+  msg = <-message
+  fmt.Println(msg)
+  fmt.Println("Received message from channel message into msg done.!")
+}
+OUTPUT:-
+Guru Prasad Patel  :  0
+Guru Prasad Patel  :  1
+Guru Prasad Patel  :  2
+Send msg to channel message done.!
+Guru Prasad Patel
+Guru Prasad Patel
+Guru Prasad Patel
+Received message from channel message into msg done.!
+
+// 2. Deadloc program because of N -1 element Sender side, and N element expecting Receiver side hence Nth Receiver in blocing state.
+package main
+import "fmt"
+
+func main() {
+  message := make(chan string, 3)
+
+  go func(msg string) {
+    for i := 0; i < 2; i++ {
+      message <- msg
+      fmt.Println(msg, " : ", i)
+    }
+    fmt.Println("Send msg to channel message done.!")
+    
+  }("Guru Prasad Patel")
+
+  var msg string
+  msg = <-message
+  fmt.Println(msg)
+  msg = <-message
+  fmt.Println(msg)
+  msg = <-message   // This one is the blocking Receiver, since no 3rd element in channel available
+  fmt.Println(msg)
+  fmt.Println("Received message from channel message into msg done.!")
+}
+OUTPUT:-
+Guru Prasad Patel  :  0
+Guru Prasad Patel  :  1
+Send msg to channel message done.!
+Guru Prasad Patel
+Guru Prasad Patel
+fatal error: all goroutines are asleep - deadlock!
+
+goroutine 1 [chan receive]:
+main.main()
+	/tmp/sandbox401122590/main.go:22 +0x1e0
+-------------------------------------------------------
+Channel Synchronization
+  We can use channels to synchronize execution across goroutines. Here’s an example of using a blocking receive to wait for a goroutine to finish.
+  The done channel will be used to notify another goroutine that this function’s work is done.
+  
+  Note: If you removed the <- done line from this program, the program would exit before the worker even started.
+  
+import "fmt"
+import "time"
+
+func main() {
+  done := make(chan bool, 1)
+
+  go func(done_temp chan bool) {
+    fmt.Println("Working...!")
+    time.Sleep(time.Second)
+    fmt.Println("Done..!!")
+    done_temp <- true   // Send a value to notify that we’re done.
+  }(done)  // Start a worker goroutine, giving it the channel to notify on.
+
+  <- done   //  Block until we receive a notification from the worker on the channel.
+  fmt.Println("Main done.!")
+}
+OUTPUT:-
+Working...!
+Done..!!
+Main done.!
+
+Note: If you removed the <- done line from this program, the program would exit before the worker even started.
+OUTPUT:-
+Main done.!
+-------------------------------------
+Channel Directions
+  When using channels as function parameters, you can specify if a channel is meant to only send or receive values. 
+  This specificity increases the type-safety of the program.
+  
+package main
+import "fmt"
+
+func main() {
+  pings := make(chan string, 1)
+  pongs := make(chan string, 1)
+
+  // message is going to write on channel pings_tmp as chan<- (indicate write-only on channel)
+  //This function only accepts a channel for sending values. It would be a compile-time error to try to receive on this channel.
+  go func(pings_tmp chan<- string, msg string) {
+    pings_tmp <- msg
+	// msg <- pings_tmp //invalid operation: msg <- pings_tmp (send to non-chan type string)
+  }(pings, "Hello.!!")
+
+  // message is going to first read from channel pings_tmp as <-chan (indicate read-only from channel)
+  // then msg is going to write on channel pongs_tmp as chan<- (indicate write-only on channel)
+  // The function accepts one channel for receives (pings_tmp) and a second for sends (pongs_tmp).
+  go func(pongs_tmp chan<- string, pings_tmp <-chan string) {
+    msg := <-pings_tmp
+    pongs_tmp <- msg
+  }(pongs, pings)
+
+  fmt.Println("Ping Pong Message: ", <-pongs)
+  fmt.Println("Main done.!")
+}
+OUTPUT:-
+Ping Pong Message:  Hello.!!
+Main done.!
+----------------------------------------
+Select
+  Go’s select lets you wait on multiple channel operations. Combining goroutines and channels with select is a powerful feature of Go.
+  Each channel will receive a value after some amount of time, to simulate e.g. blocking RPC operations executing in concurrent goroutines.
+  
+package main
+import "fmt"
+import "time"
+
+func main() {
+  pings := make(chan string, 1)
+  pongs := make(chan string, 1)
+
+  go func() {
+    time.Sleep(1 * time.Second)
+    pings <- "pings" 
+  }()
+
+  go func() {
+    time.Sleep(2 * time.Second)
+    pongs <- "pongs"
+  }()
+
+  for i := 0; i < 2; i++ {
+    select {
+      case msg1 := <-pings:
+        fmt.Println("Received Message: ", msg1)
+      case msg2 := <-pongs:
+        fmt.Println("Received Message: ", msg2)
+    }
+  }
+  fmt.Println("Main done.!")
+}
+OUTPUT:-
+Received Message:  pings
+Received Message:  pongs
+Main done.!
+----------------------------------
+Timeouts
+  Timeouts are important for programs that connect to external resources or that otherwise need to bound execution time. 
+  Implementing timeouts in Go is easy and elegant thanks to channels and select.
+  
+  <-Time.After awaits a value to be sent after the timeout of 1s. 
+  Since select proceeds with the first receive that’s ready, we’ll take the timeout case if the operation takes more than the allowed 1s.
+  
+  Running this program shows the first operation timing out and the second succeeding.
+  
+  Using this select timeout pattern requires communicating results over channels. 
+  This is a good idea in general because other important Go features are based on channels and select.
+  
+package main
+import "fmt"
+import "time"
+
+func main() {
+  pings := make(chan string, 1)
+  pongs := make(chan string, 1)
+
+  go func() {
+    time.Sleep(2 * time.Second)
+    pings <- "pings" 
+  }()
+
+  select {
+    case msg1 := <-pings:
+      fmt.Println("Received Message: ", msg1)
+    case <-time.After(1 * time.Second):
+      fmt.Println("timeout 1 ")
+  }
+
+  go func() {
+    time.Sleep(2 * time.Second)
+    pongs <- "pongs"
+  }()
+
+  select {
+    case msg1 := <-pongs:
+      fmt.Println("Received Message: ", msg1)
+    case <-time.After(3 * time.Second):
+      fmt.Println("timeout 2")
+  }
+  fmt.Println("Main done.!")
+}
+OUTPUT:-
+timeout 1 
+Received Message:  pongs
+Main done.!
+----------------------------------------
+Non-Blocking Channel Operations
+  Basic sends and receives on channels are blocking. 
+  However, we can use select with a default clause to implement non-blocking sends, receives, and even non-blocking multi-way selects.
+  
+package main
+import "fmt"
+
+func main() {
+  messages := make(chan string)
+  signals := make(chan bool)
+
+  // Here’s a non-blocking receive. 
+  // If a value is available on messages then select will take the <-messages case with that value. 
+  // If not it will immediately take the default case.
+  select {
+    case msg := <-messages:
+        fmt.Println("received message", msg)
+    default:
+        fmt.Println("no message received")
+  }
+
+  // A non-blocking send works similarly. 
+  // Here msg cannot be sent to the messages channel, because the channel has no buffer and there is no receiver. 
+  // Therefore the default case is selected.
+  msg := "hi"
+  select {
+    case messages <- msg:
+        fmt.Println("sent message", msg)
+    default:
+        fmt.Println("no message sent")
+  }
+
+  // We can use multiple cases above the default clause to implement a multi-way non-blocking select. 
+  // Here we attempt non-blocking receives on both messages and signals.
+  select {
+    case msg := <-messages:
+        fmt.Println("received message", msg)
+    case sig := <-signals:
+        fmt.Println("received signal", sig)
+    default:
+        fmt.Println("no activity")
+  }
+}
+OUTPUT:-
+no message received
+no message sent
+no activity
+--------------------------------
+Closing Channels
+  Closing a channel indicates that no more values will be sent on it. 
+  This can be useful to communicate completion to the channel’s receivers.
+  
+  In this example we’ll use a jobs channel to communicate work to be done from the main() goroutine to a worker goroutine. 
+  When we have no more jobs for the worker we’ll close the jobs channel.
+  
+package main
+import "fmt"
+
+func main() {
+  jobs := make(chan int, 5)
+  done := make(chan bool)
+
+  go func() {
+    for {
+      j, more := <-jobs
+      if more {
+        fmt.Println("received job", j)
+      } else {
+        fmt.Println("received all jobs")
+        done <- true
+        return
+      }
+    }
+  }()
+
+  for j := 1; j <= 3; j++ {
+    jobs <- j
+    fmt.Println("sent job", j)
+  }
+  close(jobs)
+  fmt.Println("sent all jobs")
+
+  <-done
+}
+OUTPUT:-
+sent job 1
+sent job 2
+sent job 3
+sent all jobs
+received job 1
+received job 2
+received job 3
+received all jobs
+
+sent job 1
+received job 1
+sent job 2
+received job 2
+sent job 3
+received job 3
+sent all jobs
+received all jobs
+----------------------------------------
+Range over Channels
+  Range provide iteration over basic data structures. We can also use this syntax to iterate over values received from a channel.
+
+  This range iterates over each element as it’s received from queue. 
+  Because we closed the channel above, the iteration terminates after receiving the 2 elements.
+
+  This example also showed that it’s possible to close a non-empty channel but still have the remaining values be received.
+  
+package main
+import "fmt"
+
+func main() {
+  queue := make(chan string, 2)
+  queue <- "one"
+  queue <- "two"
+  close(queue)
+
+  for elem := range queue {
+    fmt.Println(elem)
+  }
+}
+OUTPUT:-
+one
+two
+---------------------------------------
+Timers
+  We often want to execute Go code at some point in the future, or repeatedly at some interval. 
+  Go’s built-in timer and ticker features make both of these tasks easy. We’ll look first at timers and then at tickers.
+  
+  Timers represent a single event in the future. 
+  You tell the timer how long you want to wait, and it provides a channel that will be notified at that time. 
+package main
+import "fmt"
+import "time"
+
+func main() {
+  timer1 := time.NewTimer(2 * time.Second) //This timer will wait 2 seconds.
+  <-timer1.C     // The <-timer1.C blocks on the timer’s channel C until it sends a value indicating that the timer expired.
+  fmt.Println("Timer 1 expired")
+
+  // If you just wanted to wait, you could have used time.Sleep. One reason a timer may be useful is that you can cancel the timer before it expires.
+  timer2 := time.NewTimer(time.Second)
+  go func() {
+    <-timer2.C
+    fmt.Println("Timer 2 expired")
+  }()
+
+  stop2 := timer2.Stop()
+  if stop2 {
+    fmt.Println("Timer 2 stopped")
+  }
+}
+
+// The first timer will expire ~2s after we start the program, but the second should be stopped before it has a chance to expire.
+OUTPUT:-
+Timer 1 expired
+Timer 2 stopped
+---------------------------------------------
+Tickers
+  Timers are for when you want to do something once in the future - tickers are for when you want to do something repeatedly at regular intervals. 
+  Here’s an example of a ticker that ticks periodically until we stop it.
+  
+package main
+import "fmt"
+import "time"
+
+func main() {
+  // Tickers use a similar mechanism to timers: a channel that is sent values. 
+  //Here we’ll use the range builtin on the channel to iterate over the values as they arrive every 500ms.
+  ticker := time.NewTicker(500 * time.Millisecond)
+  go func() {
+    for t := range ticker.C {
+      fmt.Println("Tick at", t)
+    }
+  }()
+
+  // Tickers can be stopped like timers. Once a ticker is stopped it won’t receive any more values on its channel. We’ll stop ours after 1600ms.
+  time.Sleep(1600 * time.Millisecond)
+  ticker.Stop()
+  fmt.Println("Ticker stopped")
+}
+// When we run this program the ticker should tick 3 times before we stop it.
+OUTPUT:-
+Tick at 2009-11-10 23:00:00.5 +0000 UTC m=+0.500000001
+Tick at 2009-11-10 23:00:01 +0000 UTC m=+1.000000001
+Tick at 2009-11-10 23:00:01.5 +0000 UTC m=+1.500000001
+Ticker stopped
+-----------------------------------------------
+Worker Pools
+In this example we’ll look at how to implement a worker pool using goroutines and channels.
+
+package main
+import "fmt"
+import "time"
+
+// Here’s the worker, of which we’ll run several concurrent instances. 
+// These workers will receive work on the jobs channel and send the corresponding results on results. 
+// We’ll sleep a second per job to simulate an expensive task.
+func worker(id int, jobs <-chan int, results chan<- int) {
+    for j := range jobs {
+        fmt.Println("worker", id, "started  job", j)
+        time.Sleep(time.Second)
+        fmt.Println("worker", id, "finished job", j)
+        results <- j * 2
+    }
+}
+
+func main() {
+  // In order to use our pool of workers we need to send them work and collect their results. We make 2 channels for this.
+  jobs := make(chan int, 100)
+  results := make(chan int, 100)
+
+  // This starts up 3 workers, initially blocked because there are no jobs yet.
+  for w := 1; w <= 3; w++ {
+        go worker(w, jobs, results)
+  }
+
+  // Here we send 5 jobs and then close that channel to indicate that’s all the work we have.
+  for j := 1; j <= 5; j++ {
+        jobs <- j
+  }
+  close(jobs)
+
+  // Finally we collect all the results of the work.
+  for a := 1; a <= 5; a++ {
+        <-results
+  }
+}
+//Our running program shows the 5 jobs being executed by various workers. 
+//The program only takes about 2 seconds despite doing about 5 seconds of total work because there are 3 workers operating concurrently.
+OUTPUT:-
+worker 3 started  job 1
+worker 1 started  job 2
+worker 2 started  job 3
+worker 1 finished job 2
+worker 1 started  job 4
+worker 3 finished job 1
+worker 3 started  job 5
+worker 2 finished job 3
+worker 3 finished job 5
+worker 1 finished job 4
+--------------------------------------
+snehapatel4203@gmail.com
+sneha@42
+----------------------------------------
+package main
+
+import (
+    "fmt"
+)
+
+type Pet struct {
+    name string
+}
+
+type Dog struct {
+    Pet
+    Breed string
+}
+
+func (p *Pet) Play() string {
+    return fmt.Sprintf("Play : %v", p.Speak())
+}
+
+func (p *Pet) Speak() string {
+    return fmt.Sprintf("Speak : %v", p.Play())
+}
+
+func main() {
+    d := Dog{Pet: Pet{name: "spot"}, Breed: "pointer"}
+    d.Speak()
+    d.Play()
+}
+OUTPUT:- (Around 238.4 MB stack size)
+runtime: goroutine stack exceeds 250000000-byte limit
+fatal error: stack overflow
+
+runtime stack:
+runtime.throw(0xff509, 0xe)
+	/usr/local/go/src/runtime/panic.go:616 +0x100
+runtime.newstack()
+	/usr/local/go/src/runtime/stack.go:1054 +0x9a0
+runtime.morestack()
+	/usr/local/go/src/runtime/asm_amd64p32.s:366 +0xc0
+
+goroutine 1 [running]:
+main.(*Pet).Speak(0x20457f98, 0x0, 0x0, 0x0)
+	/tmp/sandbox770028456/main.go:24 +0x100 fp=0x18458348 sp=0x18458340 pc=0xd58c0
+main.(*Pet).Play(0x20457f98, 0x0, 0x0, 0x0)
+	/tmp/sandbox770028456/main.go:21 +0x40 fp=0x18458380 sp=0x18458348 pc=0xd56e0
+main.(*Pet).Speak(0x20457f98, 0x0, 0x0, 0x0)
+	/tmp/sandbox770028456/main.go:25 +0x40 fp=0x184583b8 sp=0x18458380 pc=0xd5800
+main.(*Pet).Play(0x20457f98, 0x0, 0x0, 0x0)
+	/tmp/sandbox770028456/main.go:21 +0x40 fp=0x184583f0 sp=0x184583b8 pc=0xd56e0
+main.(*Pet).Speak(0x20457f98, 0x0, 0x0, 0x0)
+	/tmp/sandbox770028456/main.go:25 +0x40 fp=0x18458428 sp=0x184583f0 pc=0xd5800
+----------------------------------------------------------------
+type Pet struct {
+    Name string
+}
+
+type Dog struct {
+    Pet
+    Breed string
+}
+
+func (p *Pet) Display() {
+    fmt.Println("Pet -> ", p.Name)
+}
+/*
+func (d *Dog) Display() {
+    fmt.Println("Dog -> ", d.Name, "  ", d.Breed)
+}
+*/
+func main() {
+    d := Dog{Pet: Pet{Name: "spot"}, Breed: "pointer"}
+    d.Display()
+}
+OUTPUT:-
+Pet ->  spot
+
+type Pet struct {
+    Name string
+}
+
+type Dog struct {
+    Pet
+    Breed string
+}
+
+func (p *Pet) Display() {
+    fmt.Println("Pet -> ", p.Name)
+}
+
+func (d *Dog) Display() {
+    fmt.Println("Dog -> ", d.Name, "  ", d.Breed)
+}
+
+func main() {
+    d := Dog{Pet: Pet{Name: "spot"}, Breed: "pointer"}
+    d.Display()
+}
+OUTPUT:-
+Dog ->  spot    pointer
+
+-------------------------------------------------
+Golang function and function variable semantics
+package main
+import "fmt"
+
+func main() {
+    var f *func(int) int;
+    t := func(i int) int {
+        if i == 0 {
+            return 1
+        }
+        return i * (*f)(i-1)
+    }
+    f = &t
+    fmt.Println((*f)(5))
+}
+
+The below code would be the preferred way of doing. 
+Note that you do not have to create an additional variable, nor do you have a pointer to a function:
+package main
+import "fmt"
+
+func main() {
+    var f func(int) int
+    f = func(i int) int {
+        if i == 0 {
+            return 1
+        }
+        return i * f(i-1)
+    }
+    fmt.Println(f(2))
+}
+
+From the spec: The scope of a constant or variable identifier declared inside a function begins at the end of the ConstSpec or VarSpec 
+               (ShortVarDecl for short variable declarations) and ends at the end of the innermost containing block. 
+			   That means that the fidentifier is not valid until the value is fully defined.
+			   
+package main
+import "fmt"
+func f(i int) int {
+        if i == 0 {
+            return 1
+        }
+        return i * f(i-1)
+    }
+	
+func main() {
+    t := f
+    fmt.Println(t(2))
+}
+
+-----------------------------------------
+Stringers:-
+One of the most ubiquitous interfaces is Stringer defined by the fmt package.
+
+type Stringer interface {
+    String() string
+}
+
+A Stringer is a type that can describe itself as a string. The fmt package (and many others) look for this interface to print values.
+
+package main
+import "fmt"
+
+type Person struct {
+	Name string
+	Age  int
+}
+
+func (p Person) String() string {
+	return fmt.Sprintf("%v (%v years)", p.Name, p.Age)
+}
+
+func (p *Person) Show() { 
+    fmt.Println("Pointer Receiver: ", p) 
+}
+
+func main() {
+	a := &Person{"Arthur Dent", 42}
+	a.Show()
+	(*a).Show()
+}
+OUTPUT:-
+Pointer Receiver:  Arthur Dent (42 years)
+Pointer Receiver:  Arthur Dent (42 years)
+
+package main
+import "fmt"
+
+type Person struct {
+	Name string
+	Age  int
+}
+
+func (p Person) String() string {
+	return fmt.Sprintf("%v (%v years)", p.Name, p.Age)
+}
+
+func (p Person) Show() { 
+    fmt.Println("Value Receiver: ", p) 
+}
+
+func main() {
+	a := &Person{"Arthur Dent", 42}
+	a.Show()
+	(*a).Show()
+	
+	x := Person{"Arthur", 30}
+	x.Show()
+	b := &x
+	b.Show()
+	(*b).Show()
+}
+OUTPUT:-
+Value Receiver:  Arthur Dent (42 years)
+Value Receiver:  Arthur Dent (42 years)
+Value Receiver:  Arthur (30 years)
+Value Receiver:  Arthur (30 years)
+Value Receiver:  Arthur (30 years)
+
+package main
+import "fmt"
+
+type Person struct {
+	Name string
+	Age  int
+}
+
+func (p Person) String() string {
+	return fmt.Sprintf("%v (%v years)", p.Name, p.Age)
+}
+
+func (p *Person) ChangeAge(x int) { p.Age = x } 
+
+func main() {
+	a := &Person{"Arthur Dent", 42}
+	fmt.Println("Before: ", a)
+	a.ChangeAge(10)    // (*a).ChangeAge(10) OK, This also work fine
+	fmt.Println("After: ", a)
+	
+	x := Person{"Arthur", 30}
+	fmt.Println("Before: ", x)
+	x.ChangeAge(20)    // (&x).ChangeAge(20) OK, This also work fine
+	fmt.Println("After: ", x)
+}
+OUTPUT:-
+Before:  Arthur Dent (42 years)
+After:  Arthur Dent (10 years)
+Before:  Arthur (30 years)
+After:  Arthur (20 years)
+
+NOTE:- Calling ChangeAge() manually works because the compiler sees that ChangeAge needs a *Person and 
+       thus automatically converts x.ChangeAge() to (&x).ChangeAge() and (*a).ChangeAge() to (&(*a)).ChangeAge().
+----------------------------------------------------
+package main 
+import ( "fmt" ) 
+
+type A struct { } 
+func (a *A) Foo() { fmt.Println("A.Foo()") } 
+func (a *A) Bar() { a.Foo() }
+
+type B struct { A } 
+
+func main() { 
+  b := B{A: A{}} 
+  b.Bar() 
+  b.Foo()
+  
+  a := A{}
+  a.Bar()
+  a.Foo()
+}
+OUTPUT:-
+A.Foo()
+A.Foo()
+A.Foo()
+A.Foo()
+
+package main 
+import ( "fmt" ) 
+
+type A struct { } 
+func (a *A) Foo() { fmt.Println("A.Foo()") } 
+func (a *A) Bar() { a.Foo() }
+
+type B struct { A } 
+func (b *B) Foo() { fmt.Println("B.Foo()") } 
+func (b *B) Bar() { b.Foo() }
+
+func main() { 
+  b := B{A: A{}} 
+  b.Bar() 
+  b.Foo()
+}
+OUTPUT:-
+B.Foo()
+B.Foo()
+-----------------------------
+Each set of curly brackets define a new level of scope. Take this code for example:
+
+func main() {
+   id := 10
+   id := 20
+
+   fmt.Printf("Id: %d\n", id)
+}
+OUTPUT:-
+If you try to compile this code you get the following error:
+no new variables on left side of :=
+
+This makes sense because you are trying to declare the same variable name twice. The error goes away if we change the code to look like this:
+func main() {
+   id := 10
+   {
+       id := 20
+       fmt.Printf("Id: %d\n", id)
+   }
+   fmt.Printf("Id: %d\n", id)
+}
+
+NOTE:-
+     The curly brackets define a new stack frame and therefore a new level of scope. 
+	 The variable name can be reused inside the new set of curly brackets. 
+	 When the code reaches the closing curly bracket that small piece of the stack is popped.
+	 
+
+---------------------------------
+Look again at the code that caused the shadowing error:
+
+func ReturnId() (id int, err error) {
+   id = 10
+
+   if id == 10 {
+      err := fmt.Errorf("Invalid Id\n")
+      return
+   }
+
+   return
+}
+
+Inside the if statement we are creating a new variable called err. We are not using the err variable declared as the function return argument. 
+The compiler recognizes this and produces the error. If the compiler did not report this error, you would never see the error that occured 
+inside the if statement. The return err variable is what is passed by default
+
+
+-----------------------
+You need to be aware that the defer statement is evaluated inline with the rest of the code:
+
+func ReturnId() (id int, err error) {
+   defer func(id int) {
+      if id == 10 {
+         err = fmt.Errorf("Invalid Id\n")
+      }
+   }(id)
+
+   id = 10
+
+   return
+}
+
+-----------------
+This version does not display the error message. The value of id is not 10 until after the defer statement is evaluated.
+
+Sometimes it makes sense to use named return arguments, such when using a defer statement at the top of your function. 
+If you are passing raw values out of your function then something like this does not make sense:
+
+package main
+import (
+   "fmt"
+)
+
+func main() {
+   ans := AddNumbers(10, 12)
+   fmt.Printf("Answer: %d\n", ans)
+}
+
+func AddNumbers(a int, b int) (result int) {
+   return a + b
+}
+
+The return argument is named for the AddNumbers function but never used. Instead we return the answer of the operation directly out of the return. 
+This shows you how you can still return any value you want even if you name the return arguments.
+
+I asked the Go community for their opinions about using named arguments and naked returns:
+I got a very good mix of opinions that I think everyone should read. Go gives you a lot of flexibility and choice when building your functions. 
+Don’t look for a single common practice for everything. Take each function individually and implement the best construct for that use case.
+
+------------------------------
+type error interface {
+    Error() string
+}
+So anything that implements the Error() string method can be used as an error.
+
+A better approach is to use error types. So you can (of course) create structs that implements the error interface and 
+then do type comparison in a switch statement.
+
+Here’s an example error implementation.
+
+type ErrZeroDivision struct {
+    message string
+}
+func NewErrZeroDivision(message string) *ErrZeroDivision {
+    return &ErrZeroDivision{
+        message: message,
+    }
+}
+func (e *ErrZeroDivision) Error() string {
+    return e.message
+}
+
+Now this error can be used like this.
+
+func divide(a, b float64) (float64, error) {
+    if b == 0.0 {
+        return 0.0, NewErrZeroDivision("Cannot divide by zero")
+    }
+    return a / b, nil
+}
+func main() {
+    result, err := divide(1.0, 0.0)
+    if err != nil {
+        switch err.(type) {
+        case *ErrZeroDivision:
+            fmt.Println(err.Error())
+        default:
+            fmt.Println("What the h* just happened?")
+        }
+    }
+    fmt.Println(result)
+}
+note:- Notice the switch err.(type) pattern, which makes it possible to check for different error types rather than something else
+
+----------------
+So no, while there is no "set of standard errors", you can (and most likely should) have specific error variables that you reuse.
+
+You could have your own errorMsgs package that you use, where you can reuse common errors:
+
+err := doSomething(); if err != nil {
+    switch err {
+        case errorMsgs.IllegalArgument:
+           //do something
+        case errorMsgs.CouldNotConnect:
+           //do something else
+     }
+}
+--------------------
+package main 
+
+import "fmt"
+type Vehical interface {
+    PrintVehical()
+}
+type TwoWheeler struct{
+    name string
+}
+func(tw TwoWheeler) PrintVehical(){
+     fmt.Println("TwoWheeler   : ", tw.name)
+}
+type ThreeWheeler struct{
+    name string
+}
+func(tw ThreeWheeler) PrintVehical(){
+     fmt.Println("ThreeWheeler : ", tw.name)
+}
+type FourWheeler struct{
+    name string
+}
+func(tw FourWheeler) PrintVehical(){
+     fmt.Println("FourWheeler  : ", tw.name)
+}
+func main() {
+    var vehicalSlice []Vehical
+    vehicalSlice = append(vehicalSlice, TwoWheeler{name:"Byke"})
+    vehicalSlice = append(vehicalSlice, ThreeWheeler{name:"Auto"})
+    vehicalSlice = append(vehicalSlice, FourWheeler{name:"Car"})
+    vehicalSlice = append(vehicalSlice, TwoWheeler{name:"Scooty"})
+    vehicalSlice = append(vehicalSlice, ThreeWheeler{name:"Rickshaw"})
+    vehicalSlice = append(vehicalSlice, FourWheeler{name:"Bus"})
+   
+    for _, vehical := range vehicalSlice {
+        switch vehical := vehical.(type) {
+            case ThreeWheeler:
+                 vehical.PrintVehical()
+            case TwoWheeler:
+                 vehical.PrintVehical()
+            case FourWheeler:
+                 vehical.PrintVehical()
+
+        }
+    }
+}
+OUTPUT:-
+TwoWheeler   :  Byke
+ThreeWheeler :  Auto
+FourWheeler  :  Car
+TwoWheeler   :  Scooty
+ThreeWheeler :  Rickshaw
+FourWheeler  :  Bus
+---------------------------------
+package main 
+import "fmt"
+
+type ErrorStruct struct{
+    ErrorCode int
+    ErrorString string
+}
+type DivisonByZeroError struct{
+    ErrorStruct   
+}
+func (me DivisonByZeroError) Error() string {
+    return fmt.Sprintf("DivisonByZeroError -> ErrorCode (%d), ErrorString(%s)", me.ErrorCode, me.ErrorString)
+}
+
+type NumeratorLessThanZero struct{
+    ErrorStruct
+}
+func (me NumeratorLessThanZero) Error() string {
+    return fmt.Sprintf("NumeratorLessThanZero -> ErrorCode (%d), ErrorString(%s)", me.ErrorCode, me.ErrorString)
+}
+
+func div(num, den int) (int, error) {
+    if den == 0 {
+        return -1, DivisonByZeroError{ErrorStruct{ErrorCode:10, ErrorString:"Division By Zero"}}
+    }else if num < 0 {
+        return -1, NumeratorLessThanZero{ErrorStruct{ErrorCode:12, ErrorString:"Numerator Less Than Zero"}}
+    }
+    res := num / den
+    return res, nil
+}
+func main() {
+    res, er := div(15, 0)
+    if er != nil {
+        switch er := er.(type){
+            case DivisonByZeroError:
+               fmt.Println(er)
+            case NumeratorLessThanZero:
+               fmt.Println(er)
+        }
+    }
+    fmt.Println("Result : ", res)
+}
+------------------------------------
+DivisonByZeroError -> ErrorCode (10), ErrorString(Division By Zero)
+Result :  -1
+
+-------------------------------
+package main
+import "fmt"
+
+func main() {
+    done := make(chan bool)
+
+    values := []string{"a", "b", "c"}
+    for _, v := range values {
+        go func() {
+            fmt.Println(v)
+            done <- true
+        }()
+    }
+
+    // wait for all goroutines to complete before exiting
+    for _ = range values {
+        <-done
+    }
+    fmt.Println("Finished")
+}
+OUTPUT:-
+c
+c
+c
+
+package main
+import "fmt"
+
+func main() {
+    done := make(chan bool)
+
+    values := []string{"a", "b", "c", "d"}
+    for _, v := range values {
+        go func(u string) {
+            fmt.Println(u)
+            done <- true
+        }(v)
+    }
+
+    // wait for all goroutines to complete before exiting
+    for _ = range values {
+        <-done
+    }
+    fmt.Println("Finished")
+}
+OUTPUT:-
+a
+b
+c
+
+package main
+import "fmt"
+
+func main() {
+    done := make(chan bool)
+
+    values := []string{"a", "b", "c", "d"}
+    for _, v := range values {
+	    v := v
+        go func(u string) {
+            fmt.Println(v)
+            done <- true
+        }()
+    }
+
+    // wait for all goroutines to complete before exiting
+    for _ = range values {
+        <-done
+    }
+    fmt.Println("Finished")
+}
+OUTPUT:-
+a
+b
+c
+-------------------------------------------

@@ -1,0 +1,424 @@
+--------------------------
+https://blog.golang.org/examples
+https://blog.golang.org/package-names
+https://golang.org/ref/spec#Import_declarations
+https://golang.org/pkg/sort/
+https://golang.org/doc/effective_go.html
+https://blog.golang.org/generate
+https://docs.google.com/document/d/1V03LUfjSADDooDMhe-_K59EgpTEm3V8uvQRuNMAEnjg/edit
+https://godoc.org/golang.org/x/tools/cmd/stringer
+https://github.com/golang/tools/blob/master/cmd/stringer/stringer.go
+https://www.codementor.io/codehakase/building-a-restful-api-with-golang-a6yivzqdo
+https://medium.com/@gautamprajapati/writing-a-simple-e-commerce-website-api-in-go-programming-language-9f671324b4dd
+https://itnext.io/structuring-a-production-grade-rest-api-in-golang-c0229b3feedc
+https://robots.thoughtbot.com/writing-a-server-sent-events-server-in-go
+https://hackernoon.com/build-restful-api-in-go-and-mongodb-5e7f2ec4be94
+https://thenewstack.io/make-a-restful-json-api-go/
+https://jwt.io/
+https://echo.labstack.com/guide/error-handling
+https://grpc.io/docs/guides/
+https://grpc.io/docs/tutorials/basic/go.html
+https://tutorialedge.net/golang/creating-restful-api-with-golang/
+https://godoc.org/
+
+https://www.youtube.com/watch?v=cmkKxNN7cs4
+https://www.youtube.com/watch?v=blDsmrsyOME
+https://www.youtube.com/watch?v=Lt0ASrloGSE&index=2&list=PL5jc9xFGsL8FWtnZBeTqZBbniyw0uHyaH
+https://www.youtube.com/results?search_query=c%2B%2B+11+features
+-------------------------
+
+----------------------------
+
+GopherChina Conference(Video)
+http://www.imooc.com/learn/407
+
+https://godoc.org/
+GoDoc hosts documentation for Go packages on Bitbucket, GitHub, Google Project Hosting and Launchpad.
+
+package main
+import (
+	"log"
+	"time"
+)
+
+func StartTimer(name string) func() {
+	t:= time.Now()
+	log.Println(name, "started.!")
+	return func() {
+			d:= time.Now().Sub(t)
+			log.Println(name, "took", d)
+	}
+}
+
+func main() {
+	// both line can combine together : defer StartTimer("main")()
+	stop := StartTimer("main") 
+	defer stop()
+	
+	time.Sleep(2 * time.Second)
+}
+----------------
+//Retrying Implementation
+
+type Func func(attempt int) (retry bool, err error)
+func Try(fn Func) error {
+	var err error
+	var cont bool
+	attempt := 1
+	for {
+		cont, err = fn(attempt)
+		if !cont || err == nil {
+			break
+		}
+		attempt++
+		if attempt > MaxRetries {
+			return err  // errMaxRetriesReached
+		}
+	}
+	return err
+}
+
+func main() {
+	err := Try(func(attempt int) (bool, err) {
+		var err error
+		value, err = someFunction()
+		return attempt < 5, err // try 5 times 
+	})
+	if err != nil {
+		log.Fatalln("error:", err)
+	}
+}
+-------------------------
+//Limit the number of GO Routine running at once 
+package main
+import (
+	"time"
+	"log"
+)
+
+var(
+	concurrent = 5
+	semaphoreChan =  make(chan struct{}, concurrent)
+)
+
+func doWork(item int) {
+	semaphoreChan <- struct{}{} //block while full
+	go func() {
+		defer func() {
+			<- semaphoreChan  //read to release the slot
+		}()
+		log.Println(item)
+		time.Sleep(2 * time.Second)
+	}()
+}
+
+func main() {
+	for i:=0; i < 20; i++ {
+		doWork(i)
+	}
+	time.Sleep(time.Second)
+}
+--------------------------------
+package main
+import (
+	"binary"
+	"io"
+)
+
+type Gopher struct {
+	Name string
+	AgeYears int
+}
+
+func (g *Gopher) WriteTo(w io.Writer) (size int64, err error) {
+	err = binary.Write(w, binary.LittelEndian, int32(g.Name))
+	if err != nil {
+		return
+	}
+	
+	size += 4
+	n, err := w.Write([]byte(g.Name))
+	size += int64(n)
+	if err != nil {
+		return
+	}
+	
+	err = binary.Write(w, binary.LittelEndian, int64(g.AgeYears))
+	if err == nil {
+		size += 4
+	}
+	return
+}
+
+------------------------
+//Avoid repetition when possible:
+/Deploy one-off utility types for simple code
+
+type binWriter struct {
+	w io.Writer
+	size int64
+	err error
+}
+
+// Write writes a value  to the provided writer in little endian form
+func (w *binWriter) Write(v interface{}) {
+	if w.err != nil {
+		return
+	}
+	
+	if w.err = binary.Write(w.w, binary.LittelEndian, v); w.err == nil {
+		w.size += int64(binary.Size(v))
+	}
+}
+
+//Avoid repetition when possible, using binWriter:
+func (g *Gopher) WriteTo(w io.Writer) (int64, error) {
+	bw := &binWriter{w: w}
+	bw.Write(int32(len(g.Name)))
+	bw.Write([]byte(g.Name))
+	bw.Write(int64(g.AgeYears))
+	return bw.size, bw.err
+}
+-------------------------
+//type switch to handle special cases
+// Write writes a value  to the provided writer in little endian form
+func (w *binWriter) Write(v interface{}) {
+	if w.err != nil {
+		return
+	}
+	switch v.(type) {   // switch x:= v.(type) {
+	case string:
+		s := v.(string) // this line can be removed, if use `switch x:= v.(type)` like this
+		w.Write(int32(len(s)))  // replace `s` with `x`
+		w.Write([]byte(s))		// replace `s` with `x`
+	case int:
+		i := v.(int)    	// this line can be removed, if use `switch x:= v.(type)` like this
+		w.Write(int64(i))	// replace `s` with `x`
+	default:
+		if w.err = binary.Write(w.w, binary.LittelEndian, v); w.err == nil {
+			w.size += int64(binary.Size(v))
+		}
+	}
+}
+
+//Avoid repetition when possible, using binWriter:
+func (g *Gopher) WriteTo(w io.Writer) (int64, error) {
+	bw := &binWriter{w: w}
+	bw.Write(g.Name)
+	bw.Write(g.AgeYears)
+	return bw.size, bw.err
+}
+------------------------------
+//Writing everything or nothing
+type binWriter struct {
+	w io.Writer
+	buf bytes.Buffer
+	err error
+}
+
+// Write writes a value  to the provided writer in little endian form
+func (w *binWriter) Write(v interface{}) {
+	if w.err != nil {
+		return
+	}
+	switch x:= v.(type) {
+	case string:
+		w.Write(int32(len(x)))
+		w.Write([]byte(x))
+	case int:
+		w.Write(int64(i))
+	default:
+		w.err = binary.Write(&w.buf, binary.LittelEndian, v)
+	}
+}
+
+//flush writes any pending values into the writer if no error has occurred.
+// if an error has occurred, earlier or with a write by flush, the error is returned.
+func (w *binWriter) Flush() (int64, err) {
+	if w.err != nil {
+		return 0, w.err
+	}
+	return w.buf.Write(w.w)
+}
+
+func (g *Gopher) WriteTo(w io.Writer) (int64, error) {
+	bw := &binWriter{w: w}
+	bw.Write(g.Name)
+	bw.Write(g.AgeYears)
+	return bw.Flush()
+}
+----------------------
+package main
+import (
+	"time"
+	"fmt"
+)
+
+type Server struct { Quit chan bool} 
+func NewServer() *Server {
+	s := &Server{make(chan bool)}
+	go s.Run()
+	return s
+}
+
+func (s *Server) Run() {
+	for {
+		select {
+			case <-s.Quit:
+				fmt.Println("Finishing Task.!")
+				time.Sleep(time.Second)
+				fmt.Println("Task Done.!")
+				s.Quit <- true
+				return
+			case <-time.After(time.Second):
+				fmt.Println("Running Task.!")
+		}
+	}
+}
+
+func (s *Server) Stop() {
+	fmt.Println("Server Stopping.!")
+	s.Quit <- true
+	<- s.Quit
+	fmt.Println("Server Stopped.!")
+}
+
+func main() {
+	s := NewServer()
+	time.Sleep(3 * time.Second)
+	s.Stop()
+}
+/*OUTPUT:
+Running Task.!
+Running Task.!
+Running Task.!
+Server Stopping.!
+Finishing Task.!
+Task Done.!
+Server Stopped.!
+*/
+-------------------------------------
+//Avoid goroutine leaks with buffered channels
+package main
+import (
+	"fmt"
+	"net"
+	"time"
+)
+
+func sendMsg(msg, addr string) error {
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	_, err = fmt.Fprint(conn, msg)
+	return err
+}
+
+/*
+1. the goroutine is blocked on the chan write
+2. the goroutine holds a reference to the chan
+3. the chan will never be garbage collected.
+*/
+func broadcastMsg(msg string, addrs []string) error {
+	errc := make(chan error) // goroutine leak because of unbuffered channel
+	//errc := make(chan error, len(addrs)) // avoid goroutine leak by using buffered channel
+	for _, addr := range addrs {
+		go func(addr string) {
+			errc <- sendMsg(msg, addr)
+			fmt.Println("Done.!")
+		}(addr)
+	}
+	
+	for _ = range addrs {
+		if err := <-errc; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func main() {
+	addr := []string{"localhost:8080", "http://google.com"}
+	err := broadcastMsg("Hello", addr)
+	time.Sleep(time.Second)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Everthing went fine.!")
+}
+/*
+OUTPUT:
+WITH UNBUFFERED CHAN:
+Done.!
+dial tcp: address tcp///google.com: unknown port
+
+WITH BUFFERED CHAN:
+Done.!
+Done.!
+dial tcp: address tcp///google.com: unknown port
+*/
+
+------------------------------------------
+// What if we cant predict the quit chan
+package main
+import (
+	"fmt"
+	"net"
+	"time"
+)
+
+func sendMsg(msg, addr string) error {
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	_, err = fmt.Fprint(conn, msg)
+	return err
+}
+
+func broadcastMsg(msg string, addrs []string) error {
+	errc := make(chan error) 
+	quit := make(chan struct{}) 
+	defer close(quit)
+	
+	for _, addr := range addrs {
+		go func(addr string) {
+			select {
+			case errc <- sendMsg(msg, addr):
+				fmt.Println("Done.!")
+			case <-quit:
+				fmt.Println("Quit.!")
+			}
+		}(addr)
+	}
+	
+	for _ = range addrs {
+		if err := <-errc; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func main() {
+	addr := []string{"localhost:8080", "http://www.google.com:80", "http://www.golang.org:80", "http://www.yahoo.com:80"}
+	err := broadcastMsg("Hello", addr)
+	time.Sleep(time.Second)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Everthing went fine.!")
+}
+/*OUTPUT:
+Done.!
+Quit.!
+Quit.!
+Quit.!
+dial tcp: address http://www.yahoo.com:80: too many colons in address
+*/
+-----------------------------------
