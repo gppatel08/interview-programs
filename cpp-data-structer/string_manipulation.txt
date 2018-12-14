@@ -1,0 +1,1486 @@
+
+Ques:- Find a substring from a main string?
+
+void find_substr(char *str, char *substr){
+    int i = 0;
+    bool final_flag = false;
+    while(str[i]){
+        if(str[i] == substr[0]){
+            bool flag = true;
+            for(int j = 0; substr[j]; j++){
+                if(str[i+j] != substr[j]){
+                    flag = false;
+                    break;
+                }
+            }
+            if(flag == true){
+                printf("Substring found at index str[%d]  : %s\n", i, substr);
+                final_flag = true;
+            }
+        }
+        i++;
+    }
+    if(final_flag == false){
+        printf("Substring not found in : %s\n", str);
+    }
+}
+/* Driver program to test above function*/
+int main()
+{
+    char str[100] = "HelloHellowHello";
+    find_substr(str, "Hello");
+    return 0;
+}
+OUTPUT:-
+Substring found at index str[0]  : Hello                                                                              
+Substring found at index str[5]  : Hello                                                                              
+Substring found at index str[11]  : Hello
+--------------------------------------------
+Ques:-Reverse words in a given string:-
+=======================================
+Example: Let the input string be “i like this program very much”. 
+         The function should change the string to “much very program this like i”
+
+Algorithm:-		 
+1) Reverse the individual words, we get the below string.
+     "i ekil siht margorp yrev hcum"
+2) Reverse the whole string from start to end and you get the desired output.
+     "much very program this like i"
+
+#include<stdio.h>
+/*Function to reverse any sequence starting with pointer begin and ending with pointer end  */
+void reverse(char *begin, char *end)
+{
+  char temp;
+  while (begin < end)
+  {
+    temp = *begin;
+    *begin++ = *end;
+    *end-- = temp;
+  }
+}
+
+
+/*Function to reverse words
+  NOTE- The below code doesn’t handle the cases when the string starts with space. */
+void reverseWords(char *s) {
+  char *word_begin = s;
+  char *temp = s; /* temp is for word boundry */
+ 
+  /*STEP 1 of the above algorithm */
+  while( *temp ) {
+    temp++;
+    if (*temp == '\0')
+    {
+      reverse(word_begin, temp-1);
+    }
+    else if(*temp == ' ')
+    {
+      reverse(word_begin, temp-1);
+      word_begin = temp+1;
+    }
+  } /* End of while */
+ 
+  /*STEP 2 of the above algorithm */
+  reverse(s, temp-1);
+}
+
+/* NOTE- The below code doesn’t handle the cases when the string starts with space.
+   The following version handles this specific case and doesn’t make unnecessary calls to reverse function in the case of multiple space in between. */ 
+
+void reverseWordsWithMultiSpace(char *s)
+{
+    char *word_begin = NULL;
+    char *temp = s; /* temp is for word boundry */
+ 
+    /*STEP 1 of the above algorithm */
+    while( *temp )
+    {
+        /*This condition is to make sure that the string start with
+          valid character (not space) only*/
+        if (( word_begin == NULL ) && (*temp != ' ') )
+        {
+            word_begin=temp;
+        }
+        if(word_begin && ((*(temp+1) == ' ') || (*(temp+1) == '\0')))
+        {
+            reverse(word_begin, temp);
+            word_begin = NULL;
+        }
+        temp++;
+    } /* End of while */
+ 
+    /*STEP 2 of the above algorithm */
+    reverse(s, temp-1);
+}
+
+int main()
+{
+  char s[] = "i like this program very much";
+  char *temp = s;
+  reverseWords(s);
+  printf("\nreverseWords : %s", s);
+  
+  char s1[] = "    i    like this program very much  ";
+  reverseWordsWithMultiSpace(s1);
+  printf("\nreverseWordsWithMultiSpace : %s", s1);
+  return 0;
+}
+
+Time Complexity: O(n)
+-----------------------------------------------
+Ques:- Print words of a string in reverse order:-
+  Let there be a string say “I AM A GEEK”. So, the output should be “GEEK A AM I” . 
+  This can done in many ways. One of the solutions is given in Reverse words in a string .
+  
+This can be done in more simpler way by using the property of the “%s format specifier” .
+Property: %s will get all the values until it gets NULL i.e. ‘\0’.
+
+Approach: Traverse the string from the last character, and move towards the first character. 
+          While traversing, if a space character is encountered, put a NULL in that position and 
+		  print the remaining string just after the NULL character. Repeat this until the loop is over and when the loop ends, 
+		  print the string, the %s will make the printing of characters until it encounters the first NULL character.
+		  
+// C program to print reverse of words in a string.
+#include <stdio.h>
+#include <string.h>
+ 
+void printReverse(char str[])
+{
+    int length = strlen(str);
+ 
+    // Traverse string from end
+    int i;
+    for (i = length - 1; i >= 0; i--) {
+        if (str[i] == ' ') {
+ 
+            // putting the NULL character at the position of space characters for next iteration.          
+            str[i] = '\0';
+ 
+            // Start from next charatcer     
+            printf("%s ", &(str[i]) + 1);
+        }
+    }
+ 
+    // printing the last word
+    printf("%s", str);
+}
+
+-----------------------------------------------------
+Remove spaces from a given string
+Given a string, remove all spaces from the string and return it.
+
+Input:  "g  eeks   for ge  eeks  "
+Output: "geeksforgeeks"
+
+Expected time complexity is O(n) and only one traversal of string.
+
+1) Iterate through all characters of given string, do following
+   a) If current character is a space, then move all subsequent
+      characters one position back and decrease length of the 
+      result string.
+Time complexity of above solution is O(n2).
+
+A Better Solution can solve it in O(n) time. The idea is to keep track of count of non-space character seen so far.
+1) Initialize 'count' = 0 (Count of non-space character seen so far)
+2) Iterate through all characters of given string, do following
+     a) If current character is non-space, then put this character
+        at index 'count' and increment 'count'
+3) Finally, put '\0' at index 'count'
+
+// An efficient C++ program to remove all spaces from a string
+#include <iostream>
+using namespace std;
+ 
+/* Function to remove all spaces from a given string
+   Time complexity of above solution is O(n) and it does only one traversal of string. */
+void removeSpaces(char *str)
+{
+    // To keep track of non-space character count
+    int count = 0;
+ 
+    // Traverse the given string. If current character is not space, then place it at index 'count++'
+    for (int i = 0; str[i]; i++)
+        if (str[i] != ' ')
+            str[count++] = str[i]; // here count is incremented
+    str[count] = '\0';
+}
+
+#include <algorithm>
+using namespace std;
+ 
+// Function to remove all spaces from a given string using predefined function
+string removeSpacesPre(string str) 
+{
+    str.erase(remove(str.begin(), str.end(), ' '), str.end());
+    return str;
+}
+
+int main()
+{
+    char str[] = "g  eeks   for ge  eeks  ";
+    removeSpaces(str);
+    cout << str;
+    return 0;
+}
+
+--------------
+#include<stdio.h>
+
+void removeSpace(char *str) {
+    int count = 0;
+    for(int i = 0; str[i]; i++){
+      if(str[i] != ' '){
+          str[count++] = str[i];
+      }
+    }
+    str[count]='\0';
+}
+
+int main()
+{
+  char s[] = "    i    like this program very much  ";
+  removeSpace(s);
+  printf("\nremoveSpace : %s", s);
+}
+OUTPUT:-
+removeSpace : ilikethisprogramverymuch 
+
+-----------------------------------------
+Iterative Method:-
+  Initialize three pointers prev as NULL, curr as head and next as NULL.
+
+Iterate through the linked list. In loop, do following.
+{
+   // Before changing next of current, store next node
+   next = curr->next
+
+   // Now change next of current, This is where actual reversing happens
+   curr->next = prev
+
+   // Move prev and curr one step forward
+   prev = curr
+   curr = next
+}
+
+// Iterative C++ program to reverse
+// a linked list
+#include<iostream>
+using namespace std;
+ 
+/* Link list node */
+struct Node
+{
+    int data;
+    struct Node* next;
+    Node (int data)
+    {
+        this->data = data;
+        next = NULL;
+    }
+};
+ 
+struct LinkedList
+{
+    Node *head;
+    LinkedList()
+    {
+        head = NULL;
+    }
+ 
+ 
+    /* Function to reverse the linked list */
+    void reverse()
+    {
+        struct Node *current = head;
+        struct Node *prev = NULL, *next =NULL;
+        while(current != NULL){
+            next = current->next;
+            current->next = prev;
+            prev = current;
+            current = next;
+        }
+        head = prev;
+    
+    }
+ 
+    /* Function to print linked list */
+    void print()
+    {
+        struct Node *temp = head;
+        while (temp != NULL)
+        {
+            cout << temp->data << " ";
+            temp = temp->next;
+        }
+    }
+ 
+    void push(int data)
+    {
+        Node *temp = new Node(data);
+        temp->next = head;
+        head = temp;
+    }
+};
+ 
+/* Driver program to test above function*/
+int main()
+{
+    /* Start with the empty list */
+    LinkedList ll;
+    ll.push(20);
+    ll.push(4);
+    ll.push(15);
+    ll.push(85);
+ 
+    cout << "Given linked list\n";
+    ll.print();
+ 
+    ll.reverse();
+ 
+    cout << "\nReversed Linked list \n";
+    ll.print();
+    return 0;
+}
+OUTPUT:-
+85 15 4 20                                                                                                            
+Reversed Linked list                                                                                                  
+20 4 15 85
+-------------------------------------------
+// Iterative C++ program to reverse
+// a linked list
+#include<iostream>
+using namespace std;
+
+void swapp(char *start, char *end){
+    while(start < end){
+        char temp = *start;
+        *start++ = *end;
+        *end-- = temp;
+    }
+}
+void reverse_word_by_word(char *str){
+    char *temp = str;
+    char *begin = str;
+    
+    while(*temp){
+        temp++;
+        if(*temp == ' '){
+            swapp(begin, temp -1);
+            begin = temp + 1;
+        }else if(*temp == '\0'){
+            swapp(begin, temp -1);
+        }
+    }
+    swapp(str, temp -1);
+}
+
+/* Note It won't remove the multiple space from begining and end part with NO space. */
+void replace_multi_space_with_single_space(char *str)
+{
+    char *dest = str;  /* Destination to copy to */
+
+    /* While we're not at the end of the string, loop... */
+    while (*str != '\0')
+    {
+        /* Loop while the current character is a space, AND the next character is a space  */
+        while (*str == ' ' && *(str + 1) == ' ')
+            str++;  /* Just skip to next character */
+
+       /* Copy from the "source" string to the "destination" string,
+        * while advancing to the next character in both */
+       *dest++ = *str++;
+    }
+
+    /* Make sure the string is properly terminated */    
+    *dest = '\0';
+}
+
+void remove_space(char *str){
+    int count = 0, i =0;
+    while(str[i]){
+        if(str[i] != ' ')
+           str[count++] = str[i];
+        i++;
+    }
+    str[count] = '\0';
+}
+/* Driver program to test above function*/
+int main()
+{
+    char str[100] = "I am Hello World";
+    printf("\nOriginal: %s", str);
+    reverse_word_by_word(str);
+    printf("\nReverse : %s", str);
+    remove_space(str);
+    printf("\nR space : %s", str);
+    char str1[100] = "  I       am     a  boy   "; 
+    printf("\nOriginal : %s", str1);
+    replace_multi_space_with_single_space(str1);
+    printf("\nChanged  : \"%s\"", str1);
+    return 0;
+}
+OUTPUT:-
+Original: I am Hello World                                                                                              
+Reverse : World Hello am I                                                                                              
+R space : WorldHelloamI                                                                                                 
+Original :   I       am     a  boy                                                                                      
+Changed  : " I am a boy "
+---------------------------------------------
+int main(){
+    char inputString[100] = "  I    am   Guru    ";
+    char outputArray[100];
+    int readIndex = 0, writeIndex = 0;
+    
+    /* Skips all spaces before first characters */
+    while(inputString[readIndex] == ' '){
+        readIndex++;
+    }
+
+    for(readIndex = 0; inputString[readIndex] != '\0'; readIndex++){
+      if(inputString[readIndex]==' ' && inputString[readIndex-1]==' '){
+          continue;
+      }
+      outputArray[writeIndex++] = inputString[readIndex];
+    }
+    outputArray[writeIndex] = '\0';
+    printf("String without extra spaces: \"%s\"", outputArray);
+
+    return 0;
+}
+OUTPUT:-
+String without extra spaces: " I am Guru "
+-----------------------------------------------
+The permutation function goes through the whole string, swaps the first two characters and calls the same function recursively with same string 
+but with an incremented starting index. The terminating condition of this recursive function is that when the passed starting index is same as 
+the terminating index and the passed string is printed and to restore the previous state of the string as soon as the called recursive function is 
+returned, the swapped characters are again re-swapped.
+
+We can in-place find all permutations of a given string by using BackTracking. The idea is to swap each of the remaining 
+characters in the string with its first characters and then find all the permutaions of the remaining characters using a recursive call.
+The base case of recursion is when the string is left with only one unprocessed element.
+
+#include <iostream>
+using namespace std;
+
+/* find all permutations of a given string[i, size-1] containing all distinct character */
+void permutation(std::string str, int i, int size){
+    /* Base Condition */
+    if(i == size - 1){
+        std::cout << str << "  ";
+        return;
+    }else { /* Process each character of the remaining string */
+        for(int j = i; j < size; j++){
+            swap(str[i], str[j]);         /* swap character at index i with currecnt character */
+            permutation(str, i+1, size);  /* recurs for string [i+1, size -1] */
+            swap(str[i], str[j]);         /* backtrack(restore the string to its original state) */
+        }
+    }
+}
+
+int main(){
+    std::string str = "ABC";
+    permutation(str, 0, str.length());
+    std::cout << "\nString : " << str << std::endl;
+    return 0;
+}
+OUTPUT:-
+ABC  ACB  BAC  BCA  CAB  CBA                                                                                          
+String : ABC
+XYZ  XZY  YXZ  YZX  ZYX  ZXY                                                                                          
+String : XYZ
+---------------------------------------
+How to find length of a string without string.h and loop in C?
+
+The idea is to use return values of printf() and gets().
+gets() returns the enereed string. printf() returns the number of characters successfully written on output.
+
+We print the length using the first printf. The second printf() calls gets() and prints the entered string using returned value of gets(), 
+it also prints 20 extra characters for printing “Entered string is: ” and “\n”. That is why we subtract 20 from the returned value of second printf 
+and get the length.
+#include <stdio.h>
+ 
+int main()
+{
+     char str[100];
+     printf("Enter a string: ");
+     printf( "\rLength is: %d", printf("Entered string is: %s\n", gets(str)) - 20);
+ 
+     return 0;
+}
+OUTPUT:-
+Enter a string: Guru                                                                                                  
+Entered string is: Guru                                                                                               
+Length is: 4
+
+#include <stdio.h>
+ 
+int main()
+{
+     char str[100];
+     printf("Enter a string: ");
+     printf( "\rLength is: %d", printf("Entered string is: \"%s\"\n", gets(str)) - 22);
+ 
+     return 0;
+}
+OUTPUT:-
+Enter a string: Guru Prasad                                                                                           
+Entered string is: "Guru Prasad "                                                                                     
+Length is: 12
+
+#include <stdio.h>
+ 
+int main()
+{
+     char str[100];
+     printf("Enter a string: ");
+     int ret = printf("\" %s \"\n", gets(str));
+     printf( "\rLength is: %d",  ret - 5);
+ 
+     return 0;
+}
+OUTPUT:-
+Enter a string: Guru Prasad                                                                                           
+" Guru Prasad "                                                                                                       
+Length is: 11
+
+-----------------------------------------
+How to change the output of printf() in main() ?
+Change the program so that the output of printf is always 10. It is not allowed to change main(). Only fun() can be changed.
+We can use Macro Arguments to change the output of printf.
+
+#include <stdio.h>
+ 
+void fun()
+{
+   #define printf(x, y) printf(x, 10);
+}
+ 
+int main()
+{
+    int i = 10;
+    fun();
+    i = 20;
+    printf("%d", i);
+    return 0;
+}
+OUTPUT:-
+10
+
+----------------------------
+Print “Even” or “Odd” without using conditional statement?
+You are not allowed to use any comparison (==, <, >, …etc) or conditional (if, else, switch, ternary operator,..etc) statement.
+
+#include<iostream>
+#include<conio.h>
+ 
+using namespace std;
+ 
+int main()
+{
+  char arr[2][5] = {"Even", "Odd"};
+  int no;
+  cout << "Enter a number: ";
+  cin >> no;
+  cout << arr[no%2];
+  return 0;
+}
+OUTPUT:-
+Enter a number: 20                                                                                                    
+Even
+
+#include<stdio.h>
+int main()
+{
+    int no;
+    printf("Enter a no: ");
+    scanf("%d", &no);
+    (no & 1 && printf("odd"))|| printf("even");
+    return 0;
+}
+OUTPUT:-
+Enter a no: 21                                                                                                        
+odd
+--------------------------
+How will you show memory representation of C variables?
+
+Algorithm:
+Get the address and size of the variable. Typecast the address to char pointer. 
+Now loop for size of the variable and print the value at the typecasted pointer.
+
+#include <stdio.h>
+typedef unsigned char *byte_pointer;
+ 
+/*show bytes takes byte pointer as an argument and prints memory contents from byte_pointer
+  to byte_pointer + len */
+void show_bytes(byte_pointer start, int len) 
+{
+     int i;
+     for (i = 0; i < len; i++)
+           printf(" %.2x", start[i]);
+     printf("\n");
+}
+ 
+void show_int(int x)
+{
+     show_bytes((byte_pointer) &x, sizeof(int));
+}
+ 
+void show_float(float x) 
+{
+     show_bytes((byte_pointer) &x, sizeof(float));
+}
+ 
+void show_pointer(void *x) 
+{
+     show_bytes((byte_pointer) &x, sizeof(void *));
+}
+ 
+/* Drover program to test above functions */
+int main()
+{
+    int i = 1;
+    float f = 1.0;
+    int *p = &i;
+    show_float(f);
+    show_int(i);
+    show_pointer(p);
+    show_int(i);
+    return 0;
+}
+OUTPUT:-
+ 00 00 80 3f                                                                                                            
+ 01 00 00 00                                                                                                            
+ 58 f3 fe 1e ff 7f 00 00                                                                                                
+ 01 00 00 00
+ 
+------------------------------------
+Program for Sum the digits of a given number
+Given a number, find sum of its digits.
+
+/* C program to compute sum of digits in number. */
+# include<stdio.h>
+ 
+/* 1. Iterative: Function to get sum of digits */
+int getSum(int n)
+{ 
+   int sum = 0;
+   while (n != 0)
+   {
+       sum = sum + n % 10;
+       n = n/10;
+   }
+   return sum;
+}
+
+/*  How to compute in single line?
+Below function has three lines instead of one line but it calculates sum in line. 
+It can be made one line function if we pass pointer to sum. */
+int getSum2(int n)
+{
+    int sum;
+    /* Single line that calculates sum */
+    for (sum = 0; n > 0; sum += n % 10, n /= 10);
+ 
+    return sum;
+}
+
+/*Recursive */
+int sumDigits(int no)
+{
+   return no == 0 ? 0 : no%10 + sumDigits(no/10) ;
+}
+
+int main()
+{
+  int n = 687;
+  printf(" %d \n", getSum(n));
+  printf(" %d \n", getSum2(n));
+  printf(" %d \n", sumDigits(n));
+  return 0;
+}
+OUTPUT:-
+21
+21
+21
+--------------------------------------------
+
+
+/*Method 2: Using fork() */
+
+#include<stdio.h>
+#include<unistd.h>
+int main()
+{
+    if(fork())
+        printf("Hello");
+    else
+        printf("World");
+    getchar();
+}
+OUTPUT:-
+HelloWorld
+
+#include<stdio.h>
+int main()
+{
+    if(!printf("Hello"))
+        printf("Hello");
+    else
+        printf("World");
+}
+
+OR,
+
+#include<stdio.h>
+int main()
+{
+    //if (printf("Hello") < 0)  //OK
+    if (printf("Hello") < 1)   //OK
+        printf("Hello");
+    else
+        printf("World");
+}
+--------------------------
+What is the best way in C to convert a number to a string?
+Solution: Use sprintf() function.
+
+#include<stdio.h>
+int main()
+{
+    char result[50];
+    float num = 23.34;
+    sprintf(result, "%f", num);
+    printf("The string for the num is: %s", result);
+}
+OUTPUT:-
+The string for the num is: 23.340000
+---------------------------
+How will you print numbers from 1 to 100 without using loop?
+
+Well, one possibility is the use of ‘recursion’ provided we use the terminating condition carefully. 
+Here is a solution that prints numbers using recursion.
+
+#include <stdio.h>
+ 
+// Prints numbers from 1 to n
+void printNos(unsigned int n)
+{
+    if(n > 0)
+    {
+        printNos(n - 1);
+        printf("%d ", n);
+    }
+    return;
+}
+ 
+int main()
+{
+    printNos(10);
+    return 0;
+}
+OUTPUT:-
+1 2 3 4 5 6 7 8 9 10
+
+Time Complexity : O(n)
+
+Now try writing a program that does the same but without any “if” construct.
+Hint — use some operator which can be used instead of “if”.
+
+Please note that recursion technique is good but every call to the function creates one “stack-frame” in program stack. 
+So if there’s constraint to the limited memory and we need to print large set of numbers, “recursion” might not be a good idea. 
+So what could be the other alternative?
+
+Another alternative is “goto” statement. Though use of “goto” is not suggestible as a general programming practice as “goto” statement 
+changes the normal program execution sequence yet in some cases, use of “goto” is the best working solution.
+
+
+---------------------------
+#include <iostream>
+using std::cout;
+
+class Test {
+public:
+int x;
+mutable int y;
+Test() { x = 4; y = 10; }
+};
+int main()
+{
+	const Test t1;
+	t1.y = 20;
+	cout << t1.y;
+	return 0;
+}
+output:-
+20
+-------------------------
+Write a C program to print “Geeks for Geeks” without using a semicolon
+First of all we have to understand how printf() function works.
+Prototype of printf() function is:
+
+int printf( const char *format , ...)
+Parameter
+
+format: This is a string that contains a text to be written to stdout.
+Additional arguments: … (Three dots are called ellipses) which indicates the variable number of arguments depending upon the format string.
+printf() returns the total number of characters written to stdout. 
+Therefore it can be used as a condition check in an if condition, while condition, switch case and Macros.
+
+#include<stdio.h>
+#define PRINT printf("Geeks for Geeks\n")
+
+int main()
+{
+    // Using if condition:
+    if (printf("Geeks for Geeks\n") ) {    }
+    
+    // Using while condition:
+    while (!printf( "Geeks for Geeks\n" )) {   }
+    
+    // Using switch case:
+    switch (printf("Geeks for Geeks\n" )) {   }
+    
+    if (PRINT) {    }
+}   
+OUTPUT:-
+Geeks for Geeks                                                                                                       
+Geeks for Geeks                                                                                                       
+Geeks for Geeks                                                                                                       
+Geeks for Geeks
+
+/*One trivial extension of the above problem: Write a C program to print ; without using a semicolon */
+
+#include<stdio.h>
+int main()
+{   
+   // ASCII value of ; is 59
+   if (printf("%c", 59)) {  }
+}
+-----------------------------------
+C Program to print numbers from 1 to N without using semicolon?
+
+#include<stdio.h>
+#define N 10
+
+#define CASE_II 2
+int main(int num)
+{
+#ifdef CASE_I
+    // Method 1 (Recursive)
+    if (num <= N && printf("%d ", num) && main(num + 1)) {  }
+#endif
+
+#ifdef CASE_II
+    // Method 2 (Iterative)
+    while (num <= N && printf("%d ", num) && num++) {  } 
+#endif
+}
+OUTPUT:-
+1 2 3 4 5 6 7 8 9 10
+
+How do these solutions work?
+main() function can receive arguments. The first argument is argument count whose value is 1 if no argument is passed to it. 
+The first argument is always program name.
+
+#include<stdio.h>
+ 
+int main(int num, char *argv[])
+{
+   printf("num = %d\n", num);
+   printf("argv[0] = %s ", argv[0]);
+}
+OUTPUT:-
+num = 1                                                                                                               
+argv[0] = /home/a.out
+------------------------
+How to print “GeeksforGeeks” with empty main() in C, C++
+
+/* 1. One way of doing this is to apply GCC constructor attribute to a function so that it executes before main() */
+#include <stdio.h>
+ 
+/* Apply the constructor attribute to myStartupFun() so that it is executed before main() */
+void myStartupFun(void) __attribute__((constructor));
+ 
+/* implementation of myStartupFun */
+void myStartupFun(void)
+{
+    printf("GeeksforGeeks");
+}
+ 
+int main() { }
+
+OUTPUT:-
+GeeksforGeeks
+
+/* 2. In linux, just override the default definition of _start() function so that it would work as a custom startup code. */
+#include <stdio.h>
+#include <stdlib.h>
+ 
+int main(void)
+{
+}
+ 
+// _start() function
+void _start(void)
+{
+    printf("GeeeksforGeeks");
+ 
+    // Call main() function
+    int var = main();
+    exit(var);
+}
+
+Now compile this by following command
+    gcc -nostartfiles -o file file.c
+	
+/* 3. The idea is to create a class, have a cout statement in constructor and create a global object of the class. 
+      When the object is created, constructor is called and “GeeksforGeeks” is printed. */
+	
+#include <iostream>
+ 
+class MyClass {
+public:
+    MyClass()
+    {
+        std::cout << "GeeksforGeeks";
+    }
+} m;
+ 
+int main() { }
+
+OUTPUT:-
+GeeksforGeeks
+
+/* 4. The idea is to create struct and use the same logic which is discussed in above. 
+      The reason is that struct and class in C++ are exactly the same data structure except struct default to public visibility 
+	  while class defaults to private visibility */
+	  
+#include <iostream>
+ 
+struct Mystruct {
+    Mystruct()
+    {
+        std::cout << "GeeksforGeeks";
+    }
+} obj;
+ 
+int main() {}
+
+/* 5. By using global variable, idea is to initialise printf() function to global variable, but it will work only in C++ language 
+      as in C language we can’t initialise variable or expression like this to global variable. */
+	  
+#include <stdio.h>
+ 
+int var = printf("GeeksforGeeks");
+ 
+int main() { }
+
+/* 6. Java language :- The idea is to use static block for printing, actually any static blocks declared 
+      outside the main() method in java is executed before the main method. */
+
+class Myjava {
+    static {
+        System.out.println("GeeksforGeeks");
+    }
+    public static void main(String args[]) {  }
+}
+----------------------------------------
+How to print a number 100 times without using loop and recursion in C?
+It is possible to solve this problem using loop or a recursion method but what if both are not allowed?
+
+#include<stdio.h>
+
+// Prints x only once
+#define a(x) printf("%d ", x);
+ 
+// Puts "a" 10 times
+#define b(x) a(x) a(x) a(x) a(x) a(x) a(x) a(x) a(x) a(x) a(x)
+ 
+// Puts "b" 10 times
+#define c(x) b(x) b(x) b(x) b(x) b(x) b(x) b(x) b(x) b(x) b(x)
+ 
+int main()
+{
+  int n=5;
+  c(n);
+  return 0;
+}
+-----------------------------
+Print a number 100 times without using loop, recursion and macro expansion in C?
+
+A better solution is to use concept of Concept of setjump and longjump in C.
+
+Concept of setjump and longjump in C
+“Setjump” and “Longjump” are defined in setjmp.h, a header file in C standard library.
+   1. setjump(jmp_buf buf) : uses buf to remember current position and returns 0.
+   2. longjump(jmp_buf buf, i) : Go back to place buf is pointing to and return i .
+
+The main feature of these function is to provide a way that deviates from standard call and return sequence. 
+This is mainly used to implement exception handling in C. setjmp can be used like try (in languages like C++ and Java). 
+The call to longjmp can be used like throw (Note that longjmp() transfers control to the point set by setjmp()).
+
+The scope of the setjmp and longjmp pair is limited to the current thread.
+// A simple C program to demonstrate working of setjmp() and longjmp()
+#include<stdio.h>
+#include<setjmp.h>
+jmp_buf buf;
+void func()
+{
+    printf("Welcome to GeeksforGeeks\n");
+    // Jump to the point setup by setjmp
+    longjmp(buf, 1);
+    printf("Geek2\n");
+}
+ 
+int main()
+{
+    // Setup jump position using buf and return 0
+    if (setjmp(buf))
+        printf("Geek3\n");
+    else {
+        printf("Geek4\n");
+        func();
+    }
+    return 0;
+}
+OUTPUT:-
+Geek4                                                                                                                 
+Welcome to GeeksforGeeks                                                                                              
+Geek3
+-----------------------------
+#include <stdio.h>
+#include <setjmp.h>
+/*buffer to hold context of jump*/
+jmp_buf jb;
+
+/*div a/b throws error*/
+int division(int a, int b)
+{
+  int error_flag = 0;
+  if(b == 0) {
+    error_flag = 1;
+  }
+ 
+  if(error_flag == 1) {
+    longjmp(jb, 1);
+  } else {
+    return (a / b);
+  }
+}
+
+/*error handler*/
+void handle_error(void)
+{
+  printf("Div by zero error !");
+}
+
+int main(int argc, char *argv[])
+{
+  int a, b, c;
+  int user = 10;
+  printf ("Give two numbers for division : ");
+  scanf("%d %d", &a, &b);
+  if(setjmp(jb) == 0) {
+    c = division(a, b);
+    printf ("%d / %d = %d", a, b, c);
+    return 0;
+  } else {
+    handle_error();
+    return -1;
+  }
+}
+OUTPUT:-
+Give two numbers for division : 12 0                                                                                  
+Div by zero error !
+---------------------------------
+To find sum of two numbers without using any operator
+Write a C program to find sum of positive integers without using any operator. Only use of printf() is allowed. No other library function can be used.
+
+We can use printf() to find sum of two numbers as printf() returns the number of characters printed. 
+The width field in printf() can be used to find the sum of two numbers. We can use ‘*’ which indicates the minimum width of output. 
+
+For example, in the statement “printf(“%*d”, width, num);”, the specified ‘width’ is substituted in place of *, and 
+‘num’ is printed within the minimum width specified. If number of digits in ‘num’ is smaller than the specified ‘width’, 
+the output is padded with blank spaces. If number of digits are more, the output is printed as it is (not truncated). 
+In the following program, add() returns sum of x and y. It prints 2 spaces within the width specified using x and y. 
+So total characters printed is equal to sum of x and y. That is why add() returns x+y.
+
+#include<stdio.h>
+int main() {
+    int x =5, y =10;
+    printf("Sum = %d", printf("%*c%*c",  x, '\r', y, '\r'));
+    return 0;
+}
+OUTPUT:-
+Sum = 15
+
+#include<stdio.h>
+int add(int x, int y) {
+    return printf("%*c%*c",  x, '\r',  y, '\r');
+}
+ 
+int main() {
+    printf("Sum = %d", add(3, 4));
+    return 0;
+}
+---------------------------
+How to count set bits in a floating point number in C?
+Given a floating point number, write a function to count set bits in its binary representation.
+
+For example, floating point representation of 0.15625 has 6 set bits (See this). A typical C compiler uses single precision floating point format.
+The idea is to take address of the given floating point number in a pointer variable, typecast the pointer to char * type and 
+process individual bytes one by one. We can easily count set bits in a char.
+
+#include<stdio.h>
+
+// A utility function to count set bits in a char.
+unsigned int countSetBitsChar(char num)
+{
+    unsigned int count = 0;
+    while(num) {
+      num &= (num-1);
+      count++;
+    }
+    return count;
+}
+
+// Returns set bits in binary representation of x
+unsigned int countSetBitsFloat(float x)
+{
+    // Count number of chars (or bytes) in binary representation of float
+    unsigned int noOfBytes = sizeof(float)/sizeof(char);
+ 
+    char *ptr = (char *)&x;   // typcast address of x to a char pointer
+    int count = 0;   // To store the result
+    for (int i = 0; i < noOfBytes; i++) {
+         count += countSetBitsChar(*ptr);
+         ptr++;
+    }
+    return count;
+}
+
+int main() {
+    float x = 0.15625;
+    printf ("Binary representation of %f has %u set bits ", x, countSetBitsFloat(x));
+    return 0;
+}
+OUTPUT:-
+Binary representation of 0.156250 has 6 set bits
+-----------------------------
+Count number of bits to be flipped to convert A to B
+Given two numbers ‘a’ and b’. Write a program to count number of bits needed to be flipped to convert ‘a’ to ‘b’.
+
+Example :
+
+Input : a = 10, b = 20
+Output : 4
+Binary representation of a is 00001010
+Binary representation of b is 00010100
+We need to flip highlighted four bits in a to make it b.
+
+Input : a = 7, b = 10
+Output : 3
+Binary representation of a is 00000111
+Binary representation of b is 00001010
+We need to flip highlighted three bits in a to make it b.
+
+1. Calculate XOR of A and B.      
+        a_xor_b = A ^ B
+  2. Count the set bits in the above 
+     calculated XOR result.
+        countSetBits(a_xor_b)
+XOR of two number will have set bits only at those places where A differs from B.
+
+// Count number of bits to be flipped to convert A into B
+#include <iostream>
+using namespace std;
+ 
+// Function that count set bits
+int countSetBits(int n)
+{
+    int count = 0;
+    while(n) {
+        count += n & 1;
+        n >>= 1;
+    }
+    return count;
+}
+ 
+// Function that return count of flipped number
+int FlippedCount(int a, int b) {
+    // Return count of set bits in  a XOR b
+    return countSetBits(a^b);
+}
+ 
+int main() {
+    int a = 10;
+    int b = 20;
+    cout << "FlippedCount: " << FlippedCount(a, b)<<endl;
+    return 0;
+}
+OUTPUT:-
+FlippedCount: 4
+--------------------------
+// Count number of bits to be flipped to convert A into B
+#include <iostream>
+using namespace std;
+
+void swap(char *x, char *y){
+    char temp;
+    temp = *x;
+    *x = *y;
+    *y = temp;
+}
+/* A utility function to reverse a string  */
+void reverse(char str[], int length)
+{
+    int start = 0;
+    int end = length -1;
+    while (start < end) {
+        swap(&str[start++], &str[end--]);
+    }
+}
+int main() {
+    char str[] = "Hello";
+    int len = sizeof(str)/sizeof(str[0]) - 1;
+    reverse(str, len);
+    printf("Revered str: %s", str);
+    return 0;
+}
+OUTPUT:-
+Revered str: olleH
+------------------------
+Implement your own itoa()
+itoa function converts integer into null-terminated string. It can convert negative numbers too. 
+The standard definition of itoa function is give below:-
+       char* itoa(int num, char* buffer, int base) 
+1. The third parameter base specify the conversion base. For example:- if base is 2, then it will convert the integer into its binary compatible 
+   string or if base is 16, then it will create hexadecimal converted string form of integer number.
+
+2. If base is 10 and value is negative, the resulting string is preceded with a minus sign (-). With any other base, value is always 
+   considered unsigned.
+   
+itoa(1567, str, 10) should return string "1567"
+  itoa(-1567, str, 10) should return string "-1567"
+  itoa(1567, str, 2) should return string "11000011111"
+  itoa(1567, str, 16) should return string "61f"
+Individual digits of the given number must be processed and their corresponding characters must be put in the given string. 
+Using repeated division by the given base, we get individual digits from least significant to most significant digit. 
+But in the output, these digits are needed in reverse order. Therefore, we reverse the string obtained after repeated division and return it.
+
+// Count number of bits to be flipped to convert A into B
+#include <iostream>
+using namespace std;
+
+void swap(char *x, char *y){
+    char temp;
+    temp = *x;
+    *x = *y;
+    *y = temp;
+}
+/* A utility function to reverse a string  */
+void reverse(char str[], int length)
+{
+    int start = 0;
+    int end = length -1;
+    while (start < end) {
+        swap(&str[start++], &str[end--]);
+    }
+}
+
+// Implementation of itoa()
+char* itoa(int num, char* str, int base)
+{
+    int i = 0;
+    bool isNegative = false;
+ 
+    /* Handle 0 explicitely, otherwise empty string is printed for 0 */
+    if (num == 0) {
+        str[i++] = '0';
+        str[i] = '\0';
+        return str;
+    }
+ 
+    // In standard itoa(), negative numbers are handled only with 
+    // base 10. Otherwise numbers are considered unsigned.
+    if (num < 0 && base == 10) {
+        isNegative = true;
+        num = -num;
+    }
+ 
+    // Process individual digits
+    while (num != 0) {
+        int rem = num % base;
+        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0';
+        num = num/base;
+    }
+ 
+    // If number is negative, append '-'
+    if (isNegative)
+        str[i++] = '-';
+ 
+    str[i] = '\0'; // Append string terminator
+ 
+    // Reverse the string
+    reverse(str, i);
+ 
+    return str;
+}
+
+// Driver program to test implementation of itoa()
+int main()
+{
+    char str[100];
+    cout << "Base:10 " << itoa(1567, str, 10) << endl;
+    cout << "Base:10 " << itoa(-1567, str, 10) << endl;
+    cout << "Base:2 " << itoa(1567, str, 2) << endl;
+    cout << "Base:8 " << itoa(1567, str, 8) << endl;
+    cout << "Base:16 " << itoa(1567, str, 16) << endl;
+    return 0;
+}
+OUTPUT:-
+Base:10 1567                                                                                                          
+Base:10 -1567                                                                                                         
+Base:2 11000011111                                                                                                    
+Base:8 3037                                                                                                           
+Base:16 61f
+-----------------------
+Count total set bits in all numbers from 1 to n
+Given a positive integer n, count the total number of set bits in binary representation of all numbers from 1 to n.
+
+/* 1. Method 1 (Simple)
+      A simple solution is to run a loop from 1 to n and sum the count of set bits in all numbers from 1 to n. */
+// A simple program to count set bits in all numbers from 1 to n.
+#include <stdio.h>
+ 
+// A utility function to count set bits in a number x
+unsigned int countSetBitsUtil(unsigned int x);
+ 
+// Returns count of set bits present in all numbers from 1 to n
+unsigned int countSetBits(unsigned int n) {
+    int bitCount = 0; // initialize the result
+    for (int i = 1; i <= n; i++)
+        bitCount += countSetBitsUtil(i);
+    return bitCount;
+}
+ 
+// A utility function to count set bits in a number x
+unsigned int countSetBitsUtil(unsigned int x) {
+    if (x <= 0)
+        return 0;
+    return (x % 2 == 0 ? 0 : 1) + countSetBitsUtil(x / 2);
+}
+ 
+int main() {
+    int n = 4;
+    printf("Total set bit count: %d", countSetBits(n));
+    return 0;
+}
+OUTPUT:-
+Total set bit count: 5
+-------------------------------
+Count set bits in an integer
+Write an efficient program to count number of 1s in binary representation of an integer.
+
+Examples :
+
+Input : n = 6
+Output : 2
+Binary representation of 6 is 110 and has 2 set bits
+
+#include<stdio.h>
+/* 1. Simple Method Loop through all bits in an integer, check if a bit is set and if it is then increment the set bit count.
+      Function to get no of set bits in binary representation of positive integer n. Time Complexity: (-)(logn) (Theta of logn)*/
+unsigned int countSetBits(unsigned int n)
+{
+  unsigned int count = 0;
+  while (n)
+  {
+    count += n & 1;
+    n >>= 1;
+  }
+  return count;
+}
+
+/* 2. recursive function to count set bits */
+int countSetBitsRec(int n)
+{
+    // base case
+    if (n == 0)
+        return 0;
+    else
+        // if last bit set add 1 else add 0
+        return (n & 1) + countSetBitsRec(n >> 1);
+}
+
+/*3.Brian Kernighan’s Algorithm:
+    Subtraction of 1 from a number toggles all the bits (from right to left) till the rightmost set bit(including the rightmost set bit). 
+	So if we subtract a number by 1 and do bitwise & with itself (n & (n-1)), we unset the rightmost set bit. If we do n & (n-1) in a loop and 
+	count the no of times loop executes we get the set bit count. The beauty of this solution is the number of times it loops is equal to the 
+	number of set bits in a given integer. Time Complexity: O(logn)*/
+   
+unsigned int countSetBitsBK(int n) {
+    unsigned int count = 0;
+    while (n)
+    {
+      n &= (n-1) ;
+      count++;
+    }
+    return count;
+}
+
+/* 4. BK recursive function to count set bits */
+int countSetBitsBKRec(int n) {
+    // base case
+    if (n == 0)
+        return 0;
+    else
+        return 1 + countSetBits(n & (n - 1));
+}
+
+/* 5. Using Lookup table: We can count bits in O(1) time using lookup table. 
+      Please see http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetTable */
+	  
+int main() {
+    int i = 9;
+    printf("\n%d : %d", i, countSetBits(i));
+	printf("\n%d : %d", i, countSetBitsRec(i));
+	printf("\n%d : %d", i, countSetBitsBK(i));
+	printf("\n%d : %d", i, countSetBitsBKRec(i));
+	
+	/* Note: In GCC, we can directly count set bits using __builtin_popcount(). So we can avoid a separate function for counting set bits.*/
+	printf("\n%d : %d", i, __builtin_popcount (i));
+    return 0;
+}
+NOTE:- one use of counting set bits at Count number of bits to be flipped to convert A to B
+
+------------------------------
+Implement Your Own sizeof
+#include<stdio.h>
+#define my_sizeof(type) (char *)(&type+1)-(char*)(&type)
+
+struct A{ 
+    int a; 
+    char b;
+    int c;
+};
+
+int main() {
+    double x;
+    struct A a;
+    printf("\ndouble   : %d", my_sizeof(x));
+    printf("\nstruct A : %d", my_sizeof(a));
+    return 0;
+}
+OUTPUT:-
+double   : 8                                                                                                          
+struct A : 12
+
+NOTE:- You can also implement using function instead of macro, but function implementation cannot be done in C as C doesn’t support 
+       function overloading and sizeof() is supposed to receive parameters of all data types.
+Note that above implementation assumes that size of character is one byte.
+
+Time Complexity: O(1)
+Space Complexity: O(1)
+----------------------------

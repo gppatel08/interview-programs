@@ -1,0 +1,1301 @@
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+// Function to remove all spaces from a given string
+void removeSpaces_1(char *str)
+{
+    // To keep track of non-space character count
+    int count = 0;
+ 
+    // Traverse the given string. If current character is not space, then place it at index 'count++'
+    for (int i = 0; str[i]; i++)
+        if (str[i] != ' ')
+            str[count++] = str[i]; // here count is incremented
+    str[count] = '\0';
+}
+ 
+// Function to remove all spaces from a given string
+string removeSpaces_2(string str) 
+{
+    str.erase(remove(str.begin(), str.end(), ' '), str.end());
+    return str;
+}
+
+int main() 
+{
+    string str1 = "g  eeks   for ge  eeks   ";
+	string str2 = "g  eeks   for ge  eeks   ";
+    removeSpaces(str1);
+	str2 = removeSpaces(str2);
+    cout << str1 << " " << str2;
+    return 0;
+}
+
+-------------------------------------------------------
+Ques:- overloading const function.
+class A{
+    int a;
+    public:
+    A() {}
+     void display(int a){
+         cout << "without const -> a : " << a << endl;
+     }
+     void display(int a) const {
+         cout << "with const -> a : " << a << endl;
+     }
+};
+ 
+int main()
+{
+  A a1;
+  const A a2=a1;     //intialization of const obj is must
+  a1.display(5);
+  a2.display(20);
+ // a2=a1;
+    return 0;
+}
+OUTPUT:-
+without const -> a : 5                                                                                                
+with const -> a : 20
+
+Ques:- Compile error if function with NO argument and with ONE default value argument.
+class A{
+    int a;
+    public:
+    A() {}
+     void display(int a=0){
+         a = a;
+         cout << "with default -> a : " << a << endl;
+     }
+     void display()  {
+         a = 0;
+         cout << "with no arg  -> a : " << a << endl;
+     }
+};
+ 
+int main()
+{
+  A a1;
+  a1.display();
+  return 0;
+}
+OUTPUT:-
+main.cpp: In function 'int main()':
+main.cpp:22:14: error: call of overloaded 'display()' is ambiguous
+   a1.display();
+              ^
+main.cpp:9:11: note: candidate: void A::display(int)
+      void display(int a=0){
+           ^
+main.cpp:13:11: note: candidate: void A::display()
+      void display()  {
+           ^
+		  
+Ques:- Name Mangling and extern “C” in C++
+C++ supports function overloading, i.e., there can be more than one functions with same name and differences in parameters. 
+How does C++ compiler distinguishes between different functions when it generates object code – it changes names by adding information about arguments.
+This technique of adding additional information to function names is called Name Mangling.
+NOTE- C++ standard doesn’t specify any particular technique for name mangling, 
+      so different compilers may append different information to function names.
+	  
+Consider following declarations of function f()
+
+int  f (void) { return 1; }
+int  f (int)  { return 0; }
+void g (void) { int i = f(), j = f(0); }
+
+A C++ compiler may mangle above names to following
+
+int  __f_v (void) { return 1; }
+int  __f_i (int)  { return 0; }
+void __g_v (void) { int i = __f_v(), j = __f_i(0); }
+
+How to handle C symbols when linking from C++?
+In C, names may not be mangled as C doesn’t support function overloading. So how to make sure that name of a symbol is not changed 
+when we link a C code in C++. For example, see the following C++ program that uses printf() function of C.
+
+// Save file as .cpp and use C++ compiler to compile it
+int printf(const char *format,...);
+ 
+int main()
+{
+    printf("GeeksforGeeks");
+    return 0;
+}
+OUTPUT:-
+undefined reference to `printf(char const*, ...)'
+        ld returned 1 exit status
+		
+The reason for compiler error is simple, name of printf is changed by C++ compiler and it doesn’t find definition of the function with new name.
+The solution of problem is extern “C” in C++. When some code is put in extern “C” block, the C++ compiler ensures that the function names are 
+unmangled – that the compiler emits a binary file with their names unchanged, as a C compiler would do.
+
+// Save file as .cpp and use C++ compiler to compile it
+extern "C"
+{
+    int printf(const char *format,...);
+}
+ 
+int main()
+{
+    printf("GeeksforGeeks");
+    return 0;
+}
+
+Output:
+GeeksforGeeks
+
+Therefore, all C style header files (stdio.h, string.h, .. etc) have their declarations in extern “C” block.
+
+#ifdef __cplusplus 
+extern "C" {
+#endif
+    /* Declarations of this file */
+#ifdef __cplusplus
+}
+#endif
+
+Following are main points discussed above
+1. Since C++ supports function overloading, additional information has to be added to function names (called name mangling) 
+   to avoid conflicts in binary code.
+2. Function names may not be changed in C as C doesn’t support function overloading. To avoid linking problems, C++ supports extern “C” block. 
+   C++ compiler makes sure that names inside extern “C” block are not changed.
+   
+Memory Layout of C Programs:-
+-----------------------------
+When a C program is compiled into an executable, it is normally divided into separate regions.
+ 1. text segment
+ 2. data segment
+ 3. bss segment
+ 4. heap
+ 5. stack
+ 
+ On ELF binaries:-
+------------------
+  1. in the .data segment if they’re initialized
+  2. in the .rodata segement if they’re const
+  3. in the .bss segment if they’re uninitialized
+
+    |-------|
+    | Stack | High address
+	|       | 
+	|       |
+	| Heap  |
+	|-------|
+    | BSS   |
+	|-------|
+    | Data  |
+	|-------|
+    | Code  | Low address
+    |-------|
+	
+ 1. Code\text segment : machine code.
+ 2. Data segment(initialized) : initialized global/static variable.
+    A data segment is a portion of virtual address space of a program, which contains the global variables and static variables 
+    that are initialized by the programmer. Note that, data segment is not read-only, since the values of the variables can be altered at run time.
+	Constant are stored in read-only data section.
+	static int i = 10;  <-- stored in data segment
+	global int i = 10;  <-- stored in data segment
+	This segment can be further classified into 
+	    A. initialized read-only area and 
+		   A global C statement like const char* string = “hello world” makes the string literal “hello world” to be stored in initialized read-only area and
+		   the character pointer variable string in initialized read-write area.
+		   const int i = 10; <-- stored in read-only data segment
+		   
+		B. initialized read-write area.
+		   For instance the global string defined by char s[] = “hello world” in C and a C statement like int debug=1 outside the main (i.e. global) 
+		   would be stored in initialized read-write area.
+	
+ 3. BSS (uninitialized): uninitialized global/static variable. BSS : Block started Symbol Segment.
+    Uninitialized data segment, often called the “bss” segment, named after an ancient assembler operator that stood for “block started by symbol.” 
+	Data in this segment is initialized by the kernel to arithmetic before the program starts executing.
+	Uninitialized data starts at the end of the data segment and contains all global variables and static variables that are initialized to zero or 
+	do not have explicit initialization in source code.
+        For instance a variable declared        --> static int i; would be contained in the BSS segment.
+        For instance a global variable declared --> int j; would be contained in the BSS segment.
+
+ 4. Heap : dynamic allocation.
+          * The stored location moves from a low address to a high address.
+          * The heap segment is managed by the heap manager and the heap structure.
+          * The heap segment are used when more memory is needed than the stack segment.
+ 5. Stack : temporary varible.
+          * The stored location moves from a high address to a low address.
+          * FILO(First In Last Out)
+
+gcc - how to create a mapfile of the object file:-
+--------------------------------------------------		  
+If you are linking the program and want to generate map output add:
+
+ -Xlinker -Map=output.map 
+to the gcc command in order to make it create the map file output.map
+
+If you want to see the symbols and relocation of an object file, you can use the objdump tool:
+
+objdump -x an_object_file.o
+
+
+A "template function" is the instantiation of "function template".
+
+template<typename T>
+void display(T x, T y){
+  cout << x << " " << y << endl;
+}
+
+int main(){
+  int i=10, j=20; display(i, j);
+
+}
+
+Ques:- What is volatile in C++?
+The volatile keyword is intended to prevent the compiler from applying any optimizations on objects that can change in ways 
+that cannot be determined by the compiler. Objects declared as volatile are omitted from optimization because their values can be changed by code 
+outside the scope of current code at any time.
+
+The system always reads the current value of a volatile object from the memory location rather than keeping its value in temporary register 
+at the point it is requested, even if a previous instruction asked for a value from the same object. 
+
+1) Global variables modified by an interrupt service routine outside the scope: 
+   For example, a global variable can represent a data port (usually global pointer referred as memory mapped IO) which will be updated dynamically. 
+   The code reading data port must be declared as volatile in order to fetch latest data available at the port. 
+   Failing to declare variable as volatile, the compiler will optimize the code in such a way that it will read the port only once and 
+   keeps using the same value in a temporary register to speed up the program (speed optimization). In general, an ISR used to update these data port 
+   when there is an interrupt due to availability of new data.
+2) Global variables within a multi-threaded application: 
+   There are multiple ways for threads communication, viz, message passing, shared memory, mail boxes, etc. 
+   A global variable is weak form of shared memory. When two threads sharing information via global variable, they need to be qualified with volatile. 
+   Since threads run asynchronously, any update of global variable due to one thread should be fetched freshly by another consumer thread. 
+   Compiler can read the global variable and can place them in temporary variable of current thread context. 
+   To nullify the effect of compiler optimizations, such global variables to be qualified as volatile
+
+If we do not use volatile qualifier, the following problems may arise
+  1) Code may not work as expected when optimization is turned on.
+  2) Code may not work as expected when interrupts are enabled and used.
+  
+Consider below code, we are changing value of const object using pointer and we are compiling code without optimization option. 
+Hence compiler won’t do any optimization and will change value of const object.
+
+/* Compile code without optimization option */
+#include <stdio.h>
+int main(void)
+{
+    const int local = 10;
+    int *ptr = (int*) &local;
+ 
+    printf("Initial value of local : %d \n", local);
+    *ptr = 100;
+    printf("Modified value of local: %d \n", local);
+ 
+    return 0;
+}
+When we compile code with “–save-temps” option of gcc it generates 3 output files
+
+1) preprocessed code (having .i extention)
+2) assembly code (having .s extention) and
+3) object code (having .o option).
+
+We compile code without optimization, that’s why the size of assembly code will be larger (which is 731)
+Output:
+
+  [narendra@ubuntu]$ gcc volatile.c -o volatile –save-temps
+  [narendra@ubuntu]$ ./volatile
+  Initial value of local : 10
+  Modified value of local: 100
+  [narendra@ubuntu]$ ls -l volatile.s
+  -rw-r–r– 1 narendra narendra 731 2016-11-19 16:19 volatile.s
+  [narendra@ubuntu]$
+
+Let us compile same above code with optimization option (i.e. -O option). As “local” is declared as const (and non-volatile), 
+GCC compiler does optimization and ignores the instructions which try to change value of const object. Hence value of const object remains same.
+
+For above code, compiler does optimization, that’s why the size of assembly code will reduce(which is 626).
+
+Output:
+
+  [narendra@ubuntu]$ gcc -O3 volatile.c -o volatile –save-temps
+  [narendra@ubuntu]$ ./volatile
+  Initial value of local : 10
+  Modified value of local: 10
+  [narendra@ubuntu]$ ls -l volatile.s
+  -rw-r–r– 1 narendra narendra 626 2016-11-19 16:21 volatile.s
+  
+Let us declare const object as volatile and compile code with optimization option. Although we compile code with optimization option, 
+value of const object will change, because variable is declared as volatile that means don’t do any optimization.
+
+/* Compile code with optimization option */
+#include <stdio.h>
+ 
+int main(void)
+{
+    const volatile int local = 10;
+    int *ptr = (int*) &local;
+ 
+    printf("Initial value of local : %d \n", local); 
+    *ptr = 100;
+    printf("Modified value of local: %d \n", local);
+ 
+    return 0;
+}
+
+Output: size of assembly code will reduce(which is 711)
+
+  [narendra@ubuntu]$ gcc -O3 volatile.c -o volatile –save-temp
+  [narendra@ubuntu]$ ./volatile
+  Initial value of local : 10
+  Modified value of local: 100
+  [narendra@ubuntu]$ ls -l volatile.s
+  -rw-r–r– 1 narendra narendra 711 2016-11-19 16:22 volatile.s
+  [narendra@ubuntu]$
+  
+Ques:- What is mutable C++?
+The keyword mutable is mainly used to allow a particular data member of const object to be modified.
+Data members declared as mutable can be modified even though they are the part of object declared as const. 
+You cannot use the mutable specifier with names declared as static or const, or reference.
+
+The mutable storage class specifier in C++ (or use of mutable keyword in C++):-
+auto, register, static and extern are the storage class specifiers in C. 
+typedef is also considered as a storage class specifier in C. 
+C++ also supports all these storage class specifiers. In addition to this C++, adds one important storage class specifier whose name is mutable.
+
+What is the need of mutable?
+Sometimes there is requirement to modify one or more data members of class / struct through const function even though 
+you don’t want the function to update other members of class / struct. This task can be easily performed by using mutable keyword.
+
+The keyword mutable is mainly used to allow a particular data member of const object to be modified. 
+When we declare a function as const, the this pointer passed to function becomes const. 
+Adding mutable to a variable allows a const pointer to change members.
+mutable is particularly useful if most of the members should be constant but a few need to be updateable. 
+Data members declared as mutable can be modified even though they are the part of object declared as const. 
+You cannot use the mutable specifier with names declared as static or const, or reference.
+
+// PROGRAM 1
+#include <iostream>
+using std::cout;
+ 
+class Test {
+public:
+  int x;
+  mutable int y;
+  Test() { x = 4; y = 10; }
+};
+int main()
+{
+    const Test t1;
+    t1.y = 20;
+    cout << t1.y;
+    return 0;
+}
+OUTPUT:-
+20
+
+class Customer
+{
+    char name[25];
+    mutable char placedorder[50];
+    int tableno;
+    mutable int bill;
+public:
+    Customer(char* s, char* m, int a, int p)
+    {
+        strcpy(name, s);
+        strcpy(placedorder, m);
+        tableno = a;
+        bill = p;
+    }
+    void changePlacedOrder(char* p) const
+    {
+        strcpy(placedorder, p);
+    }
+    void changeBill(int s) const
+    {
+        bill = s;
+    }
+    void display() const
+    {
+        cout << "Customer name is: " << name << endl;
+        cout << "Food ordered by customer is: " << placedorder << endl;
+        cout << "table no is: " << tableno << endl;
+        cout << "Total payable amount: " << bill << endl;
+    }
+};
+ 
+int main()
+{
+    const Customer c1("Pravasi Meet", "Ice Cream", 3, 100);
+    c1.display();
+    c1.changePlacedOrder("GulabJammuns");
+    c1.changeBill(150);
+    c1.display();
+    return 0;
+}
+
+Output:
+
+Customer name is: Pravasi Meet
+Food ordered by customer is: Ice Cream
+table no is: 3
+Total payable amount: 100
+Customer name is: Pravasi Meet
+Food ordered by customer is: GulabJammuns
+table no is: 3
+Total payable amount: 150 
+
+Closely observe the output of above program. 
+The values of placedorder and bill data members are changed from const function because they are declared as mutable.
+
+What is meant by qualifier in C++? && What are type qualifiers in C++? 
+A type qualifier is a keyword that is applied to a type, resulting in a qualified type. 
+For example, const int is a qualified type representing a constant integer, while int is the corresponding unqualified type, simply an integer
+
+There are four type qualifiers in standard C: const (C89), volatile (C89), restrict (C99) and _Atomic (C11). 
+The first two of these, const and volatile, are also present in C++ and are the only type qualifiers in C++.
+
+What is register int in C?
+Registers are faster than memory to access, so the variables which are most frequently used in a C program can be put in registers 
+using register keyword. The keyword register hints to compiler that a given variable can be put in a register. 
+It's compiler's choice to put it in a register or not.Generally, compilers themselves do optimizations and put the variables in register.
+
+1) If you use & operator with a register variable then compiler may give an error or warning (depending upon the compiler you are using), 
+   because when we say a variable is a register, it may be stored in a register instead of memory and accessing address of a register is invalid. 
+
+int main()
+{
+  register int i = 10;
+  int *a = &i;
+  printf("%d", *a);
+  getchar();
+  return 0;
+}
+
+2) register keyword can be used with pointer variables. Obviously, a register can have address of a memory location. 
+   There would not be any problem with the below program.
+
+int main()
+{
+  int i = 10;
+  register int *a = &i;
+  printf("%d", *a);
+  getchar();
+  return 0;
+}
+
+3) Register is a storage class, and C doesn’t allow multiple storage class specifiers for a variable. 
+   So, register can not be used with static . Try below program.
+
+int main()
+{
+  int i = 10;
+  register static int *a = &i;
+  printf("%d", *a);
+  getchar();
+  return 0;
+}
+
+4) There is no limit on number of register variables in a C program, but the point is compiler may put some variables in register and some not.
+
+auto is a modifier like static . It defines the storage class of a variable. 
+However, since the default for local variables is auto , you don't normally need to manually specify it. 
+
+Function Pointer:-
+--------------------
+The type of a function pointer is just like the function declaration, but with "(*)" in place of the function name. So a pointer to:
+       int foo( int )
+would be:
+       int (*)( int )
+In order to name an instance of this type, put the name inside (*), after the star, so:
+       int (*foo_ptr)( int )
+declares a variable called foo_ptr that points to a function of this type.
+
+int (*foo_ptr_array[2])( int )
+declares a variable called foo_ptr_array which is an array of 2 function pointers.
+
+The syntax can get pretty messy, so it's often easier to make a typedef to the function pointer and then declare an array of those instead:
+    typedef int (*foo_ptr_t)( int );
+    foo_ptr_t foo_ptr_array[2];
+OR, 
+    int f1( int );
+    int f2( int );
+    foo_ptr_array[0] = f1;
+    foo_ptr_array[1] = f2;
+    foo_ptr_array[0]( 1 );
+	
+Finally, you can dynamically allocate an array with either of:
+
+int (**a1)( int ) = calloc( 2, sizeof( int (*)( int ) ) );
+foo_ptr_t * a2 = calloc( 2, sizeof( foo_ptr_t ) );
+---------------------
+typedef void (*fp)(int); //Declares a type of a void function that accepts an int
+
+void test(int i)
+{
+    printf("%d", i);
+}
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+    fp function_array[10];  //declares the array
+
+    function_array[0] = test;  //assings a function that implements that signature in the first position
+
+    function_array[0](10); //call the cuntion passing 10
+
+}
+
+Assuming all your functions are of type void ()(void), something like this
+
+typedef void (*fxptr)(void);
+fxptr *ptr; // pointer to function pointer
+ptr = malloc(100 * sizeof *ptr);
+if (ptr) {
+    ptr[0] = fx0;
+    ptr[1] = fx1;
+    /* ... */
+    ptr[99] = fx100;
+
+    /* use "dynamic array" of function pointers */
+
+    free(ptr);
+}
+
+--------------------------------------------
+You'd declare an array of function pointers as
+
+T (*afp[N])(); 
+
+for some type T. Since you're dynamically allocating the array, you'd do something like
+    T (**pfp)() = calloc(num_elements, sizeof *pfp);
+or
+    T (**pfp)() = malloc(num_elements * sizeof *pfp);
+You'd then call each function as
+    T x = (*pfp[i])();
+or
+    T x = pfp[i](); // pfp[i] is implicitly dereferenced
+If you want to be unorthodox, you can declare a pointer to an array of pointers to functions, and then allocate that as follows:
+    T (*(*pafp)[N])() = malloc(sizeof *pafp);
+although you would have to deference the array pointer when making the call:
+    x = (*(*pafp)[i])();
+	
+--------------------------------------------
+
+Remove spaces from a given string
+Given a string, remove all spaces from the string and return it.
+
+Input:  "g  eeks   for ge  eeks  "
+Output: "geeksforgeeks"
+
+Expected time complexity is O(n) and only one traversal of string.
+A Better Solution can solve it in O(n) time. The idea is to keep track of count of non-space character seen so far.
+
+1) Initialize 'count' = 0 (Count of non-space character seen so far)
+2) Iterate through all characters of given string, do following
+     a) If current character is non-space, then put this character
+        at index 'count' and increment 'count'
+3) Finally, put '\0' at index 'count'
+
+#include <iostream>
+using namespace std;
+ 
+// Function to remove all spaces from a given string
+void removeSpaces(char *str)
+{
+    // To keep track of non-space character count
+    int count = 0;
+ 
+    // Traverse the given string. If current character
+    // is not space, then place it at index 'count++'
+    for (int i = 0; str[i]; i++)
+        if (str[i] != ' ')
+            str[count++] = str[i]; // here count is incremented
+    str[count] = '\0';
+}
+ 
+// Driver program to test above function
+int main()
+{
+    char str[] = "g  eeks   for ge  eeks  ";
+    removeSpaces(str);
+    cout << str;
+    return 0;
+}
+Output:
+geeksforgeeeks
+Time complexity of above solution is O(n) and it does only one traversal of string.
+
+// Function to remove all spaces from a given string
+string removeSpaces(string str) 
+{
+    str.erase(remove(str.begin(), str.end(), ' '), str.end());
+    return str;
+}
+
+    string str = "g  eeks   for ge  eeks   ";
+    str = removeSpaces(str);
+    cout << str;
+	
+---------------------------------------------
+Ques:- Remove extra spaces from a string.
+Given a string containing many consecutive spaces, trim all spaces so that all words should contain only a single space between them. 
+The conversion should be done in-place and solution should handle trailing and leading spaces and also remove preceding spaces 
+before common punctuation like full stop, comma and a question mark.
+
+Examples:
+
+Input: 
+str = "   Hello Geeks . Welcome   to  GeeksforGeeks   .    ";
+Output: 
+"Hello Geeks. Welcome to GeeksforGeeks."
+
+Input: 
+str = "GeeksforGeeks";
+Output: 
+"GeeksforGeeks"
+(No change is needed)
+
+1. The idea is to maintain 2 pointers. Initially both point to the beginning of the array.
+2. The first pointer keeps track of next position to be filled in output string.
+3. The second pointer is advanced to read all characters of the string one by one.
+4. On finding any non-space character, the character is copied to the location of the first pointer and 
+   then both the first and second pointers are advanced.
+5. If non-space character is full stop, comma or a question mark, we also remove any preceding space before it.
+6. On finding consecutive space characters, one only space is copied to the location of the first pointer and rest are ignored. 
+   The leading and trailing spaces are handled separately in the solution.
+   
+#include <iostream>
+using namespace std;
+
+// Function to in-place trim all spaces in the string such that all words should contain only a single space between them.
+void removeSpaces(string &str)
+{
+    int n = str.length(); // n is length of the original string
+ 
+    // i points to next postion to be filled in output string, j points to next character in the original string
+    int i = 0, j = -1;
+ 
+    bool spaceFound = false;  // flag that sets to true is space is found
+ 
+    // Handles leading spaces
+    while (++j < n && str[j] == ' ');
+ 
+    // read all characters of original string
+    while (j < n)
+    {
+        // if current characters is non-space
+        if (str[j] != ' ')
+        {
+            // remove preceding spaces before dot, comma & question mark
+            if ((str[j] == '.' || str[j] == ',' || str[j] == '?') && i - 1 >= 0 && str[i - 1] == ' ') 
+			    str[i - 1] = str[j++];
+            else
+                // copy current character at index i and increment both i and j
+                str[i++] = str[j++];
+ 
+            // set space flag to false when any non-space character is found
+            spaceFound = false;
+        } else if (str[j++] == ' ') { // if current character is a space
+            // If space is encountered for the first time after a word, put one space in the output and set space flag to true
+            if (!spaceFound)
+            {
+                str[i++] = ' ';
+                spaceFound = true;
+            }
+        }
+    }
+ 
+    // Remove trailing spaces
+    if (i <= 1)
+        str.erase(str.begin() + i, str.end());
+    else
+        str.erase(str.begin() + i - 1, str.end());
+}
+ 
+// Driver Code
+int main()
+{
+    string str = "   Hello Geeks . Welcome   to  GeeksforGeeks   .    ";
+    removeSpaces(str);
+    cout << str;
+ 
+    return 0;
+}
+
+Output:
+
+Hello Geeks. Welcome to GeeksforGeeks.
+Time complexity of above solution is O(n).
+
+Auxiliary Space is O(1) as the conversion is done in-place.
+
+-----------------------------------------
+Ques:- Return maximum occurring character in an input string.
+Write an efficient C function to return maximum occurring character in the input string 
+e.g., if input string is “test” then function should return ‘t’.
+
+Algorithm:
+1. One obvious approach to solve this problem would be to sort the input string and then traverse through the sorted string 
+   to find the character which is occurring maximum number of times.
+2. Let us see if we can improve on this. So we will use a technique called ‘Hashing’. 
+   In this, when we traverse through the string, we would hash each character into an array of ASCII characters.
+
+Input string = “test”
+1: Construct character count array from the input string.
+  count['e'] = 1
+  count['s'] = 1
+  count['t'] = 2
+
+2: Return the index of maximum value in count array (returns ‘t’).
+
+Typically, ASCII characters are 256, so we use our Hash array size as 256. But if we know that our input string will have characters with value 
+from 0 to 127 only, we can limit Hash array size as 128.
+
+// C++ program to output the maximum occurring character in a string
+#include<bits/stdc++.h>
+#define ASCII_SIZE 256
+using namespace std;
+ 
+char getMaxOccuringChar(char* str)
+{
+    // Create array to keep the count of individual characters and initialize the array as 0
+    int count[ASCII_SIZE] = {0};
+ 
+    // Construct character count array from the input string.
+    int len = strlen(str);
+    for (int i=0; i<len; i++)
+        count[str[i]]++;
+ 
+    int max = -1;  // Initialize max count
+    char result;   // Initialize result
+ 
+    // Traversing through the string and maintaining the count of each character
+    for (int i = 0; i < len; i++) {
+        if (max < count[str[i]]) {
+            max = count[str[i]];
+            result = str[i];
+        }
+    }
+ 
+    return result;
+}
+ 
+// Driver program to test the above function
+int main()
+{
+    char str[] = "sample string";
+    cout << "Max occurring character is :" << getMaxOccuringChar(str);
+}
+
+Time Complexity: O(n)
+Space Complexity: O(1) — Because we are using fixed space (Hash array) irrespective of input string size.
+
+-----------------------------------------------------------
+Ques:- Palindrome Substring Queries:-
+Given a string and several queries on the substrings of the given input string to check whether the substring is a palindrome or not.
+
+Examples : 
+Suppose our input string is “abaaabaaaba” and the queries- [0, 10], [5, 8], [2, 5], [5, 9]
+
+We have to tell that the substring having the starting and ending indices as above is a palindrome or not.
+
+[0, 10] → Substring is “abaaabaaaba” which is a palindrome.
+[5, 8] → Substring is “baaa” which is not a palindrome.
+[2, 5] → Substring is “aaab” which is not a palindrome.
+[5, 9] → Substring is “baaab” which is a palindrome.
+
+#include <stdio.h>
+// A function to check if a string str is palindrome in the ranfe L to R
+bool isPalindrome(char str[], int L, int R)
+{
+    // Keep comparing characters while they are same
+    while (R > L)
+        if (str[L++] != str[R--])
+            return(false);
+    return(true);
+}
+
+void printSubstring(char str[], int L, int R){
+    while ( L <= R){
+	    printf("%c", str[L]);
+	    L++;
+	}
+}
+
+/* Driver program to test above function */
+int main()
+{
+    char str[] = "abaaabaaaba";
+	if(true == isPalindrome(str, 0, 3)) {
+	    printf("substring palindrom YES : ");
+	    printSubstring(str, 0, 3);
+	}else {
+	    printf("substring palindrom NO  : ");
+	    printSubstring(str, 0, 3);
+	}
+	return 0;
+}
+
+OUTPUT:-
+For isPalindrome(str, 0, 3)
+substring palindrom NO  : abaa
+
+For isPalindrome(str, 0, 2)
+substring palindrom YES  : aba
+
+Another method which is more complex is called Method 2 (Cumulative Hash) will solve the problem.
+
+-------------------------------------------------
+Ques:-Print all pairs with given sum.
+Given an array of integers, and a number ‘sum’, print all pairs in the array whose sum is equal to ‘sum’.
+
+Examples :
+Input  :  arr[] = {1, 5, 7, -1, 5}, 
+          sum = 6
+Output : (1, 5) (7, -1) (1, 5)
+
+Input  :  arr[] = {2, 5, 17, -1}, 
+          sum = 7
+Output :  (2, 5)
+
+1. A simple solution is be traverse each element and check if there’s another number in the array which can be added to it to give sum.
+
+#include <iostream>
+using namespace std;
+
+// Returns number of pairs in arr[0..n-1] with sum equal to 'sum'
+int printPairs(int arr[], int n, int sum)
+{
+    int count = 0; // Initialize result
+ 
+    // Consider all possible pairs and check their sums
+    for (int i = 0; i < n; i++)
+        for (int j = i + 1; j < n; j++)
+            if (arr[i] + arr[j] == sum)
+                cout << "(" << arr[i] << ", " << arr[j] << ")" << endl;
+}
+ 
+// Driver function to test the above function
+int main()
+{
+    int arr[] = { 1, 5, 7, -1, 5 };
+    int n = sizeof(arr) / sizeof(arr[0]);
+    int sum = 6;
+    printPairs(arr, n, sum);
+    return 0;
+}
+OUTPUT:-
+(1, 5)                                                                                                                  
+(1, 5)                                                                                                                  
+(7, -1)
+
+2. Method 2 (Use hashing).
+   We create an empty hash table. Now we traverse through the array and check for pairs in hash table. 
+   If a matching element is found, we print the pair number of times equal to number of occurrences of the matching element.
+
+   Note that the worst case of time complexity of this solution is O(c + n) where c is count of pairs with given sum.
+   
+#include <unordered_map>
+#include <iostream>
+using namespace std;
+// Returns number of pairs in arr[0..n-1] with sum equal to 'sum'
+void printPairs(int arr[], int n, int sum)
+{
+    // Store counts of all elements in map m
+    unordered_map<int, int> m;
+ 
+    // Traverse through all elements
+    for (int i = 0; i < n; i++) {
+  
+        // Search if a pair can be formed with arr[i].
+        int rem = sum - arr[i];
+        if (m.find(rem) != m.end()) {
+            int count = m[rem];
+            for (int j = 0; j < count; j++)
+                cout << "(" << rem << ", " << arr[i] << ")" << endl;
+        }
+        m[arr[i]]++;
+    }
+}
+ 
+// Driver function to test the above function
+int main()
+{
+    int arr[] = { 1, 5, 7, -1, 5 };
+    int n = sizeof(arr) / sizeof(arr[0]);
+    int sum = 6;
+    printPairs(arr, n, sum);
+    return 0;
+}
+OUTPUT:-
+(1, 5)                                                                                                                
+(7, -1)                                                                                                               
+(1, 5) 
+
+--------------------------------------
+Ques:-Print all triplets with given sum
+Given an array of distinct elements. The task is to find triplets in array whose sum is equal to a given number.
+
+Examples :
+
+Input : arr[] = {0, -1, 2, -3, 1}
+        sum = -2
+Output : 0  -3  1
+         -1  2 -3
+
+Input : arr[] = {1, -2, 1, 0, 5}
+        sum = 0
+Output : 1 -2  1
+
+1. Method 1 (Simple : O(n3))
+   The naive approach is that run three loops and check one by one that sum of three elements is given sum or not 
+   If sum of three elements is given sum, then print elements other wise print not found.
+   
+#include <bits/stdc++.h>
+using namespace std;
+ 
+// Prints all triplets in arr[] with given sum
+void findTriplets(int arr[], int n, int sum)
+{
+    for (int i = 0; i < n - 2; i++) {
+        for (int j = i + 1; j < n - 1; j++) {
+            for (int k = j + 1; k < n; k++) {
+                if (arr[i] + arr[j] + arr[k] == sum) {
+                    cout << "(" << arr[i] << ", " << arr[j] << ", " << arr[k] << ")" << endl;
+                }
+            }
+        }
+    }
+}
+ 
+// Driver code
+int main()
+{
+    int arr[] = { 0, -1, 2, -3, 1 };
+    int n = sizeof(arr) / sizeof(arr[0]);
+    findTriplets(arr, n, -2);
+    return 0;
+}
+
+OUTPUT:-
+(0, -3, 1)                                                                                                            
+(-1, 2, -3)
+
+Time Complexity : O(n3)
+Auxiliary Space : O(1)
+
+2. Method 2 (Hashing : O(n2))
+   We iterate through every element. For every element arr[i], we find a pair with sum “-arr[i]”. 
+   This problem reduces to pairs sum and can be solved in O(n) time using hashing.
+
+Run a loop from i=0 to n-2
+  Create an empty hash table
+  Run inner loop from j=i+1 to n-1
+      If -(arr[i] + arr[j]) is present in hash table
+         print arr[i], arr[j] and -(arr[i]+arr[j])
+      Else
+         Insert arr[j] in hash table.
+		 
+// C++ program to find triplets in a given array whose sum is equal to given sum.
+#include <bits/stdc++.h>
+using namespace std;
+ 
+// function to print triplets with given sum
+void findTriplets(int arr[], int n, int sum)
+{
+    for (int i = 0; i < n - 1; i++) {
+        // Find all pairs with sum equals to "sum-arr[i]"
+        unordered_set<int> s;
+        for (int j = i + 1; j < n; j++) {
+            int x = sum - (arr[i] + arr[j]);
+            if (s.find(x) != s.end())
+                printf("(%d, %d, %d)\n", x, arr[i], arr[j]);
+            else
+                s.insert(arr[j]);
+        }
+    }
+}
+ 
+// Driver code
+int main()
+{
+    int arr[] = { 0, -1, 2, -3, 1 };
+    int sum = -2;
+    int n = sizeof(arr) / sizeof(arr[0]);
+    findTriplets(arr, n, sum);
+    return 0;
+}
+
+OUTPUT:-
+(-3, 0, 1)                                                                                                            
+(2, -1, -3)
+
+Time Complexity : O(n2)
+Auxiliary Space : O(n)
+
+3. Method 3 (Sorting : O(n2))
+   The above method requires extra space. We can solve in O(1) extra space. The idea is based on method 2 of this post.
+
+1. Sort all element of array
+2. Run loop from i=0 to n-2.
+     Initialize two index variables l=i+1 and r=n-1
+4. while (l < r) 
+     Check sum of arr[i], arr[l], arr[r] is
+     given sum or not if sum is 'sum', then print 
+     the triplet and do l++ and r--.
+5. If sum is less than given sum then l++
+6. If sum is greater than given sum then r--
+7. If not exist in array then print not found.
+
+// C++ program to find triplets in a given array whose sum is given sum.
+#include <bits/stdc++.h>
+using namespace std;
+ 
+// function to print triplets with given sum
+void findTriplets(int arr[], int n, int sum)
+{
+    // sort array elements
+    sort(arr, arr + n);
+ 
+    for (int i = 0; i < n - 1; i++) {
+        // initialize left and right
+        int l = i + 1;
+        int r = n - 1;
+        int x = arr[i];
+        while (l < r) {
+            if (x + arr[l] + arr[r] == sum) {
+                // print elements if it's sum is given sum.
+                printf("%d %d %d\n", x, arr[l], arr[r]);
+                l++;
+                r--;
+            }
+ 
+            // If sum of three elements is less than 'sum' then increment in left
+            else if (x + arr[l] + arr[r] < sum)
+                l++;
+ 
+            // if sum is greater than given sum, then decrement in right side
+            else
+                r--;
+        }
+    }
+}
+ 
+// Driver code
+int main()
+{
+    int arr[] = { 0, -1, 2, -3, 1 };
+    int sum = -2;
+    int n = sizeof(arr) / sizeof(arr[0]);
+    findTriplets(arr, n, sum);
+    return 0;
+}
+OUTPUT:-
+-3 -1 2                                                                                                               
+-3 0 1
+
+Time Complexity : O(n2)
+Auxiliary Space : O(1)
+--------------------------------------------
+Ques:- Print all the duplicates in the input string
+
+Algorithm: Let input string be “geeksforgeeks”
+1: Construct character count array from the input string.
+
+count[‘e’] = 4
+count[‘g’] = 2
+count[‘k’] = 2
+……
+
+// C program to count all duplicates from string using hashing
+# include <stdio.h>
+# include <stdlib.h>
+# define NO_OF_CHARS 256
+ 
+/* Fills count array with frequency of characters */
+void fillCharCounts(char *str, int *count)
+{
+   int i;
+   for (i = 0; *(str+i);  i++)
+      count[*(str+i)]++;
+}
+ 
+/* Print duplicates present in the passed string */
+void printDups(char *str)
+{
+  // Create an array of size 256 and fill count of every character in it
+  int *count = (int *)calloc(NO_OF_CHARS, sizeof(int));
+  fillCharCounts(str, count);
+ 
+  // Print characters having count more than 0
+  int i;
+  for (i = 0; i < NO_OF_CHARS; i++)
+    if(count[i] > 1)
+        printf("%c,  count = %d \n", i,  count[i]);
+ 
+  free(count);
+}
+ 
+/* Driver program to test to pront printDups*/
+int main()
+{
+    char str[] = "test string";
+    printDups(str);
+    getchar();
+    return 0;
+}
+OUTPUT:-
+s,  count = 2                                                                                                         
+t,  count = 3
+
+Time Complexity : O(n)
+-------------------------------------------------------
+
+Ques:Implementing a Smart Pointer Using Reference Counting
+
+#include <iostream>
+using namespace std;
+/* Reference Count: A simple class for maanging the number of active smart pointers*/
+class ReferenceCount {
+  private:
+    int m_RefCount{ 0 };
+  public:
+    void Increment() {
+      ++m_RefCount;
+    }
+    int Decrement() {
+      return --m_RefCount;
+    }
+    int GetCount() const {
+      return m_RefCount;
+    }
+};
+
+template <typename T>
+class smart_ptr {
+  private:
+    T* m_Object{ nullptr };
+    ReferenceCount* m_ReferenceCount{ nullptr };
+  public:
+    smart_ptr() { }
+    smart_ptr(T* object): m_Object{ object }, m_ReferenceCount{ new ReferenceCount() } {
+      m_ReferenceCount->Increment();
+      cout << "Created smart_ptr! Ref count is " << m_ReferenceCount->GetCount() << endl;
+    }
+    virtual ~smart_ptr() {
+      if (m_ReferenceCount)
+      {
+        int decrementedCount = m_ReferenceCount->Decrement();
+        cout << "Destroyed smart_ptr! Ref count is " << decrementedCount << endl;
+        if (decrementedCount <= 0) {
+          delete m_ReferenceCount;
+          delete m_Object;
+          m_ReferenceCount = nullptr;
+          m_Object = nullptr;
+        }
+      }
+    }
+  
+    smart_ptr(const smart_ptr<T>& other): m_Object{ other.m_Object }, m_ReferenceCount{ other.m_ReferenceCount } {
+      m_ReferenceCount->Increment();
+      cout << "Copied smart_ptr! Ref count is " << m_ReferenceCount->GetCount() << endl;
+    }
+  
+    smart_ptr<T>& operator=(const smart_ptr<T>& other) {
+      if (this != &other)
+      {
+        if (m_ReferenceCount && m_ReferenceCount->Decrement() == 0)
+        {
+          delete m_ReferenceCount;
+          delete m_Object;
+        }
+        m_Object = other.m_Object;
+        m_ReferenceCount = other.m_ReferenceCount;
+        m_ReferenceCount->Increment();
+      }
+      cout << "Assigning smart_ptr! Ref count is " << m_ReferenceCount->GetCount() << endl;
+      return *this;
+    }
+    //Dereference operator
+    T& operator*() {
+      return *m_Object;
+    }
+    //Member Access operator
+    T* operator->() {
+      return m_Object;
+    }
+};
+
+class AirCraft {
+  private:
+    std::string m_Model;
+  public: 
+    AirCraft() :m_Model("Generic Model") {
+      cout << "Generic model aircraft created" << endl;
+    }
+    AirCraft(const string& modelName) :m_Model(modelName) {
+      cout << "Aircraft type" << m_Model << "is created!" << endl;
+    }
+    void SetAirCraftModel(const string& modelName) {
+      cout << "Aircraft model changed from  " << m_Model << " to " << modelName << endl;
+      m_Model = modelName;
+    }
+    ~AirCraft() {
+      cout << "Destroying Aircraft of model:" << m_Model << "!" << endl;
+    }
+};
+
+int main() {
+  // Create two aircraft objects. 
+  smart_ptr<AirCraft> raptorPointer(new AirCraft("F-22 Raptor")); // Ref Count for raptorPointer = 1
+  raptorPointer->SetAirCraftModel("B2 Bomber");   // rename the model using pointer access operator
+  (*raptorPointer).SetAirCraftModel("B2 Spirit"); // rename the model using the pointer dereference operator
+  smart_ptr<AirCraft> hornettPointer(new AirCraft("F-14 Hornett")); // Ref count for hornettPointer = 1
+  raptorPointer = hornettPointer; // raptorPointer now points to "F14-Hornett".Ref count for hornett is 2. "F-22 Raptor" is destroyed.
+  return 0;
+}
+OUTPUT:
+Aircraft typeF-22 Raptoris created!                                                                                             
+Created smart_ptr! Ref count is 1                                                                                               
+Aircraft model changed from  F-22 Raptor to B2 Bomber                                                                           
+Aircraft model changed from  B2 Bomber to B2 Spirit                                                                             
+Aircraft typeF-14 Hornettis created!                                                                                            
+Created smart_ptr! Ref count is 1                                                                                               
+Destroying Aircraft of model:B2 Spirit!                                                                                         
+Assigning smart_ptr! Ref count is 2                                                                                             
+Destroyed smart_ptr! Ref count is 1                                                                                             
+Destroyed smart_ptr! Ref count is 0                                                                                             
+Destroying Aircraft of model:F-14 Hornett!
+
+Ques:- Performance analysis of Row major and Column major order of storing arrays in C
+In computing, row-major order and column-major order are methods for storing multidimensional arrays in linear storage such as random access memory.
+
+The two mentioned ways differ from each other with respect to the order in which elements are stored contiguously in the memory. The elements in row-major order are arranged consecutively along the row and that in the column-major order are arranged consecutively along the column. While the terms allude to the rows and columns of a two-dimensional array, i.e. a matrix, the orders can be generalized to arrays of any dimension by noting that the terms row-major and column-major are equivalent to lexicographic and lexicographic orders, respectively.
+
+Below program illustrates that row major order storing of arrays in C is more efficient than column-major order(though Pascal and Fortran follows column major order):
+#include <stdio.h>
+#include <time.h>
+int m[9999][999];
+ 
+int main() {
+    int i, j;
+    clock_t start, stop;
+    double d = 0.0;
+ 
+    start = clock();
+    for (i = 0; i < 9999; i++)
+        for (j = 0; j < 999; j++)
+            m[i][j] = m[i][j] + (m[i][j] * m[i][j]);
+    stop = clock();
+    d = (double)(stop - start) / CLOCKS_PER_SEC;
+    printf("The run-time of row major order is %lf\n", d);
+ 
+    start = clock();
+    for (j = 0; j < 999; j++)
+        for (i = 0; i < 9999; i++)
+            m[i][j] = m[i][j] + (m[i][j] * m[i][j]);
+ 
+    stop = clock();
+    d = (double)(stop - start) / CLOCKS_PER_SEC;
+    printf("The run-time of column major order is %lf", d);
+}
+OUTPUT:-
+The run-time of row major order is 0.040410                                                                                   
+The run-time of column major order is 0.185522
+

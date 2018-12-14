@@ -1,0 +1,138 @@
+/*
+Selection Sort:-
+The selection sort algorithm sorts an array by repeatedly finding the minimum element (considering ascending order) from unsorted part and 
+putting it at the beginning. The algorithm maintains two subarrays in a given array.
+
+1) The subarray which is already sorted.
+2) Remaining subarray which is unsorted.
+
+In every iteration of selection sort, the minimum element (considering ascending order) from the unsorted subarray is picked and 
+moved to the sorted subarray.
+
+arr[] = 64 25 12 22 11
+
+// Find the minimum element in arr[0...4] and place it at beginning
+11 25 12 22 64
+
+// Find the minimum element in arr[1...4] and place it at beginning of arr[1...4]
+11 12 25 22 64
+
+// Find the minimum element in arr[2...4] and place it at beginning of arr[2...4]
+11 12 22 25 64
+
+// Find the minimum element in arr[3...4] and place it at beginning of arr[3...4]
+11 12 22 25 64 
+*/
+
+#include<stdio.h>
+#include<string.h>
+#define MAX_LEN 100
+
+#define SORT_OF_INT_ARRAY 1
+#define SORT_ARRAY_OF_STRING 2
+
+#ifdef SORT_OF_INT_ARRAY
+void swap(int *x, int *y){
+    int tmp = *x;
+    *x = *y;
+    *y = tmp;
+}
+
+void display(int arr[], int size){
+    for(int i = 0; i <size; i++){
+        printf("%d ", arr[i]);      
+    }
+    printf("\n");
+}
+
+void SelectionSort(int arr[], int size){
+    /* One by one move boundary of unsorted subarray */
+    for(int i = 0; i < size - 1; i++){
+	    int minIndex = i;
+		/* Find the minimum element in unsorted array */
+		for(int j = i+ 1; j < size; j++) {
+		    if(arr[j] < arr[minIndex])
+			    minIndex = j;
+		}
+		/* Swap the found minimum element with the first element of sub array */
+		swap(&arr[i], &arr[minIndex]);
+		display(arr, size);
+	}
+}
+#endif
+
+#ifdef SORT_ARRAY_OF_STRING
+void displayString(char arr[][MAX_LEN], int size){
+    for(int i = 0; i <size; i++){
+        printf("%s ", arr[i]);      
+    }
+    printf("\n");
+}
+
+/* 3. Exercise : Sort an array of strings using Selection Sort */
+void SelectionSortArrayOfString(char arr[][MAX_LEN], int size){
+    /* One by one move boundary of unsorted subarray */
+    for(int i = 0; i < size - 1; i++){
+	    int minIndex = i;
+		char minString[MAX_LEN];
+		
+		strcpy(minString, arr[i]);
+		/* Find the minimum element in unsorted array */
+		for(int j = i+ 1; j < size; j++) {
+		    if(strcmp(minString, arr[j]) > 0){
+			    strcpy(minString, arr[j]);
+			    minIndex = j;
+		    }
+		}
+		/* Swap the found minimum element with the first element of sub array */
+		if(minIndex != i) {
+		    char temp[MAX_LEN];
+			strcpy(temp, arr[i]);
+			strcpy(arr[i], arr[minIndex]);
+			strcpy(arr[minIndex], temp);
+		}
+		displayString(arr, size);
+	}
+}
+#endif
+
+
+int main()
+{
+#ifdef SORT_OF_INT_ARRAY
+    //int arr1[] = {10, 80, 30, 90, 40, 50, 70};
+	int arr1[] = {64 25 12 22 11};
+    int size1 = sizeof(arr1) / sizeof(arr1[0]);
+    SelectionSort(arr1, size1);
+    display(arr1, size1);
+#endif
+
+#ifdef SORT_ARRAY_OF_STRING
+	char arr2[][MAX_LEN] = {"GeeksforGeeks", "Practice.GeeksforGeeks", "GeeksQuiz"};
+	int size2 = sizeof(arr2) / sizeof(arr2[0]);
+	SelectionSortArrayOfString(arr2, size2);
+	displayString(arr2, size2);
+#endif
+
+	return 0;
+}
+
+
+/*OUTPUT:-
+11 25 12 22 64                                                                                                        
+11 12 25 22 64                                                                                                        
+11 12 22 25 64                                                                                                        
+11 12 22 25 64 
+                                                                                                   
+GeeksQuiz Practice.GeeksforGeeks GeeksforGeeks                                                                          
+GeeksQuiz GeeksforGeeks Practice.GeeksforGeeks                                                                          
+GeeksQuiz GeeksforGeeks Practice.GeeksforGeeks 
+
+1. Time Complexity: O(n2) as there are two nested loops.
+2. Auxiliary Space: O(1)
+The good thing about selection sort is it never makes more than O(n) swaps and can be useful when memory write is a costly operation.
+
+3. Exercise : Sort an array of strings using Selection Sort
+4. Stability : The default implementation is not stable. However it can be made stable. Please see stable selection sort for details.
+5. In Place : Yest, it does not require extra space.
+*/

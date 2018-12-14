@@ -1,0 +1,137 @@
+/*
+Merge Sort:-
+------------
+Like QuickSort, Merge Sort is a Divide and Conquer algorithm. 
+It divides input array in two halves, calls itself for the two halves and then merges the two sorted halves. 
+The merge() function is used for merging two halves. 
+The merge(arr, l, m, r) is key process that assumes that arr[l..m] and arr[m+1..r] are sorted and merges the two sorted sub-arrays into one.
+
+Divide and Conquer Strategy:-
+-----------------------------
+Using the Divide and Conquer technique, we divide a problem into subproblems. 
+When the solution to each subproblem is ready, we 'combine' the results from the subproblems to solve the main problem.
+
+array is recursively divided in two halves till the size becomes 1. 
+Once the size becomes 1, the merge processes comes into action and starts merging arrays back till the complete array is merged.
+
+MergeSort(arr[], l,  r)
+If l < r
+     1. Find the middle point to divide the array into two halves:  
+             middle m = (l+r)/2
+     2. Call mergeSort for first half:   
+             Call mergeSort(arr, l, m)
+     3. Call mergeSort for second half:
+             Call mergeSort(arr, m+1, r)
+     4. Merge the two halves sorted in step 2 and 3:
+             Call merge(arr, l, m, r)
+
+*/
+
+#include <stdio.h>
+void mergArray(int arr[], int low, int mid, int high){
+    int temp[high-low+1]; /* temporary merger array */
+	int i = low;     /* i is for left-hand */
+	int j = mid + 1; /* j is for right-hand */
+	int k = 0;       /* k is for the temporary array */
+	
+	while(i <= mid && j <= high){
+	    if(arr[i] <= arr[j])
+		    temp[k++] = arr[i++];
+		else
+		    temp[k++] = arr[j++];
+	}
+	/* rest elements of left-half */
+	while(i <= mid)
+	    temp[k++] = arr[i++];
+	/* rest elements of right-half */	
+	while(j <= high)
+	    temp[k++] = arr[j++];
+	/* copy the mergered temporary array to the original array */
+	for(k = 0, i = low; i <= high; i++, k++)
+	    arr[i] = temp[k];
+}
+
+/* An recursive implementation of merg sort */
+void MergSort(int arr[], int low, int high){
+    int mid = 0;
+    if(low < high){
+        mid = (low + high) >> 1;
+        MergSort(arr, low, mid);
+        MergSort(arr, mid +1, high);
+		mergArray(arr, low, mid, high);
+    }
+}
+
+/*
+Iterative Merge Sort:-
+----------------------
+The above function is recursive, so uses function call stack to store intermediate values of low and high. 
+The function call stack stores other bookkeeping information together with parameters. 
+Also, function calls involve overheads like storing activation record of the caller function and then resuming execution. 
+Unlike Iterative QuickSort, the iterative MergeSort doesn’t require explicit auxiliary stack. 
+Time complexity of above iterative function is same as recursive, i.e., Θ(nLogn).
+*/
+/* Utility function to find minimum of two integers */
+int min(int x, int y) { return (x<y)? x :y; }
+ 
+/* Iterative mergesort function to sort arr[0...size-1] */
+void MergSortIterative(int arr[], int size)
+{
+   int curr_size;  /* For current size of subarrays to be merged curr_size varies from 1 to n/2 */
+   int left_start; /* For picking starting index of left subarray to be merged */
+ 
+   /* Merge subarrays in bottom up manner.  First merge subarrays of size 1 to create sorted subarrays of size 2, then merge subarrays
+      of size 2 to create sorted subarrays of size 4, and so on. */
+   for (curr_size=1; curr_size<=size-1; curr_size = 2*curr_size)
+   {
+       /* Pick starting point of different subarrays of current size */
+       for (left_start=0; left_start<size-1; left_start += 2*curr_size)
+       {
+           /* Find ending point of left subarray. mid+1 is starting point of right */
+           int mid = left_start + curr_size - 1;
+ 
+           int right_end = min(left_start + 2*curr_size - 1, size-1);
+ 
+           /* Merge Subarrays arr[left_start...mid] & arr[mid+1...right_end] */
+           mergArray(arr, left_start, mid, right_end);
+       }
+   }
+}
+
+void display(int arr[], int size){
+    for(int i = 0; i <size; i++){
+        printf("%d ", arr[i]);      
+    }
+    printf("\n");
+}
+int main()
+{
+    int arr1[] = {10, 80, 30, 90, 40, 50, 70};
+    int size1 = sizeof(arr1) / sizeof(arr1[0]);
+    MergSort(arr1, 0, size1-1);
+    display(arr1, size1);
+	
+	int arr2[] = {10, 80, 30, 90, 40, 50, 70};
+    int size2 = sizeof(arr2) / sizeof(arr2[0]);
+	MergSortIterative(arr2, size2);
+	display(arr2, size2);
+	
+    return 0;
+}
+
+/*
+Time Complexity:-
+-----------------
+Merge Sort is a recursive algorithm and time complexity can be expressed as following recurrence relation.
+  T(n) = 2T(n/2) + \Theta(n)
+Time complexity of Merge Sort is \Theta(nLogn) in all 3 cases (worst, average and best) as merge sort always divides the array in two halves and 
+take linear time to merge two halves.
+
+Auxiliary Space: O(n)
+
+Applications of Merge Sort:-
+---------------------------
+1. Merge Sort is useful for sorting linked lists in O(nLogn) time.
+2. Inversion Count Problem
+3. Used in External Sorting
+*/

@@ -1,0 +1,944 @@
+#include<iostream>
+#include<conio.h>
+#include<stdlib.h>
+#define SIZE 5
+using namespace std;
+
+int q[SIZE],front=0,rear=0;
+
+void enqueue()
+{
+  int no;
+  if (rear==SIZE && front==0)
+    cout<<"queue is full";
+  else
+  {
+    cout<<"enter the num:";
+    cin>>no;
+    q[rear]=no;
+  }
+  rear++;
+}
+
+void dequeue()
+{
+  int no,i;
+  if (front==rear)
+    cout<<"queue is empty";
+  else
+  {
+    no=q[front];
+    front++;
+    cout<<"\n"<<no<<" -removed from the queue\n";
+  }
+}
+
+void display()
+{
+  int i,temp=front;
+  if (front==rear)
+    cout<<"the queue is empty";
+  else
+  {
+    cout<<"\n element in the queue:";
+    for(i=temp;i<rear;i++)
+    {
+      cout<<q[i]<<" ";
+    }
+  }
+}
+
+int main()
+{
+  int ch;
+
+  while(1)
+  {
+    cout<<"\n 1. add element";
+    cout<<"\n 2. remove element";
+    cout<<"\n 3.display";
+    cout<<"\n 4.exit";
+    cout<<"\n enter your choice:";
+    cin>>ch;
+
+    switch(ch)
+    {
+      case 1:
+        enqueue();
+        break;
+      case 2:
+        dequeue();
+        break;
+      case 3:
+        display();
+        break;
+      case 4:
+        exit(0);
+      default:
+        cout<<"\n invalid choice";
+    }
+  }
+}
+
+------------------------------------------------
+Zombie Process:
+  A process which has finished the execution but still has entry in the process table to report to its parent process is known as a zombie process. 
+  A child process always first becomes a zombie before being removed from the process table. 
+  The parent process reads the exit status of the child process which reaps off the child process entry from the process table.
+  
+/* A C program to demonstrate Zombie Process. 
+   Child becomes Zombie as parent is sleeping when child process exits.*/
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    // fork return pocess id in parent process
+    pid_t child_process_id = fork();
+    
+    if (child_process_id > 0) { //parent process
+      printf("parent process start.!!\n");
+      sleep(5);
+      printf("parent process end.!!\n");
+    } else { //child process
+      printf("child process start.!!\n");
+      exit(0);
+      printf("child process end.!!\n");
+    }
+    return 0;
+}
+OUTPUT:-
+parent process start.!!                                                                                               
+child process start.!!                                                                                                
+parent process end.!!
+------------------------------------------------
+Orphan Process:
+  A process whose parent process no more exists i.e. either finished or terminated without waiting for 
+  its child process to terminate is called an orphan process.
+  
+  In the following code, parent finishes execution and exits while the child process is still executing and is called an orphan process now.
+  However, the orphan process is soon adopted by init process, once its parent process dies.
+
+/* A C program to demonstrate Orphan Process. 
+   Parent process finishes execution while the child process is running. The child process becomes orphan.*/
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    // fork return pocess id in parent process
+    pid_t Pid = fork();
+    
+    if (Pid > 0) { //parent process
+      printf("parent process start.!!\n");
+      sleep(1);
+      printf("parent process end.!!\n");
+    } else { //child process
+      printf("child process start.!!\n");
+      sleep(5);
+      printf("child process end.!!\n");
+    }
+    return 0;
+}
+OUTPUT:-
+parent process start.!!                                                                                               
+child process start.!!                                                                                                
+parent process end.!!
+------------------------------------------------------------
+Zombie Processes and their Prevention:-
+Zombie state : 
+  When a process is created in UNIX using fork() system call, the address space of the Parent process is replicated. 
+  If the parent process calls wait() system call, then the execution of parent is suspended until the child is terminated. 
+  At the termination of the child, a ‘SIGCHLD’ signal is generated which is delivered to the parent by the kernel. 
+  Parent, on receipt of ‘SIGCHLD’ reaps the status of the child from the process table. 
+  Even though, the child is terminated, there is an entry in the process table corresponding to the child where the status is stored. 
+  When parent collects the status, this entry is deleted. Thus, all the traces of the child process are removed from the system. 
+  If the parent decides not to wait for the child’s termination and it executes its subsequent task, then at the termination of the child, 
+  the exit status is not read. Hence, there remains an entry in the process table even after the termination of the child. 
+  This state of the child process is known as the Zombie state.
+  
+// A C program to demonstrate working of fork() and process table entries.
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/wait.h>
+#include<sys/types.h>
+ 
+int main()
+{
+    int i;
+    int pid = fork();
+ 
+    if (pid == 0) {
+        for (i=0; i<20; i++)
+            printf("I am Child\n");
+    }else {
+        printf("I am Parent\n");
+        while(1);
+    }
+}
+
+$ps -eaf
+Here the entry [a.out] defunct  shows the zombie process.
+
+Why do we need to prevent the creation of Zombie process?
+  There is one process table per system. The size of the process table is finite. 
+  If too many zombie processes are generated, then the process table will be full. 
+  That is, the system will not be able to generate any new process, then the system will come to a standstill. 
+  Hence, we need to prevent the creation of zombie processes.
+  
+Different ways in which creation of Zombie can be prevented.
+1. Using wait() system call : 
+      When the parent process calls wait(), after the creation of child, it indicates that, it will wait for the child to complete and 
+	  it will reap the exit status of the child. The parent process is suspended(waits in a waiting queue) until the child is terminated. 
+	  It must be understood that during this period, the parent process does nothing just waits.
+	  
+// A C program to demonstrate working of fork()/wait() and Zombie processes
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/wait.h>
+#include<sys/types.h>
+ 
+int main()
+{
+    int i;
+    int pid = fork();
+    if (pid==0){
+        for (i=0; i<20; i++)
+            printf("I am Child\n");
+    }else {
+        wait(NULL);
+        printf("I am Parent\n");
+        while(1);
+    }
+}
+
+2. By ignoring the SIGCHLD signal : 
+      When a child is terminated, a corresponding SIGCHLD signal is delivered to the parent, if we call the ‘signal(SIGCHLD,SIG_IGN)’, 
+	  then the SIGCHLD signal is ignored by the system, and the child process entry is deleted from the process table. 
+	  Thus, no zombie is created. However, in this case, the parent cannot know about the exit status of the child.
+	  
+// A C program to demonstrate ignoring SIGCHLD signal to prevent Zombie processes
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/wait.h>
+#include<sys/types.h>
+ 
+int main()
+{
+    int i;
+    int pid = fork();
+    if (pid == 0)
+        for (i=0; i<20; i++)
+            printf("I am Child\n");
+    else {
+        signal(SIGCHLD,SIG_IGN);
+        printf("I am Parent\n");
+        while(1);
+    }
+}
+
+3. By using a signal handler : 
+     The parent process installs a signal handler for the SIGCHLD signal. The signal handler calls wait() system call within it. 
+	 In this senario, when the child terminated, the SIGCHLD is delivered to the parent.
+	 On receipt of SIGCHLD, the corresponding handler is activated, which in turn calls the wait() system call. 
+	 Hence, the parent collects the exit status almost immediately and the child entry in the process table is cleared. Thus no zombie is created.
+	 
+// A C program to demonstrate handling of SIGCHLD signal to prevent Zombie processes.
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/wait.h>
+#include<sys/types.h>
+ 
+void func(int signum)
+{
+    wait(NULL);
+}
+ 
+int main()
+{
+    int i;
+    int pid = fork();
+    if (pid == 0)
+        for (i=0; i<20; i++)
+            printf("I am Child\n");
+    else{
+        signal(SIGCHLD, func);
+        printf("I am Parent\n");
+        while(1);
+    }
+}
+
+Here no any [a.out] defunct i.e. no any Zombie process is created.                  
+------------------------------------------------------------
+Maximum number of Zombie process a system can handle:-
+ Zombie Process or Defunct Process are those Process which has completed their execution by exit() system call but still has an entry in Process Table.
+ It is a process in terminated state.
+
+ When child process is created in UNIX using fork() system call, then if somehow parent process were not available to reap child process 
+ from Process Table, then this situation arise. Basically, Zombie Process is neither completely dead nor completely alive 
+ but it has having some state in between.
+
+ Since, there is an entry for all the process in process table, even for Zombie Processes. It is obvious that size of process table is Finite. 
+ So, if zombie process is created in large amount, then Process Table will get filled up and program will stop without completing their task.
+
+ Here, our task is to find out Maximum Number of Zombie Process created so that Program will not stop its execution.
+// C program to find number of Zombie processes a system can handle.
+#include<stdio.h>
+#include<unistd.h>
+ 
+int main()
+{
+    int count = 0;
+    while (fork() > 0)
+    {
+        count++;
+        printf("%d\t", count);
+    }
+}
+
+In the image, we can see after 11834, increment of count get stopped. However, this is not a fixed number but it will come around it.
+Also, it will depend upon system configuration and strength.
+------------------------------------------------------------
+What is a Thread?
+  A thread is a path of execution within a process. Also, a process can contain multiple threads. 
+
+Why Multithreading?
+  Thread is also known as lightweight process. 
+  The idea is achieve parallelism by dividing a process into multiple threads. 
+  For example, in a browser, multiple tabs can be different threads. 
+  MS word uses multiple threads, one thread to format the text, other thread to process inputs etc.
+  
+Process vs Thread?
+  The typical difference is that threads within the same process run in a shared memory space, while processes run in separate memory spaces.
+  Threads are not independent of one other like processes as a result,
+  threads shares with other threads their code section, data section and OS resources like open files and signals. 
+  But, like process, a thread has its own program counter (PC), a register set, and a stack space.
+  
+Advantages of Thread over Process
+  1. Responsiveness: 
+     If the process is divided into multiple threads, if one thread completed its execution, then its output can be immediately responded.
+
+  2. Faster context switch: 
+     Context switch time between threads is less compared to process context switch. Process context switch is more overhead for CPU.
+
+  3. Effective Utilization of Multiprocessor system: 
+     If we have multiple threads in a single process, then we can schedule multiple threads on multiple processor. 
+	 This will make process execution faster.
+  
+  4. Resource sharing: 
+     Resources like code, data and file can be shared among all threads within a process.
+     Note : stack and registers can’t be shared among the threads. Each thread have its own stack and registers.
+
+  5. Communication: 
+     Communication between multiple thread is easier as thread shares common address space. 
+	 while in process we have to follow some specific communication technique for communication between two process.
+
+  6. Enhanced Throughput of the system: 
+     If process is divided into multiple threads and each thread function is considered as one job, 
+	 then the number of jobs completed per unit time is increased. Thus, increasing the throughput of the system.
+	 
+Types of Thread: There are two types of thread.
+  1. User Level Thread
+  2. Kernel Level Thread
+------------------------------------------------------------
+pipe() System call:-
+====================
+Conceptually, a pipe is a connection between two processes, such that the standard output from one process becomes the standard input 
+of the other process. In UNIX Operating System, Pipes are useful for communication between related processes(inter-process communication).
+  1. Pipe is one-way communication only i.e we can use a pipe such that One process write to the pipe, and the other process reads from the pipe. 
+     It opens a pipe, which is an area of main memory that is treated as a “virtual file”.
+  2. The pipe can be used by the creating process, as well as all its child processes, for reading and writing. 
+     One process can write to this “virtual file” or pipe and another related process can read from it.
+  3. If a process tries to read before something is written to the pipe, the process is suspended until something is written.
+  4. The pipe system call finds the first two available positions in the process’s open file table and allocates them for the 
+     read and write ends of the pipe.
+	 
+---------------------------
+write()--->--->---> p[1]  |
+------------------------  |
+                       |  |
+                       |  |
+                       |  |
+------------------------  |
+read()--<----<----- p[0]  |
+---------------------------	
+
+Syntax in C language:
+   int pipe(int fds[2]);
+Parameters :
+   fd[0] will be the fd(file descriptor) for the read end of pipe.
+   fd[1] will be the fd for the write end of pipe.
+Returns : 0 on Success. -1 on error.					  
+
+NOTE:- Pipes behave FIFO(First in First out), Pipe behave like a queue data structure. 
+       Size of read and write don’t have to match here. We can write 512 bytes at a time but we can read only 1 byte at a time in a pipe.
+	   
+// C program to illustrate pipe system call in C
+#include <stdio.h>
+#include <unistd.h>
+#define MSGSIZE 16
+char* msg1 = "hello, world #1";
+char* msg2 = "hello, world #2";
+char* msg3 = "hello, world #3";
+ 
+int main()
+{
+    char inbuf[MSGSIZE];
+    int p[2], i;
+ 
+    if (pipe(p) < 0)
+        exit(1);
+ 
+    /* continued */
+    /* write pipe */
+ 
+    write(p[1], msg1, MSGSIZE);
+    write(p[1], msg2, MSGSIZE);
+    write(p[1], msg3, MSGSIZE);
+ 
+    for (i = 0; i < 3; i++) {
+        /* read pipe */
+        read(p[0], inbuf, MSGSIZE);
+        printf("% s\n", inbuf);
+    }
+    return 0;
+}
+OUTPUT:-
+hello, world #1
+hello, world #2
+hello, world #3
+
+Parent and child sharing a pipe:-
+  When we use fork in any process, file descriptors remain open across child process and also parent process. 
+  If we call fork after creating a pipe, then the parent and child can communicate via the pipe.
+
+// C program to illustrate pipe system call in C shared by Parent and Child
+#include <stdio.h>
+#include <unistd.h>
+#define MSGSIZE 16
+char* msg1 = "hello, world #1";
+char* msg2 = "hello, world #2";
+char* msg3 = "hello, world #3";
+ 
+int main()
+{
+    char inbuf[MSGSIZE];
+    int p[2], pid, nbytes;
+ 
+    if (pipe(p) < 0)
+        exit(1);
+ 
+    /* continued */
+    if ((pid = fork()) > 0) {
+        write(p[1], msg1, MSGSIZE);
+        write(p[1], msg2, MSGSIZE);
+        write(p[1], msg3, MSGSIZE);
+ 
+        // Adding this line will not hang the program
+        // close(p[1]);
+        wait(NULL);
+    }
+ 
+    else {
+        // Adding this line will not hang the program
+        // close(p[1]);
+        while ((nbytes = read(p[0], inbuf, MSGSIZE)) > 0)
+            printf("% s\n", inbuf);
+        if (nbytes != 0)
+            exit(2);
+        printf("Finished reading\n");
+    }
+    return 0;
+}
+------------------------------------------------------------
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<string.h>
+ 
+int main()
+{
+    int fd[2];  // Used to store two ends of pipe
+    pid_t p;
+ 
+    if (pipe(fd)==-1) {
+        fprintf(stderr, "Pipe Failed" );
+        return 1;
+    }
+ 
+    p = fork();
+ 
+    if (p < 0)
+    {
+        fprintf(stderr, "fork Failed" );
+        return 1;
+    } else if (p > 0) {  // Parent process
+        char tmp_str[110];
+        close(fd[1]);  // Close writing end of pipe
+ 
+        // Read string from child, print it and close reading end.
+        read(fd[0], tmp_str, 100);
+        printf("Received from child string: %s\n", tmp_str);
+        close(fd[0]);
+    } else {  // child process
+        close(fd[0]);  // Close reading end of pipe
+        // Read a string using first pipe
+        char tmp_str[101] = "Heloo world";
+
+        // Write concatenated string and close writing end
+        write(fd[1], tmp_str, strlen(tmp_str)+1);
+        printf("Written from child into pipe: %s\n", tmp_str);
+        close(fd[1]);
+ 
+        exit(0);
+    }
+}
+OUTPUT:-
+Received from child string: Heloo world                                                                               
+Written from child into pipe: Heloo world
+------------------------------------------------------------
+C program to demonstrate fork() and pipe()
+  Write Linux C program to create two processes P1 and P2. 
+  P1 takes a string and passes it to P2. 
+  P2 concatenates the received string with another string without using string function and sends it back to P1 for printing.
+
+To create child process we use fork(). fork() returns :
+  1. <0 fail to create child (new) process
+  2. =0 for child process
+  3. >0 i.e process ID of the child process to the parent process. When >0 parent process will execute.
+
+pipe() is used for passing information from one process to another. 
+pipe() is unidirectional therefore, for two-way communication between processes, two pipes can be set up, one for each direction.
+Example: 
+ int fd[2];
+ pipe(fd);
+ fd[0]; //-> for using read end
+ fd[1]; //-> for using write end
+ 
+Inside Parent Process : 
+  We firstly close the reading end of first pipe (fd_p[0]) then write the string though writing end of the pipe (fd_p[1]). 
+  Now parent will wait until child process is finished through wait(NULL) call. 
+  After the child process, parent will close the writing end of second pipe(fd_c[1]) and read the string through reading end of pipe (fd_c[0]).
+  
+Inside Child Process : 
+  Child reads the first string sent by parent process by closing the writing end of pipe (fd_p[1]) and then read from pipe(fd_p[0]) 
+  after reading concatenate both string and close both read (fd_p[0], fd_c[0])
+  and then passes the string to parent process via fd_c[1] pipe and close fd_c[1] and will exit.
+
+// C program to demonstrate use of fork() and pipe()
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<string.h>
+#include<sys/wait.h>
+ 
+int main()
+{
+    // We use two pipes, First pipe to send input string from parent
+    // Second pipe to send concatenated string from child
+ 
+    int fd_p[2];  // Used to store two ends of first pipe
+    int fd_c[2];  // Used to store two ends of second pipe
+ 
+    char fixed_str[] = " World";
+    char input_str[100];
+    pid_t p;
+ 
+    if (pipe(fd_p)==-1) {
+        fprintf(stderr, "Pipe Failed" );
+        return 1;
+    }
+    if (pipe(fd_c)==-1) {
+        fprintf(stderr, "Pipe Failed" );
+        return 1;
+    }
+ 
+    printf("Enter string: ");
+    scanf("%s", input_str);
+    p = fork();
+ 
+    if (p < 0)
+    {
+        fprintf(stderr, "fork Failed" );
+        return 1;
+    } else if (p > 0) {  // Parent process
+        char concat_str[100];
+        close(fd_p[0]);  // Close reading end of first pipe
+ 
+        // Write input string and close writing end of first pipe.
+        write(fd_p[1], input_str, strlen(input_str)+1);
+        close(fd_p[1]);
+ 
+        wait(NULL);  // Wait for child to send a string
+ 
+        close(fd_c[1]); // Close writing end of second pipe
+ 
+        // Read string from child, print it and close reading end.
+        read(fd_c[0], concat_str, 100);
+        printf("Concatenated string %s\n", concat_str);
+        close(fd_c[0]);
+    } else {  // child process
+        close(fd_p[1]);  // Close writing end of first pipe
+        // Read a string using first pipe
+        char concat_str[100];
+        read(fd_p[0], concat_str, 100);
+        // Concatenate a fixed string with it
+        int k = strlen(concat_str);
+        int i;
+        for (i=0; i<strlen(fixed_str); i++)
+            concat_str[k++] = fixed_str[i];
+        concat_str[k] = '\0';   // string ends with '\0'
+ 
+        // Close both reading ends
+        close(fd_p[0]);
+        close(fd_c[0]);
+ 
+        // Write concatenated string and close writing end
+        write(fd_c[1], concat_str, strlen(concat_str)+1);
+        close(fd_c[1]);
+ 
+        exit(0);
+    }
+}
+OUTPUT:-
+Enter string: Hello                                                                                                   
+Concatenated string Hello World 
+----------------------------------------------------------
+1. A regular pipe can only connect two related processes. It is created by a process and will vanish when the last process closes it.
+2. A named pipe, also called a FIFO for its behavior, can be used to connect two unrelated processes and exists independently of the processes; 
+   meaning it can exist even if no one is using it. A FIFO is created using the mkfifo() library function.
+   
+NOTE:- Probably processes which are related via one or more parent/child relations (e.g. includes siblings). 
+       The common ancestor would have created the two ends of the pipe. Unrelated processes lack that common ancestor. 
+
+// writer.c	   
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+int main()
+{
+    int fd;
+    char * myfifo = "/tmp/myfifo";
+
+    /* create the FIFO (named pipe) */
+    mkfifo(myfifo, 0666);
+
+    /* write "Hi" to the FIFO */
+    fd = open(myfifo, O_WRONLY);
+    write(fd, "Hi", sizeof("Hi"));
+    close(fd);
+
+    /* remove the FIFO */
+    unlink(myfifo);
+
+    return 0;
+}
+
+// reader.c
+#include <fcntl.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#define MAX_BUF 1024
+
+int main()
+{
+    int fd;
+    char * myfifo = "/tmp/myfifo";
+    char buf[MAX_BUF];
+
+    /* open, read, and display the message from the FIFO */
+    fd = open(myfifo, O_RDONLY);
+    read(fd, buf, MAX_BUF);
+    printf("Received: %s\n", buf);
+    close(fd);
+
+    return 0;
+}
+-----------------------------------
+IPC using Message Queues:
+  1. A message queue is a linked list of messages stored within the kernel and identified by a message queue identifier. 
+  2. A new queue is created or an existing queue opened by msgget().
+  3. New messages are added to the end of a queue by msgsnd(). 
+  4. Every message has a positive long integer type field, a non-negative length, and the actual data bytes (corresponding to the length), 
+     all of which are specified to msgsnd() when the message is added to a queue. 
+  5. Messages are fetched from a queue by msgrcv(). 
+  6. We don’t have to fetch the messages in a first-in, first-out order. Instead, we can fetch messages based on their type field.
+  7. All processes can exchange information through access to a common system message queue. 
+  8. The sending process places a message (via some (OS) message-passing module) onto a queue which can be read by another process. 
+  9. Each message is given an identification or type so that processes can select the appropriate message. 
+  10. Process must share a common key in order to gain access to the queue in the first place.
+  
+System calls used for message queues:
+  ftok(): is use to generate a unique key.
+
+  msgget(): either returns the message queue identifier for a newly created message 
+            queue or returns the identifiers for a queue which exists with the same key value.
+
+  msgsnd(): Data is placed on to a message queue by calling msgsnd().
+
+  msgrcv(): messages are retrieved from a queue.
+
+  msgctl(): It performs various operations on a queue. Generally it is use to destroy message queue.
+  
+// C Program for Message Queue (Writer Process)
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+ 
+// structure for message queue
+struct mesg_buffer {
+    long mesg_type;
+    char mesg_text[100];
+} message;
+ 
+int main()
+{
+    key_t key;
+    int msgid;
+ 
+    // ftok to generate unique key
+    key = ftok("progfile", 65);
+ 
+    // msgget creates a message queue and returns identifier
+    msgid = msgget(key, 0666 | IPC_CREAT);
+    message.mesg_type = 1;
+ 
+    printf("Write Data : ");
+    gets(message.mesg_text);
+ 
+    // msgsnd to send message
+    msgsnd(msgid, &message, sizeof(message), 0);
+ 
+    // display the message
+    printf("Data send is : %s \n", message.mesg_text);
+ 
+    return 0;
+}
+
+// C Program for Message Queue (Reader Process)
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+ 
+// structure for message queue
+struct mesg_buffer {
+    long mesg_type;
+    char mesg_text[100];
+} message;
+ 
+int main()
+{
+    key_t key;
+    int msgid;
+ 
+    // ftok to generate unique key
+    key = ftok("progfile", 65);
+ 
+    // msgget creates a message queue and returns identifier
+    msgid = msgget(key, 0666 | IPC_CREAT);
+ 
+    // msgrcv to receive message
+    msgrcv(msgid, &message, sizeof(message), 1, 0);
+ 
+    // display the message
+    printf("Data Received is : %s \n", message.mesg_text);
+ 
+    // to destroy the message queue
+    msgctl(msgid, IPC_RMID, NULL);
+ 
+    return 0;
+}
+--------------------------------------------
+What is the problem in this Message Queu Example:
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/ipc.h>
+#include<sys/msg.h>
+#include<sys/wait.h>
+#include<string.h>
+#include<sys/types.h>
+
+struct msgbuff{
+    int type;
+    char msg[100];
+};
+
+int main()
+{
+    key_t key;
+    int msg_id;
+    
+    int pid = fork();
+    if(pid > 0){
+      int status;
+      pid = wait(&status);
+      key = ftok("helloworld", 65);
+      msg_id = msgget(key, 0666|IPC_CREAT);
+      struct msgbuff ms;
+      msgrcv(msg_id, &ms, sizeof(ms), 1, 0);
+      printf("\nmsg rcvd : %s", ms.msg);
+    }else {
+      key = ftok("helloworld", 65);
+      msg_id = msgget(key, 0666|IPC_CREAT);
+	  struct msgbuff message;
+      message.type =1;
+      strcpy(message.msg, "hiiiiiiii");
+      msgsnd(msg_id, &message, sizeof(message), 0);    
+      printf("\nmsg send : %s", message.msg);
+      exit(0);
+    }
+}
+
+OR, THIS
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/ipc.h>
+#include<sys/msg.h>
+#include<sys/wait.h>
+#include<string.h>
+#include<sys/types.h>
+
+struct msgbuff{
+    int type;
+    char msg[100];
+};
+
+int main()
+{
+    int pid = fork();
+    if(pid > 0){
+      key_t key;
+      int msg_id;
+      key = ftok("helloworld", 65);
+      wait(NULL);
+      msg_id = msgget(key, 0666|IPC_CREAT);
+      struct msgbuff ms;
+      msgrcv(msg_id, &ms, sizeof(ms), 1, 0);
+      printf("\nmsg rcvd : %s", ms.msg);
+    }else {
+      key_t key;
+      int msg_id;
+      key = ftok("helloworld", 65);
+      msg_id = msgget(key, 0666|IPC_CREAT);
+	  struct msgbuff message;
+      message.type =1;
+      strcpy(message.msg, "hiiiiiiii");
+      msgsnd(msg_id, &message, sizeof(message), 0);    
+      printf("\nmsg send : %s", message.msg);
+      //exit(0);
+    }
+}
+------------------------------------------------
+This function returns a pointer to the first token found in the string. A null pointer is returned if there are no tokens left to retrieve.
+#include <string.h>
+#include <stdio.h>
+
+int main () {
+   char str[80] = "This is - www.tutorialspoint.com - website";
+   const char s[2] = "-";
+   char *token;
+   
+   /* get the first token */
+   token = strtok(str, s);
+   
+   /* walk through other tokens */
+   while( token != NULL ) {
+      printf( " %s\n", token );
+    
+      token = strtok(NULL, s);
+   }
+   
+   return(0);
+}
+--------------------------------------------
+IPC through shared memory:-
+ 1. Inter Process Communication through shared memory is a concept where two or more process can access the common memory. 
+    And communication is done via this shared memory where changes made by one process can be viewed by anther process.
+
+The problem with pipes, fifo and message queue – is that for two process to exchange information. The information has to go through the kernel.
+
+  A. Server reads from the input file.
+  B. The server writes this data in a message using either a pipe, fifo or message queue.
+  C. The client reads the data from the IPC channel,again requiring the data to be copied from kernel’s IPC buffer to the client’s buffer.
+  D. Finally the data is copied from the client’s buffer.
+
+A total of four copies of data are required (2 read and 2 write). 
+So, shared memory provides a way by letting two or more processes share a memory segment. 
+With Shared Memory the data is only copied twice – from input file into shared memory and from shared memory to the output file.
+
+  ftok(): is use to generate a unique key.
+  shmget(): int shmget(key_t,size_tsize,intshmflg); upon successful completion, shmget() returns an identifier for the shared memory segment.
+  shmat(): Before you can use a shared memory segment, you have to attach yourself to it using shmat(). shmid is shared memory id.
+             void *shmat(int shmid ,void *shmaddr ,int shmflg);
+           shmaddr specifies specific address to use but we should set it to zero and OS will automatically choose the address.
+
+  shmdt(): When you’re done with the shared memory segment, your program should detach itself from it using shmdt(). int shmdt(void *shmaddr);
+  shmctl(): when you detach from shared memory,it is not destroyed. So, to destroy shmctl() is used. shmctl(int shmid,IPC_RMID,NULL);
+  
+// SHARED MEMORY FOR WRITER PROCESS
+#include <iostream>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+using namespace std;
+ 
+int main()
+{
+    // ftok to generate unique key
+    key_t key = ftok("shmfile",65);
+ 
+    // shmget returns an identifier in shmid
+    int shmid = shmget(key,1024,0666|IPC_CREAT);
+ 
+    // shmat to attach to shared memory
+    char *str = (char*) shmat(shmid,(void*)0,0);
+ 
+    cout<<"Write Data : ";
+    gets(str);
+ 
+    printf("Data written in memory: %s\n",str);
+     
+    //detach from shared memory 
+    shmdt(str);
+ 
+    return 0;
+}
+
+// SHARED MEMORY FOR READER PROCESS
+#include <iostream>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+using namespace std;
+ 
+int main()
+{
+    // ftok to generate unique key
+    key_t key = ftok("shmfile",65);
+ 
+    // shmget returns an identifier in shmid
+    int shmid = shmget(key,1024,0666|IPC_CREAT);
+ 
+    // shmat to attach to shared memory
+    char *str = (char*) shmat(shmid,(void*)0,0);
+ 
+    printf("Data read from memory: %s\n",str);
+     
+    //detach from shared memory 
+    shmdt(str);
+   
+    // destroy the shared memory
+    shmctl(shmid,IPC_RMID,NULL);
+    
+    return 0;
+}
+--------------------------------------------------

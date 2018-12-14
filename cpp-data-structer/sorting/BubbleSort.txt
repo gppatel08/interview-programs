@@ -1,0 +1,131 @@
+/*
+Bubble Sort:-
+-------------
+Bubble Sort is the simplest sorting algorithm that works by repeatedly swapping the adjacent elements if they are in wrong order.
+Due to its simplicity, bubble sort is often used to introduce the concept of a sorting algorithm.
+
+Example:
+First Pass:
+( 5 1 4 2 8 ) –> ( 1 5 4 2 8 ), Here, algorithm compares the first two elements, and swaps since 5 > 1.
+( 1 5 4 2 8 ) –>  ( 1 4 5 2 8 ), Swap since 5 > 4
+( 1 4 5 2 8 ) –>  ( 1 4 2 5 8 ), Swap since 5 > 2
+( 1 4 2 5 8 ) –> ( 1 4 2 5 8 ), Now, since these elements are already in order (8 > 5), algorithm does not swap them.
+
+Second Pass:
+( 1 4 2 5 8 ) –> ( 1 4 2 5 8 )
+( 1 4 2 5 8 ) –> ( 1 2 4 5 8 ), Swap since 4 > 2
+( 1 2 4 5 8 ) –> ( 1 2 4 5 8 )
+( 1 2 4 5 8 ) –>  ( 1 2 4 5 8 )
+
+NOTE:- Now, the array is already sorted, but our algorithm does not know if it is completed. 
+       The algorithm needs one whole pass without any swap to know it is sorted.
+	   
+Third Pass:
+( 1 2 4 5 8 ) –> ( 1 2 4 5 8 )
+( 1 2 4 5 8 ) –> ( 1 2 4 5 8 )
+( 1 2 4 5 8 ) –> ( 1 2 4 5 8 )
+( 1 2 4 5 8 ) –> ( 1 2 4 5 8 )
+
+*/
+
+#include<stdio.h>
+void swap(int *x, int *y){
+    int tmp = *x;
+    *x = *y;
+    *y = tmp;
+}
+
+void BubbleSort(int arr[], int size){
+    for(int i = 0; i < size - 1; i++){
+        for( int j = 0; j < size - i - 1; j++){
+            if(arr[j] > arr[j+1])
+                swap(&arr[j], &arr[j+1]);
+        }
+    }
+}
+/* 
+Optimized Implementation:-
+The above function always runs O(n^2) time even if the array is sorted. 
+It can be optimized by stopping the algorithm if inner loop didn’t cause any swap.
+*/
+void BubbleSortOptimized(int arr[], int size){
+    for(int i = 0; i < size - 1; i++){
+	    bool swapped = false;
+        for( int j = 0; j < size - i - 1; j++){
+            if(arr[j] > arr[j+1]) {
+                swap(&arr[j], &arr[j+1]);
+				swapped = true;
+			}
+        }
+		/* if no two elements were swapped by inner loop, then break */
+        if (swapped == false)
+            break;
+    }
+}
+
+/*
+Recursive Bubble Sort has no performance/implementation advantages, but can be a good question to check one’s understanding of Bubble Sort and 
+recursion.If we take a closer look at Bubble Sort algorithm, we can notice that in first pass, we move largest element to end (Assuming sorting in 
+increasing order). In second pass, we move second largest element to second last position and so on.
+
+Recursion Idea:-
+1. Base Case: If array size is 1, return.
+2. Do One Pass of normal Bubble Sort. This pass fixes last element of current subarray.
+3. Recur for all elements except last of current subarray.
+*/
+
+/*A function to implement bubble sort recursively */
+void bubbleSortRecursive(int arr[], int size)
+{
+    // Base case
+    if (size == 1)
+        return;
+ 
+    /* One pass of bubble sort. After this pass, the largest element is moved (or bubbled) to end.*/
+    for (int i=0; i<size-1; i++)
+        if (arr[i] > arr[i+1])
+            swap(&arr[i], &arr[i+1]);
+ 
+    /* Largest element is fixed, recur for remaining array */
+    bubbleSortRecursive(arr, size-1);
+}
+
+
+void display(int arr[], int size){
+    for(int i = 0; i <size; i++){
+        printf("%d ", arr[i]);      
+    }
+    printf("\n");
+}
+
+int main()
+{
+    int arr1[] = {10, 80, 30, 90, 40, 50, 70};
+    int size1 = sizeof(arr1) / sizeof(arr1[0]);
+    BubbleSort(arr1, size1);
+    display(arr1, size1);
+	
+	int arr[] = {10, 80, 30, 90, 40, 50, 70};
+    int size = sizeof(arr) / sizeof(arr[0]);
+	BubbleSortOptimized(arr, size);
+	display(arr, size);
+	
+	int arr2[] = {10, 80, 30, 90, 40, 50, 70};
+    int size2 = sizeof(arr2) / sizeof(arr2[0]);
+	bubbleSortRecursive(arr2, size2);
+	display(arr2, size2);
+
+    return 0;
+}
+
+/*
+Worst and Average Case Time Complexity: O(n*n) --> Worst case occurs when array is reverse sorted.
+
+Best Case Time Complexity: O(n) --> Best case occurs when array is already sorted.
+
+Auxiliary Space: O(1)
+
+Boundary Cases: Bubble sort takes minimum time (Order of n) --> when elements are already sorted.
+
+Sorting In Place: Yes
+*/

@@ -1,0 +1,400 @@
+#include <iostream>
+using namespace std;
+class Person
+{
+    int age;
+    char* pName;
+    public:
+        Person(): pName(0),age(0) { cout << "Default Constuctor " << endl;  }
+        Person(char* pName, int age): pName(pName), age(age) { cout << "Parameterized Constuctor " << endl; }
+        ~Person() { cout << "Destructor Called " << endl; }
+
+        void Display() {
+            cout << "Name = " << pName << " Age = " << age << endl;
+        }
+        void Shout() {
+            cout << "Ooooooooooooooooo" << endl;
+        } 
+};
+
+/* Now we can use our smart pointer class for any type of pointer. So is our smart pointer really smart? */
+template <typename T> 
+class SP {
+    private:
+        T*    pData; // Generic pointer to be stored
+    public:
+        SP(T* pValue) : pData(pValue) { }
+        ~SP() { delete pData; }
+        T& operator* () { return *pData; }
+        T* operator-> () { return pData; }
+};
+
+int main() {
+    /*Person* pPerson  = new Person("Scott", 25);
+    pPerson->Display();
+    delete pPerson;*/
+    
+    SP<Person> sp(new Person("Scott", 25));
+    sp->Display();
+	// Dont need to delete Person pointer.
+}
+OUTPUT:-
+Parameterized Constuctor                                                                                                      
+Name = Scott Age = 25                                                                                                         
+Destructor Called
+-----------------------------------------------------
+#include <iostream>
+using namespace std;
+class Person
+{
+    int age;
+    char* pName;
+    public:
+        Person(): pName(0),age(0) { cout << "Default Constuctor " << endl;  }
+        Person(char* pName, int age): pName(pName), age(age) { cout << "Parameterized Constuctor " << endl; }
+        ~Person() { cout << "Destructor Called " << endl; }
+
+        void Display() {
+            cout << "Name = " << pName << " Age = " << age << endl;
+        }
+        void Shout() {
+            cout << "Ooooooooooooooooo" << endl;
+        } 
+};
+
+template <typename T> 
+class SP {
+    private:
+        T*    pData; // Generic pointer to be stored
+    public:
+        SP(T* pValue) : pData(pValue) { }
+        ~SP() { delete pData; }
+        T& operator* () { return *pData; }
+        T* operator-> () { return pData; }
+};
+
+int main() {
+    /*Person* pPerson  = new Person("Scott", 25);
+    pPerson->Display();
+    delete pPerson;*/
+    
+    /* Now when q goes out of scope, the destructor of q will be called which deletes the Person class pointer. 
+      Now we cannot call p->Display(); since p will be left with a dangling pointer and this call will fail. 
+      (Note that this problem would have existed even if we were using normal pointers instead of smart pointers.) 
+      We should not delete the Person class pointer unless no body is using it. How do we do that? 
+      Implementing a reference counting mechanism in our smart pointer class will solve this problem.*/
+    SP<Person> p(new Person("Scott", 25));
+    {
+        SP<Person> q = p;
+        q->Display();
+        // Destructor of q will be called here.
+    }
+    p->Display();
+}
+OUTPUT:-
+Parameterized Constuctor                                                                                                        
+Name = Scott Age = 25                                                                                                           
+Destructor Called                                                                                                               
+Name = Scott Age = 0                                                                                                            
+Destructor Called                                                                                                               
+*** Error in `/home/a.out': double free or corruption (fasttop): 0x0000000000fe9c20 ***                                         
+Aborted (core dumped)
+--------------------------------------
+/* Reference counting
+What we are going to do is we will have a reference counting class RC. 
+This class will maintain an integer value which represents the reference count. 
+We will have methods to increment and decrement the reference count.
+
+Now that we have a reference counting class, we will introduce this to our smart pointer class. 
+We will maintain a pointer to class RC in our SP class and this pointer will be shared for all instances of the smart pointer which refers to the same pointer. 
+For this to happen, we need to have an assignment operator and copy constructor in our SP class.*/
+
+#include <iostream>
+using namespace std;
+class Person
+{
+    int age;
+    char* pName;
+    public:
+        Person(): pName(0),age(0) { cout << "Default Constuctor " << endl;  }
+        Person(char* pName, int age): pName(pName), age(age) { cout << "Parameterized Constuctor " << endl; }
+        ~Person() { cout << "Destructor Called " << endl; }
+
+        void Display() {
+            cout << "Name = " << pName << " Age = " << age << endl;
+        }
+        void Shout() {
+            cout << "Ooooooooooooooooo" << endl;
+        } 
+};
+
+class RC {
+    private:
+        int count; // Reference count
+    public:
+        void AddRef() {
+            // Increment the reference count
+            count++;
+        }
+        int Release() {
+            // Decrement the reference count and
+            // return the reference count.
+            return --count;
+        }
+};
+
+template <typename T> 
+class SP {
+    private:
+        T*    pData; // Generic pointer to be stored
+        RC* reference; // Reference count
+    public:
+        SP() : pData(0), reference(0) { 
+            // Create a new reference 
+            reference = new RC();
+            // Increment the reference count
+            reference->AddRef();
+        }
+        
+        SP(T* pValue) : pData(pValue), reference(0) { 
+            // Create a new reference 
+            reference = new RC();
+            // Increment the reference count
+            reference->AddRef();
+        }
+        SP(const SP<T>& sp) : pData(sp.pData), reference(sp.reference) {
+            // Copy constructor, Copy the data and reference pointer, and increment the reference count
+            reference->AddRef();
+        }
+    
+        ~SP() { 
+            // Destructor, Decrement the reference count, if reference become zero delete the data
+            if(reference->Release() == 0) {
+                delete pData;
+                delete reference;
+            }
+        }
+        
+        SP<T>& operator = (const SP<T>& sp)
+        {
+            // Assignment operator
+            if (this != &sp) { // Avoid self assignment
+                // Decrement the old reference count, if reference become zero delete the old data
+                if(reference->Release() == 0) {
+                    cout << "Assignment Destructor for old data " << endl;
+                    delete pData;
+                    delete reference;
+                }
+                // Copy the data and reference pointer, and increment the reference count
+                pData = sp.pData;
+                reference = sp.reference;
+                reference->AddRef();
+            }
+            return *this;
+        }
+    
+        T& operator* () { return *pData; }
+        T* operator-> () { return pData; }
+};
+
+int main() {
+    /*Person* pPerson  = new Person("Scott", 25);
+    pPerson->Display();
+    delete pPerson;*/
+    
+    /* Now when q goes out of scope, the destructor of q will be called which deletes the Person class pointer. 
+      Now we cannot call p->Display(); since p will be left with a dangling pointer and this call will fail. 
+      (Note that this problem would have existed even if we were using normal pointers instead of smart pointers.) 
+      We should not delete the Person class pointer unless no body is using it. How do we do that? 
+      Implementing a reference counting mechanism in our smart pointer class will solve this problem.*/
+    SP<Person> p(new Person("Scott", 25));
+    p->Display();
+    {
+        SP<Person> q = p;
+        q->Display();
+        // Destructor of q will be called here.
+        
+        SP<Person> r;
+        r = p;
+        r->Display();
+        // Destructor of r will be called here.
+    }
+    p->Display();
+    // Destructor of p will be called here and person pointer will be deleted
+}
+OUTPUT:-
+Parameterized Constuctor                                                                                                        
+Name = Scott Age = 25                                                                                                           
+Name = Scott Age = 25                                                                                                           
+Assignment Destructor for old data                                                                                              
+Name = Scott Age = 25                                                                                                           
+Name = Scott Age = 25                                                                                                           
+Destructor Called
+
+/*
+NOTE:-
+When we create a smart pointer p of type Person, the constructor of SP will be called, the data will be stored, and a new RC pointer will be created. 
+The AddRef method of RC is called to increment the reference count to 1. Now SP<person> q = p; will create a new smart pointer q using the copy constructor. 
+Here the data will be copied and the reference will again be incremented to 2. Now r = p; will call the assignment operator to assign the value of p to q. 
+Here also we copy the data and increment the reference count, thus making the count 3. 
+When r and q go out of scope, the destructors of the respective objects will be called. Here the reference count will be decremented, 
+but data will not be deleted unless the reference count becomes zero. This happens only when the destructor of p is called. 
+Hence our data will be deleted only when no body is referring to it.
+
+Applications:-
+Memory leaks: Using smart pointers reduces the work of managing pointers for memory leaks. 
+Now you could create a pointer and forget about deleting it, the smart pointer will do that for you. 
+This is the simplest garbage collector we could think of.
+
+Exceptions: Smart pointers are very useful where exceptions are used. For example, look at the following code:
+void MakeNoise()
+{
+    Person* p = new Person("Scott", 25);
+    p->Shout();
+    delete p;
+}
+We are using a normal pointer here and deleting it after using, so every thing looks okay here. 
+But what if our Shout function throws some exception? delete p; will never be called. So we have a memory leak. Let us handle that.
+void MakeNoise()
+{
+    Person* p = new Person("Scott", 25);
+    try
+    {
+        p->Shout();
+    }
+    catch(...)
+    {
+        delete p;
+        throw;
+    }
+    delete p;
+}
+
+Don't you think this is an overhead of catching an exception and re-throwing it? This code becomes cumbersome if you have many pointers created. 
+How will a smart pointer help here? Let's have a look at the same code if a smart pointer is used.
+
+void MakeNoise()
+{
+    SP<Person> p(new Person("Scott", 25));
+    p->Shout();
+}
+
+We are making use of a smart pointer here; yes, we don’t need to catch the exception here. 
+If the Shout method throws an exception, stack unwinding will happen for the function and during this, the destructor of all local objects will be called, 
+hence the destructor of p will be called which will release the memory, hence we are safe. So this makes it very useful to use smart pointers here.
+
+Conclusion:-
+Smart pointers are useful for writing safe and efficient code in C++. Make use of smart pointers and take the advantage of garbage collection. 
+Take a look at Scott Meyers' auto_ptr implementation in STL
+*/
+------------------------------------------------------------------
+#include <iostream>
+using namespace std;
+class Person
+{
+    int age;
+    char* pName;
+    public:
+        Person(): pName(0),age(0) { cout << "Person Default Constuctor " << endl;  }
+        Person(char* pName, int age): pName(pName), age(age) { cout << "Person Parameterized Constuctor " << endl; }
+        ~Person() { cout << "Person Destructor Called " << endl; }
+
+        void Display() {
+            cout << "Person Name = " << pName << " Age = " << age << endl;
+        }
+        void Shout() {
+            cout << "Person Ooooooooooooooooo" << endl;
+        } 
+};
+
+class RC {
+    private:
+        int count; // Reference count
+    public:
+        void AddRef() {
+            // Increment the reference count
+            count++;
+        }
+        int Release() {
+            // Decrement the reference count and
+            // return the reference count.
+            return --count;
+        }
+};
+
+template <typename T> 
+class SP {
+    private:
+        T*    pData; // Generic pointer to be stored
+        RC* reference; // Reference count
+    public:
+        SP() : pData(0), reference(0) { 
+            cout << "SP Default Constuctor " << endl;
+            // Create a new reference 
+            reference = new RC();
+            // Increment the reference count
+            reference->AddRef();
+        }
+        
+        SP(T* pValue) : pData(pValue), reference(0) { 
+            cout << "SP Parameterized Constuctor " << endl;
+            // Create a new reference 
+            reference = new RC();
+            // Increment the reference count
+            reference->AddRef();
+        }
+        SP(const SP<T>& sp) : pData(sp.pData), reference(sp.reference) {
+            cout << "SP Copy Constuctor " << endl;
+            // Copy constructor, Copy the data and reference pointer, and increment the reference count
+            reference->AddRef();
+        }
+    
+        ~SP() { 
+            cout << "SP Destuctor " << endl;
+            // Destructor, Decrement the reference count, if reference become zero delete the data
+            if(reference->Release() == 0) {
+                delete pData;
+                delete reference;
+            }
+        }
+        
+        SP<T>& operator = (const SP<T>& sp)
+        {
+            cout << "SP Assignment " << endl;
+            // Assignment operator
+            if (this != &sp) { // Avoid self assignment
+                // Decrement the old reference count, if reference become zero delete the old data
+                if(reference->Release() == 0 && pData) {
+                    cout << "Assignment Destructor for old data " << endl;
+                    delete pData;
+                    delete reference;
+                }
+                // Copy the data and reference pointer, and increment the reference count
+                pData = sp.pData;
+                reference = sp.reference;
+                reference->AddRef();
+            }
+            return *this;
+        }
+    
+        T& operator* () { return *pData; }
+        T* operator-> () { return pData; }
+};
+
+int main() {
+    SP<Person> p;
+    cout << "==========================" << endl;
+    SP<Person> q(new Person("Scott", 25));
+    q = p;
+    // Destructor of q will be called here.
+}
+OUTPUT:-
+SP Default Constuctor                                                                                                           
+==========================                                                                                                      
+Person Parameterized Constuctor                                                                                                 
+SP Parameterized Constuctor                                                                                                     
+SP Assignment                                                                                                                   
+Assignment Destructor for old data                                                                                              
+Person Destructor Called                                                                                                        
+SP Destuctor                                                                                                                    
+SP Destuctor

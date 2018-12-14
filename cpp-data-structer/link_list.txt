@@ -1,0 +1,510 @@
+Linked List:-
+--------------
+1. Like arrays, Linked List is a linear data structure. 
+2. Unlike arrays, linked list elements are not stored at contiguous location; the elements are linked using pointers.
+
+Head
+ --------    ---------    ---------   ----------
+| A |   |--->| B |   |--->| C |   |--->| D |   |---> NULL
+ --------    ---------    ---------   ----------
+ Data Next
+ 
+Why Linked List?
+Arrays can be used to store linear data of similar types, but arrays have following limitations.
+1) The size of the arrays is fixed: So we must know the upper limit on the number of elements in advance. 
+   Also, generally, the allocated memory is equal to the upper limit irrespective of the usage.
+2) Inserting a new element in an array of elements is expensive, because room has to be created for the new elements 
+   and to create room existing elements have to shifted.
+
+For example, in a system if we maintain a sorted list of IDs in an array id[].
+    id[] = [1000, 1010, 1050, 2000, 2040].And if we want to insert a new ID 1005, then to maintain the sorted order, we have to move all the elements after 1000 (excluding 1000).
+
+Deletion is also expensive with arrays until unless some special techniques are used. 
+For example, to delete 1010 in id[], everything after 1010 has to be moved.
+
+Advantages over arrays:-
+ 1) Dynamic size
+ 2) Ease of insertion/deletion
+
+Drawbacks:-
+ 1) Random access is not allowed. We have to access elements sequentially starting from the first node. 
+    So we cannot do binary search with linked lists.
+ 2) Extra memory space for a pointer is required with each element of the list.
+ 3) Not cache friendly. Since array elements are contiguous locations, there is locality of reference which is not there in case of linked lists.
+ 
+Representation:-
+A linked list is represented by a pointer to the first node of the linked list. 
+The first node is called head. If the linked list is empty, then value of head is NULL.
+Each node in a list consists of at least two parts:
+ 1) data
+ 2) Pointer (Or Reference) to the next node
+ 
+A node can be added in three ways
+ 1) At the front of the linked list
+ 2) After a given node.
+ 3) At the end of the linked list.
+
+Add a node at the front: (A 4 steps process)-
+-----------------------------------------------
+The new node is always added before the head of the given Linked List. And newly added node becomes the new head of the Linked List. 
+The push() must receive a pointer to the head pointer, because push must change the head pointer to point to the new node
+
+Add a node after a given node: (5 steps process)-
+--------------------------------------------------
+We are given pointer to a node, and the new node is inserted after the given node.
+
+Add a node at the end: (6 steps process)-
+-----------------------------------------
+The new node is always added after the last node of the given Linked List. 
+Since a Linked List is typically represented by the head of it, we have to traverse the list till end and 
+then change the next of last node to new node.
+
+*/
+
+// A simple C program for traversal of a linked list
+#include<stdio.h>
+#include<stdlib.h>
+ 
+struct Node 
+{
+  int data;
+  struct Node *next;
+};
+ 
+// This function prints contents of linked list starting from the given node
+void printList(struct Node *n)
+{
+  while (n != NULL)
+  {
+     printf(" %d ", n->data);
+     n = n->next;
+  }
+}
+
+/* Given a reference (pointer to pointer) to the head of a list and an int,  inserts a new node on the front of the list. 
+   Time complexity of push() is O(1) as it does constant amount of work */
+void insertNodeAtBegin(struct Node** head_ref, int new_data)
+{
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));  /* 1. allocate node */
+    new_node->data  = new_data;  /* 2. put in the data  */
+    new_node->next = (*head_ref); /* 3. Make next of new node as head */
+    (*head_ref)    = new_node; /* 4. move the head to point to the new node */
+}
+
+/* Given a node prev_node, insert a new node after the given prev_node 
+   Time complexity of insertAfter() is O(1) as it does constant amount of work. */
+void insertNodeAfter(struct Node* prev_node, int new_data)
+{
+    /*1. check if the given prev_node is NULL */
+    if (prev_node == NULL) 
+    { 
+       printf("the given previous node cannot be NULL");       
+       return;  
+    }  
+
+    struct Node* new_node =(struct Node*) malloc(sizeof(struct Node));   /* 2. allocate new node */
+    new_node->data  = new_data;  /* 3. put in the data  */
+    new_node->next = prev_node->next;   /* 4. Make next of new node as next of prev_node */
+    prev_node->next = new_node;  /* 5. move the next of prev_node as new_node */
+}
+
+/* Given a reference (pointer to pointer) to the head of a list and an int, appends a new node at the end  
+   Time complexity of append is O(n) where n is the number of nodes in linked list. 
+   Since there is a loop from head to end, the function does O(n) work.
+   This method can also be optimized to work in O(1) by keeping an extra pointer to tail of linked list*/
+   
+void insertNodeAtEnd(struct Node** head_ref, int new_data)
+{
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    struct Node *last = *head_ref;  /* used in step 5*/
+    
+    new_node->data  = new_data;   /* 2. put in the data  */
+    new_node->next = NULL;   /* 3. This new node is going to be the last node, so make next of it as NULL*/
+ 
+    /* 4. If the Linked List is empty, then make the new node as head */
+    if (*head_ref == NULL)
+    {
+       *head_ref = new_node;
+       return;
+    }  
+      
+    /* 5. Else traverse till the last node */
+    while (last->next != NULL)
+        last = last->next;
+  
+    last->next = new_node;  /* 6. Change the next of last node */
+    return;    
+}
+
+/* Given a reference (pointer to pointer) to the head of a list and a key, deletes the first occurrence of key in linked list */
+void deleteNode(struct Node **head_ref, int key)
+{
+    // Store head node
+    struct Node* temp = *head_ref, *prev;
+ 
+    // If head node itself holds the key to be deleted
+    if (temp != NULL && temp->data == key)
+    {
+        *head_ref = temp->next;   // Changed head
+        free(temp);               // free old head
+        return;
+    }
+ 
+    // Search for the key to be deleted, keep track of the previous node as we need to change 'prev->next'
+    while (temp != NULL && temp->data != key)
+    {
+        prev = temp;
+        temp = temp->next;
+    }
+    
+    if (temp == NULL) return;   // If key was not present in linked list
+    prev->next = temp->next;   // Unlink the node from linked list
+ 
+    free(temp);  // Free memory
+}
+
+/* Driver program to test above functions*/
+int main()
+{
+  /* Start with the empty list */
+  struct Node* head = NULL;
+ 
+  // Insert 6.  So linked list becomes 6->NULL
+  insertNodeAtEnd(&head, 6);
+ 
+  // Insert 7 at the beginning. So linked list becomes 7->6->NULL
+  insertNodeAtBegin(&head, 7);
+ 
+  // Insert 1 at the beginning. So linked list becomes 1->7->6->NULL
+  insertNodeAtBegin(&head, 1);
+ 
+  // Insert 4 at the end. So linked list becomes 1->7->6->4->NULL
+  insertNodeAtEnd(&head, 4);
+ 
+  // Insert 8, after 7. So linked list becomes 1->7->8->6->4->NULL
+  insertNodeAfter(head->next, 8);
+ 
+  printf("\n Created Linked list is: ");
+  printList(head);
+  
+  deleteNode(&head, 7);
+  printList(head);
+ 
+  return 0;
+}
+
+----------------------------------------------------
+Ques:- Detect and Remove Loop in a Linked List
+
+#include<stdlib.h>
+#include <stdio.h>
+
+/* Link list node */
+struct Node
+{
+    int data;
+    struct Node* next;
+};
+
+/* Function to print linked list */
+void printList(struct Node *node)
+{
+    while (node != NULL)
+    {
+        printf("%d  ", node->data);
+        node = node->next;
+    }
+}
+ 
+struct Node *newNode(int key)
+{
+    struct Node *temp = (struct Node*)malloc(sizeof(struct Node));
+    temp->data = key;
+    temp->next = NULL;
+    return temp;
+}
+/*
+Method 1 (Check one by one) 
+ We know that Floyd’s Cycle detection algorithm terminates when fast and slow pointers meet at a common point. 
+ We also know that this common point is one of the loop nodes (15 or 4 or 10 in the above diagram). 
+ We store the address of this in a pointer variable say ptr2. 
+ Then we start from the head of the Linked List and check for nodes one by one if they are reachable from ptr2. 
+ When we find a node that is reachable, we know that this node is the starting node of the loop in Linked List and 
+ we can get pointer to the previous of this node.
+*/
+void removeLoop(struct Node *head, struct Node *loop_node)
+{
+    struct Node *ptr2 = loop_node, *ptr1 = head;
+    
+    while(1){
+      ptr2 = loop_node;
+      while(ptr2->next != loop_node && ptr2->next != ptr1)
+        ptr2 = ptr2->next;
+      
+      if(ptr2->next == ptr1)
+        break;
+      
+      ptr1 = ptr1->next;
+    }
+    ptr2->next = NULL;
+}
+
+void detectAndRemoveLoop (struct Node *head) {
+    struct Node *slow = head;
+    struct Node *fast = head;
+    
+    while(slow && fast && fast->next !=NULL){
+        slow = slow->next;
+        fast = fast->next->next;
+        if(slow == fast){
+            removeLoop(head, slow);
+            break;
+        }
+    }
+}
+
+/*
+50->20->15->4
+        |   |
+	    <---10
+		
+50->20->15->4
+|           |
+<------<---10
+*/
+
+/* Drier program to test above function*/
+int main()
+{
+    struct Node *head = newNode(50);
+    head->next = newNode(20);
+    head->next->next = newNode(15);
+    head->next->next->next = newNode(4);
+    head->next->next->next->next = newNode(10);
+ 
+    /* Create a loop for testing */
+    //head->next->next->next->next->next = head->next->next;
+    head->next->next->next->next->next = head;
+    
+    detectAndRemoveLoop(head);
+ 
+    printf("Linked List after removing loop \n");
+    printList(head);
+    return 0;
+}
+OUTPUT:-
+Linked List after removing loop                                                                                       
+50  20  15  4  10 
+
+Find Merge Point of Two Lists?
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class SinglyLinkedListNode {
+    public:
+        int data;
+        SinglyLinkedListNode *next;
+
+        SinglyLinkedListNode(int node_data) {
+            this->data = node_data;
+            this->next = nullptr;
+        }
+};
+
+class SinglyLinkedList {
+    public:
+        SinglyLinkedListNode *head;
+        SinglyLinkedListNode *tail;
+
+        SinglyLinkedList() {
+            this->head = nullptr;
+            this->tail = nullptr;
+        }
+
+        void insert_node(int node_data) {
+            SinglyLinkedListNode* node = new SinglyLinkedListNode(node_data);
+
+            if (!this->head) {
+                this->head = node;
+            } else {
+                this->tail->next = node;
+            }
+
+            this->tail = node;
+        }
+};
+
+void print_singly_linked_list(SinglyLinkedListNode* node, string sep) {
+    while (node) {
+        cout << node->data;
+        node = node->next;
+        if (node) {
+            cout << sep;
+        }
+    }
+}
+
+void free_singly_linked_list(SinglyLinkedListNode* node) {
+    while (node) {
+        SinglyLinkedListNode* temp = node;
+        node = node->next;
+
+        free(temp);
+    }
+}
+
+bool findMergeNode_method_1(SinglyLinkedListNode* headA, SinglyLinkedListNode* headB, SinglyLinkedListNode **node) {
+    SinglyLinkedListNode *tempB=headB;
+    while(headA->next!=NULL)
+    {
+       while(tempB->next!=NULL)
+       {
+           if(tempB==headA){
+               *node = tempB;
+               return true;
+           }
+           tempB=tempB->next;
+       }
+       headA=headA->next;
+       tempB=headB;
+   }
+   return false;
+}
+
+int countNode(SinglyLinkedListNode *head){
+    int count = 0;
+    while(head){
+        count++;
+        head = head->next;
+    }
+    return count;
+}
+bool findMergeNode_method_2(SinglyLinkedListNode* headA, SinglyLinkedListNode* headB, SinglyLinkedListNode **node) {
+    int lenA = countNode(headA);
+    int lenB = countNode(headB);
+    SinglyLinkedListNode *ptrA = headA;
+    SinglyLinkedListNode *ptrB = headB;
+    
+    while(lenA > lenB) {
+        ptrA = ptrA->next;
+        lenA--;
+    }
+
+    while(lenB > lenA) {
+        ptrB = ptrB->next;
+        lenB--;
+    }
+    
+    while(ptrA != NULL) {
+        if (ptrA == ptrB) {
+            *node = ptrA; //found merge point
+            return true;
+        }
+        ptrA = ptrA->next;
+        ptrB = ptrB->next;
+    }
+    return false;
+}
+
+bool findMergeNode_method_3(SinglyLinkedListNode* headA, SinglyLinkedListNode* headB, SinglyLinkedListNode **node) {
+    vector<SinglyLinkedListNode*> ptrA;
+    vector<SinglyLinkedListNode*> ptrB;
+    
+    while(headA) {
+        ptrA.push_back(headA);
+        headA = headA->next;
+    }
+
+    while(headB) {
+        ptrB.push_back(headB);
+        headB = headB->next;
+    }
+    SinglyLinkedListNode* _ptrA = ptrA.back(); 
+    SinglyLinkedListNode* _ptrB = ptrB.back();
+    ptrA.pop_back();
+    ptrB.pop_back();
+    SinglyLinkedListNode* _mNode = NULL;
+    while(_ptrA == _ptrB) {
+       _mNode = _ptrA;
+       _ptrA = ptrA.back(); 
+       _ptrB = ptrB.back();
+       ptrA.pop_back();
+       ptrB.pop_back();
+    }
+    
+    if(_mNode){
+        *node = _mNode;
+        return true;
+    }else
+        return false;
+}
+
+int main()
+{
+    int index = 3;
+    
+    // 7 === 4 -> 7 -> 8 -> 10 -> 15 -> 18 -> 20 -> NULL
+    // 5 ===           3 -> 10 -> 15 -> 18 -> 20 -> NULL
+    SinglyLinkedList* llist1 = new SinglyLinkedList();
+    int llist1_count = 7;
+    llist1->insert_node(4);
+    llist1->insert_node(7);
+    llist1->insert_node(8);
+    llist1->insert_node(10);
+    llist1->insert_node(15);
+    llist1->insert_node(18); 
+    llist1->insert_node(20);
+    cout<< endl << "list 2 : ";
+    print_singly_linked_list(llist1->head, "->");
+
+    SinglyLinkedList* llist2 = new SinglyLinkedList();
+    int llist2_count = 5;
+    llist2->insert_node(3);
+    llist2->insert_node(10);
+    llist2->insert_node(15);
+    llist2->insert_node(18);
+    llist2->insert_node(20);
+    cout<< endl << "list 2 : ";
+    
+    print_singly_linked_list(llist2->head, "->");
+
+  	SinglyLinkedListNode* ptr1 = llist1->head;
+  	SinglyLinkedListNode* ptr2 = llist2->head;
+      
+    for (int i = 0; i < llist1_count; i++) {
+        if (i < index) {
+          	ptr1 = ptr1->next;
+        }
+    }
+      
+    for (int i = 0; i < llist2_count; i++) {
+      	if (i != llist2_count-1) {
+     		ptr2 = ptr2->next;
+        }
+    }
+      
+    ptr2->next = ptr1;
+    cout << endl << "Merged Node Address -> " << ptr1 << ", Data -> " << ptr1->data;
+    SinglyLinkedListNode *n =NULL;
+    bool result = findMergeNode_method_1(llist1->head, llist2->head, &n);
+    cout << endl << "Merged Node Address -> " << n << ", Data -> " << ((n!=NULL)? n->data:0) << ", " << result;
+    bool result = findMergeNode_method_2(llist1->head, llist2->head, &n);
+    cout << endl << "Merged Node Address -> " << n << ", Data -> " << ((n!=NULL)? n->data:0) << ", " << result;
+    free_singly_linked_list(llist1->head);
+    free_singly_linked_list(llist2->head);
+    return 0;
+}
+output:-
+list 2 : 4->7->8->10->15->18->20                                                                                              
+list 2 : 3->10->15->18->20                                                                                                    
+Merged Node Address -> 0x15bdca0, Data -> 10                                                                                  
+Merged Node Address -> 0x15bdca0, Data -> 10, 1
+
+OR,
+//if not merged then
+list 2 : 4->7->8->10->15->18->20                                                                                              
+list 2 : 3->10->15->18->20                                                                                                    
+Merged Node Address -> 0x1551ca0, Data -> 10                                                                                  
+Merged Node Address -> 0, Data -> 0, 0

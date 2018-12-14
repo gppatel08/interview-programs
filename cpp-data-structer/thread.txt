@@ -1,0 +1,106 @@
+#include "stdio.h"
+#include "stdlib.h"
+#include "pthread.h"
+#define MAX_COUNT 11
+
+pthread_mutex_t mutex_var=PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond_var=PTHREAD_COND_INITIALIZER;
+
+int count = 0;
+void* printOddNumber(void *args) {
+  for(;;){
+    pthread_mutex_lock(&mutex_var);
+	if(count % 2 != 0)
+	  pthread_cond_wait(&cond_var, &mutex_var);
+	count++;
+	printf("\nprintOddNumber: %d", count);
+	pthread_cond_signal(&cond_var);
+	if(count >= MAX_COUNT){
+	  pthread_mutex_unlock(&mutex_var);
+	  return;
+	}
+	pthread_mutex_unlock(&mutex_var);
+  }
+  pthread_exit(0);
+}
+
+void* printEvenNumber(void *args) {
+  for(;;){
+    pthread_mutex_lock(&mutex_var);
+	if(count % 2 == 0)
+	  pthread_cond_wait(&cond_var, &mutex_var);
+	count++;
+	printf("\nprintEvenNumber: %d", count);
+	pthread_cond_signal(&cond_var);
+	if(count >= MAX_COUNT){
+	  pthread_mutex_unlock(&mutex_var);
+	  return;
+	}
+	pthread_mutex_unlock(&mutex_var);
+  }
+  pthread_exit(0);
+}
+
+int main(){
+  pthread_t thread_id[2];
+  pthread_create(&thread_id[0], NULL, &printOddNumber, NULL);
+  pthread_create(&thread_id[1], NULL, &printEvenNumber, NULL);
+  
+  pthread_join(thread_id[0], NULL);
+  pthread_join(thread_id[1], NULL);
+  
+  pthread_mutex_destroy(&mutex_var);
+  pthread_cond_destroy(&cond_var);
+  
+  return 0;
+}
+
+==========================================================
+#include "stdio.h"
+#include "stdlib.h"
+#include "pthread.h"
+#include "semaphore.h"
+#define MAX_COUNT 5
+
+sem_t even_lock, odd_lock;
+int count = 0;
+
+void* printEvenNumber(void *args) {
+  int i = 0;
+  while(i++ <= MAX_COUNT){
+    sem_wait(&even_lock);
+	sleep(random()%1);
+	printf("\nprintEvenNumber: %d", count);
+	count++;
+	sem_post(&odd_lock);
+  }
+  pthread_exit(0);
+}
+
+void* printOddNumber(void *args) {
+  int i = 0;
+  while(i++ <= MAX_COUNT){
+    sem_wait(&odd_lock);
+	sleep(random()%1);
+	printf("\nprintOddNumber: %d", count);
+	count++;
+	sem_post(&even_lock);
+  }
+  pthread_exit(0);
+}
+
+int main(){
+  pthread_t thread_id[2];
+  sem_init(&even_lock, 0, 1);
+  sem_init(&odd_lock, 0, 0);
+  pthread_create(&thread_id[0], NULL, &printOddNumber, NULL);
+  pthread_create(&thread_id[1], NULL, &printEvenNumber, NULL);
+  
+  pthread_join(thread_id[0], NULL);
+  pthread_join(thread_id[1], NULL);
+  
+  sem_destroy(&even_lock);
+  sem_destroy(&odd_lock);
+  
+  return 0;
+}

@@ -1,0 +1,2011 @@
+/*
+Queue(like stack) is a linear structure which follows a particular order in which the operations are performed. 
+The order is First In First Out (FIFO).  A good example of queue is any queue of consumers for a resource where the consumer 
+that came first is served first. The difference between stacks and queues is in removing. In a stack we remove the item the most recently added; 
+in a queue, we remove the item the least recently added. 
+
+Operations on Queue:
+Mainly the following four basic operations are performed on queue:
+ 1. Enqueue: Adds an item to the queue. If the queue is full, then it is said to be an Overflow condition.
+ 2. Dequeue: Removes an item from the queue. The items are popped in the same order in which they are pushed. 
+    If the queue is empty, then it is said to be an Underflow condition.
+ 3. Front: Get the front item from queue.
+ 4. Rear: Get the last item from queue.
+ 
+Applications of Queue:
+Queue is used when things don’t have to be processed immediatly, but have to be processed in First InFirst Out order like Breadth First Search.
+
+ 1. When a resource is shared among multiple consumers. Examples include CPU scheduling, Disk Scheduling.
+ 2. When data is transferred asynchronously (data not necessarily received at same rate as sent) between two processes. 
+    Examples include IO Buffers, pipes, file IO, etc.
+	
+Array implementation Of Queue:-
+  For implementing queue, we need to keep track of two indices, front and rear. We enqueue an item at the rear and dequeue an item from front. 
+  If we simply increment front and rear indices, then there may be problems, front may reach end of the array. 
+  The solution to this problem is to increase front and rear in circular manner.
+  
+Time Complexity: 
+  Time complexity of all operations like enqueue(), dequeue(), isFull(), isEmpty(), front() and rear() is O(1). 
+  There is no loop in any of the operations.
+*/
+
+/* 1. C program for array implementation of queue */
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+ 
+// A structure to represent a queue
+struct Queue
+{
+    int front, rear, size;
+    unsigned capacity;
+    int* array;
+};
+
+// function to create a queue of given capacity. It initializes size of queue as 0
+struct Queue* createQueue(unsigned capacity)
+{
+    struct Queue* queue = (struct Queue*) malloc(sizeof(struct Queue));
+    queue->capacity = capacity;
+    queue->front = queue->size = 0; 
+    queue->rear = capacity - 1;  // This is important, see the enqueue
+    queue->array = (int*) malloc(queue->capacity * sizeof(int));
+    return queue;
+}
+
+// Queue is full when size becomes equal to the capacity 
+int isFull(struct Queue* queue) {  
+    return (queue->size == queue->capacity);  
+}
+ 
+// Queue is empty when size is 0
+int isEmpty(struct Queue* queue) {  
+    return (queue->size == 0); 
+}
+
+// Function to add an item to the queue. It changes rear and size
+void enqueue(struct Queue* queue, int item) {
+    if (isFull(queue))
+        return;
+    queue->rear = (queue->rear + 1)%queue->capacity;
+    queue->array[queue->rear] = item;
+    queue->size = queue->size + 1;
+    printf("%d enqueued to queue\n", item);
+}
+
+// Function to remove an item from queue.It changes front and size
+int dequeue(struct Queue* queue) {
+    if (isEmpty(queue))
+        return INT_MIN;
+    int item = queue->array[queue->front];
+    queue->front = (queue->front + 1)%queue->capacity;
+    queue->size = queue->size - 1;
+    return item;
+}
+
+// Function to get front of queue
+int front(struct Queue* queue) {
+    if (isEmpty(queue))
+        return INT_MIN;
+    return queue->array[queue->front];
+}
+ 
+// Function to get rear of queue
+int rear(struct Queue* queue) {
+    if (isEmpty(queue))
+        return INT_MIN;
+    return queue->array[queue->rear];
+}
+
+int main() {
+    struct Queue* queue = createQueue(1000);
+ 
+    enqueue(queue, 10);
+    enqueue(queue, 20);
+    enqueue(queue, 30);
+    enqueue(queue, 40);
+ 
+    printf("%d dequeued from queue\n", dequeue(queue));
+ 
+    printf("Front item is %d\n", front(queue));
+    printf("Rear item is %d\n", rear(queue));
+ 
+    return 0;
+}
+OUTPUT:-
+10 enqueued to queue                                                                                                  
+20 enqueued to queue                                                                                                  
+30 enqueued to queue                                                                                                  
+40 enqueued to queue                                                                                                  
+10 dequeued from queue                                                                                                
+Front item is 20                                                                                                      
+Rear item is 40
+--------------------------------------
+/*
+Queue and linked list implementation:-
+In a Queue data structure, we maintain two pointers, front and rear. The front points the first item of queue and rear points to last item.
+ 1. enQueue() This operation adds a new node after rear and moves rear to the next node.
+ 2. deQueue() This operation removes the front node and moves front to the next node.
+
+Time Complexity: 
+  Time complexity of both operations enqueue() and dequeue() is O(1) as we only change few pointers in both operations. 
+  There is no loop in any of the operations.
+*/
+
+// A C program to demonstrate linked list based implementation of queue
+#include <stdlib.h>
+#include <stdio.h>
+ 
+// A linked list (LL) node to store a queue entry
+struct QNode {
+    int key;
+    struct QNode *next;
+};
+
+// The queue, front stores the front node of LL and rear stores the last node of LL
+struct Queue {
+    struct QNode *front, *rear;
+};
+
+// A utility function to create an empty queue
+struct Queue *createQueue() {
+    struct Queue *q = (struct Queue*)malloc(sizeof(struct Queue));
+    q->front = q->rear = NULL;
+    return q;
+}
+
+// A utility function to create a new linked list node.
+struct QNode* newNode(int k) {
+    struct QNode *temp = (struct QNode*)malloc(sizeof(struct QNode));
+    temp->key = k;
+    temp->next = NULL;
+    return temp; 
+}
+
+// The function to add a key k to q
+void enQueue(struct Queue *q, int k) {
+    struct QNode *temp = newNode(k);  // Create a new LL node
+ 
+    // If queue is empty, then new node is front and rear both
+    if (q->rear == NULL) {
+       q->front = q->rear = temp;
+       return;
+    }
+ 
+    // Add the new node at the end of queue and change rear
+    q->rear->next = temp;
+    q->rear = temp;
+}
+
+// Function to remove a key from given queue q
+struct QNode *deQueue(struct Queue *q) {
+    if (q->front == NULL)  // If queue is empty, return NULL.
+       return NULL;
+ 
+    // Store previous front and move front one node ahead
+    struct QNode *temp = q->front;
+    q->front = q->front->next;
+ 
+    // If front becomes NULL, then change rear also as NULL
+    if (q->front == NULL)
+       q->rear = NULL;
+    return temp;
+}
+ 
+int main() {
+    struct Queue *q = createQueue();
+    enQueue(q, 10);
+    enQueue(q, 20);
+    deQueue(q);
+    deQueue(q);
+    enQueue(q, 30);
+    enQueue(q, 40);
+    enQueue(q, 50);
+    
+    struct QNode *n = deQueue(q);
+    if (n != NULL)
+      printf("Dequeued item is %d", n->key);
+    return 0;
+}
+OUTPUT:-
+Dequeued item is 30
+-------------------------
+/*
+Move first element to end of a given Linked List:-
+Write a C function that moves first element to end in a given Singly Linked List. 
+For example, if the given Linked List is 1->2->3->4->5, then the function should change the list to 2->3->4->5->1.
+
+Algorithm:
+Traverse the list till last node. 
+Use two pointers: one to store the address of last node(last) and other for address of first node(first). 
+After the end of loop do following operations.
+  1. Make head as second node (*head_ref = first->next).
+  2. Set next of first as NULL (first->next = NULL).
+  3. Set next of last as first ( last->next = first)
+
+Time Complexity: O(n) where n is the number of nodes in the given Linked List.  
+*/
+
+/* C++ Program to move first element to end in a given linked list */
+#include <stdio.h>
+#include <stdlib.h>
+ 
+/* A linked list node */
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+/* Function to add a node at the beginning of Linked List */
+void push(struct Node** head_ref, int new_data) {
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref) = new_node;
+}
+ 
+/* Function to print nodes in a given linked list */
+void printList(struct Node* node) {
+    while (node != NULL) {
+        printf("%d ", node->data);
+        node = node->next;
+    }
+}
+
+/* We are using a double pointer head_ref here because we change head of the linked list inside this function.*/
+void moveToEnd(struct Node** head_ref)
+{
+    /* If linked list is empty, or it contains only one node, then nothing needs to be done, simply return */
+    if (*head_ref == NULL || (*head_ref)->next == NULL)
+        return;
+ 
+    /* Initialize first and last pointers */
+    struct Node* first = *head_ref;
+    struct Node* last = *head_ref;
+ 
+    /*After this loop last contains address of last node in Linked List */
+    while (last->next != NULL) {
+        last = last->next;
+    }
+ 
+    *head_ref = first->next;  /* Change the head pointer to point to second node now */
+    first->next = NULL;       /* Set the next of first as NULL */
+    last->next = first;       /* Set the next of last as first */
+}
+
+int main() {
+    struct Node* start = NULL;
+ 
+    /* The constructed linked list is: 1->2->3->4->5 */
+    push(&start, 5);
+    push(&start, 4);
+    push(&start, 3);
+    push(&start, 2);
+    push(&start, 1);
+ 
+    printf("\nLinked list before moving first to end\n");
+    printList(start);
+ 
+    moveToEnd(&start);
+ 
+    printf("\nLinked list after moving first to end\n");
+    printList(start);
+ 
+    return 0;
+}
+OUTPUT:-
+Linked list before moving first to end                                                                                
+1 2 3 4 5                                                                                                             
+Linked list after moving first to end                                                                                 
+2 3 4 5 1
+-------------------------------------------
+/*
+Program to find size of Doubly Linked List:-
+Given a doubly linked list, the task is to find the size of that doubly linked list.
+
+A doubly linked list is a linked data structure that consists of a set of sequentially linked records called nodes. 
+Each node contains two fields, called links, that are references to the previous and to the next node in the sequence of nodes.
+Traversal of a doubly linked list can be in either direction. In fact, the direction of traversal can change many times, if desired.
+
+Algorithm :
+1) Initialize size to 0.
+2) Initialize a node pointer, temp = head.
+3) Do following while temp is not NULL
+   a) temp = temp -> next
+   b) size++;
+4) Return size.
+*/
+
+// A complete program to find size of doubly linked list.
+#include <stdio.h>
+ 
+// A linked list node
+struct Node {
+    int data;
+    struct Node *next;
+    struct Node *prev;
+};
+ 
+/* Function to add a node to front of doubly linked list */
+void push(struct Node** head_ref, int new_data) {
+    struct Node* new_node = (struct Node*)malloc(sizeof(struct Node));
+    
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    new_node->prev = NULL;
+    
+    if ((*head_ref) !=  NULL)
+      (*head_ref)->prev = new_node ;
+    (*head_ref)    = new_node;
+}
+ 
+// This function returns size of linked list
+int findSize(struct Node *node) {
+   int res = 0;
+   while (node != NULL) {
+       res++;
+       node = node->next;
+   }
+   return res;
+}
+
+int main() {
+    struct Node* head = NULL;
+    push(&head, 4);
+    push(&head, 3);
+    push(&head, 2);
+    push(&head, 1);
+    printf("Size fo Link list : %d", findSize(head));
+    return 0;
+}
+OUTPUT:-
+Size fo Link list : 4
+----------------------------
+/*
+Rearrange a Linked List in Zig-Zag fashion
+Given a linked list, rearrange it such that converted list should be of the form a < b > c < d > e < f .
+where a, b, c.. are consecutive data node of linked list. Examples :
+
+Input:  1->2->3->4
+Output: 1->3->2->4 
+
+Input:  11->15->20->5->10
+Output: 11->20->5->15->10
+
+A simple approach to do this, is to sort the linked list using merge sort and then swap alternate, but that requires O(n Log n) time complexity. 
+Here n is number of elements in linked list.
+
+An efficient approach which requires O(n) time is, using a single scan similar to bubble sort and then maintain a flag for representing 
+which order (< or >) currently we are. If the current two elements are not in that order then swap those elements otherwise not. 
+
+Time complexity : O(n)
+Auxiliary Space : O(1)
+*/
+
+/* C program to arrange linked list in zigzag fashion */
+#include <stdio.h>
+/* Link list Node */
+struct Node {
+    int data;
+    struct Node* next;
+};
+ 
+/* Function to push a Node */
+void push(struct Node** head_ref, int new_data) {
+    struct Node* new_Node = (struct Node*)malloc(sizeof(struct Node));
+    new_Node->data = new_data;
+    new_Node->next = (*head_ref);
+    (*head_ref) = new_Node;
+}
+ 
+/* Function to print linked list */
+void printList(struct Node* Node) {
+    while (Node != NULL) {
+        printf("%d->", Node->data);
+        Node = Node->next;
+    }
+}
+
+void swap(int *x, int *y) {
+    int temp = *x;
+    *x = *y;
+    *y = temp;
+}
+
+// This function distributes the Node in zigzag fashion
+void zigZagList(struct Node *head)
+{
+    // If flag is true, then next node should be greater in the desired output.
+    int flag = 1;
+ 
+    // Traverse linked list starting from head.
+    struct Node* current = head;
+    while (current->next != NULL)
+    {
+        if (flag)  /* "<" relation expected */
+        {
+            /* If we have a situation like A > B > C where A, B and C are consecutive Nodes
+               in list we get A > B < C by swapping B and C */
+            if (current->data > current->next->data)
+                swap(&(current->data), &(current->next->data));
+        }
+        else /* ">" relation expected */
+        {
+            /* If we have a situation like A < B < C where A, B and C  are consecutive Nodes in list we
+               get A < C > B by swapping B and C */
+            if (current->data < current->next->data)
+                swap(&(current->data), &(current->next->data));
+        }
+ 
+        current = current->next;
+        flag = !flag;  /* flip flag for reverse checking */
+    }
+}
+ 
+int main(void)
+{
+    /* Start with the empty list */
+    struct Node* head = NULL;
+ 
+    // create a list   : 4 3 7 8 6 2 1
+    // answer should be: 3 7 4 8 2 6 1
+    push(&head, 1);
+    push(&head, 2);
+    push(&head, 6);
+    push(&head, 8);
+    push(&head, 7);
+    push(&head, 3);
+    push(&head, 4);
+ 
+    printf("Given linked list \n");
+    printList(head);
+ 
+    zigZagList(head);
+ 
+    printf("\nZig Zag Linked list \n");
+    printList(head);
+ 
+    return 0;
+}
+OUTPUT:-
+Given linked list                                                                                                     
+4->3->7->8->6->2->1->                                                                                                 
+Zig Zag Linked list                                                                                                   
+3->7->4->8->2->6->1-> 
+----------------------------
+/*
+Rearrange a Linked List in Zig-Zag fashion:-
+Given a linked list, rearrange it such that converted list should be of the form a < b > c < d > e < f .
+where a, b, c.. are consecutive data node of linked list. Note that it is not allowed to swap data.
+
+Examples:
+  Input:  1->2->3->4
+  Output: 1->3->2->4 
+
+  Input:  11->15->20->5->10
+  Output: 11->20->5->15->10
+
+Approach: 
+  A solution that converts given list into zigzag form is discussed in previous post. The solution discussed performs conversion by swapping data 
+  of nodes. Swapping data of nodes may be expensive in many situations when the data contains many fields. In this post, a solution that performs 
+  conversion by swapping links is discussed.
+  
+The idea is to traverse the given linked list and check if current node maintains the zigzag order or not. 
+To check if given node maintains zigzag order or not, a variable ind is used. 
+ 1. If ind = 0, then the current node’s data should be less than its adjacent node’s data and 
+    if ind = 1, then current node’s data should be greater than its adjacent node’s data. 
+    If the current node violates the zigzag order, then swap the position of both nodes. 
+	For doing this step, maintain two pointers prev and next. prev stores previous node of current node and next stores new next node of current node. 
+	To swap both nodes, the following steps are performed:
+       a. Make next node of current node, the next node of previous node.
+       b. Make the current node next node of its adjacent node.
+       c. Make current node next = next node.
+	   
+Time Complexity: O(N)
+Auxiliary Space: O(1)
+*/
+/* CPP program to arrange linked list in zigzag fashion */
+#include<stdio.h>
+/* Link list Node */
+struct Node {
+    int data;
+    struct Node* next;
+};
+ 
+/* Function to push a Node */
+void push(struct Node** head_ref, int new_data) {
+    struct Node* new_Node = (struct Node*)malloc(sizeof(struct Node));
+    new_Node->data = new_data;
+    new_Node->next = (*head_ref);
+    (*head_ref) = new_Node;
+}
+ 
+/* Function to print linked list */
+void printList(struct Node* Node) {
+    while (Node != NULL) {
+        printf("%d->", Node->data);
+        Node = Node->next;
+    }
+}
+
+// This function converts the Linked list in zigzag fashion
+struct Node* zigZagList(struct Node* head) {
+    if (head == NULL || head->next == NULL) {
+        return head;
+    }
+ 
+    struct Node* res = NULL;  // to store new head
+    struct Node* curr = head; // to traverse linked list
+    struct Node* prev = NULL; // to store previous node of current node
+    struct Node* next;        // to store new next node of current node
+ 
+    /* to check if current element should be less than or greater than.
+       ind = 0 --> less than  or, ind = 1 --> greater than */
+    int ind = 0;
+    while (curr->next) {
+ 
+        // If elements are not in zigzag fashion swap them.
+        if ((ind == 0 && curr->data > curr->next->data)
+            || (ind == 1 && curr->data < curr->next->data)) {
+ 
+            if (res == NULL)
+                res = curr->next;
+ 
+            // Store new next element of current node
+            next = curr->next->next;
+ 
+            // Previous node of current node will now point to next node of current node
+            if (prev)
+                prev->next = curr->next;
+ 
+            // Change next pointers of both adjacent nodes
+            curr->next->next = curr;
+            curr->next = next;
+ 
+            // Change previous pointer.
+            if (prev)
+                prev = prev->next;
+            else
+                prev = res;
+        }else { // If already in zig zag form, then move to next element.
+            if (res == NULL) {
+                res = curr;
+            }
+ 
+            prev = curr;
+            curr = curr->next;
+        }
+ 
+        // Update info whether next element should be less than or greater than.
+        ind = 1 - ind;
+    }
+ 
+    return res;
+}
+ 
+int main(void)
+{
+    /* Start with the empty list */
+    struct Node* head = NULL;
+ 
+    // create a list   : 4 3 7 8 6 2 1
+    // answer should be: 3 7 4 8 2 6 1
+    push(&head, 1);
+    push(&head, 2);
+    push(&head, 6);
+    push(&head, 8);
+    push(&head, 7);
+    push(&head, 3);
+    push(&head, 4);
+ 
+    printf("Given linked list \n");
+    printList(head);
+ 
+    head = zigZagList(head);
+ 
+    printf("\nZig Zag Linked list \n");
+    printList(head);
+ 
+    return 0;
+}
+OUTPUT:-
+Given linked list                                                                                                     
+4->3->7->8->6->2->1->                                                                                                 
+Zig Zag Linked list                                                                                                   
+3->7->4->8->2->6->1->
+---------------------------
+An Interesting Method to Generate Binary Numbers from 1 to n?
+Given a number n, write a function that generates and prints all binary numbers with decimal values from 1 to n.
+Examples:
+  Input: n = 2
+  Output: 1, 10
+
+  Input: n = 5
+  Output: 1, 10, 11, 100, 101
+
+A simple method is to run a loop from 1 to n, call decimal to binary inside the loop.
+Following is an interesting method that uses queue data structure to print binary numbers. 
+
+1) Create an empty queue of strings
+2) Enqueue the first binary number “1” to queue.
+3) Now run a loop for generating and printing n binary numbers.
+   a) Dequeue and Print the front of queue.
+   b) Append “0” at the end of front item and enqueue it.
+   c) Append “1” at the end of front item and enqueue it.
+*/
+
+/* C program to arrange linked list in zigzag fashion */
+#include <queue>
+#include<iostream>
+
+using namespace std;
+
+// This function uses queue data structure to print binary numbers
+void generatePrintBinary(int n) {
+    queue<string> q; // Create an empty queue of strings
+    q.push("1"); // Enqueue the first binary number
+ 
+    // This loops is like BFS of a tree with 1 as root 0 as left child and 1 as right child and so on
+    while (n--)
+    {
+        // print the front of queue
+        string s1 = q.front();
+        q.pop();
+        cout << s1 << "\n";
+ 
+        string s2 = s1;  // Store s1 before changing it
+        q.push(s1.append("0"));  // Append "0" to s1 and enqueue it
+ 
+        // Append "1" to s2 and enqueue it. Note that s2 contains the previous front
+        q.push(s2.append("1"));
+    }
+}
+
+int main() {
+    int n = 10;
+    generatePrintBinary(n);
+    return 0;
+}
+OUTPUT:-
+1                                                                                                                       
+10                                                                                                                      
+11                                                                                                                      
+100                                                                                                                     
+101                                                                                                                     
+110                                                                                                                     
+111                                                                                                                     
+1000                                                                                                                    
+1001                                                                                                                    
+1010
+---------------------------
+/*
+Delete multiple occurrences of key in Linked list using double pointer:-
+Given a singly linked list, delete all occurrences of a given key in it. For example, consider the following list.
+
+Input: 2 -> 2 -> 4 -> 3 -> 2
+       Key to delete = 2
+Output:  4 -> 3 
+
+Here we use a double pointer approach to use a single loop irrespective of the position of the element (head, tail or between). 
+The original method to delete a node from a linked list without an extra check for the head was explained by Linus Torvalds in his 
+“25th Anniversary of Linux” TED talk. This article uses that logic to delete multiple recurrences of the key without an extra check for the head.
+
+Explanation:
+1. Store address of head in a double pointer till we find a non “key” node. 
+   This takes care of the 1st while loop to handle the special case of the head.
+2. If a node is not “key” node then store the address of node->next in pp.
+3. if we find a “key” node later on then change pp (ultimately node->next) to point to current node->next.
+*/
+
+// program to delete multiple occurrences of a key using single loop.
+#include<stdio.h>
+
+struct Node {
+    int data;
+    struct Node* next;
+};
+ 
+struct Node* head = NULL;
+ 
+void printList(struct Node* node) {
+    while (node != NULL) {
+        printf(" %d ", node->data);
+        node = node->next;
+    }
+}
+ 
+void push(int new_data) {
+    struct Node* new_node = (struct Node*)malloc(sizeof(struct Node));
+    new_node->data = new_data;
+    new_node->next = (head);
+    (head) = new_node;
+}
+
+void deleteEntry(int key) {
+    // Start from head
+    struct Node** pp = &head;
+    while (*pp) {
+        struct Node* entry = *pp;
+ 
+        // If key found, then put next at the address of pp delete entry.
+        if (entry->data == key) {
+            *pp = entry->next;
+            free(entry);
+        }else  // Else move to next
+            pp = &(entry->next);
+    }
+}
+
+int main() {
+    push(2);
+    push(2);
+    push(4);
+    push(3);
+    push(2);
+ 
+    int key = 2; // key to delete
+ 
+    puts("Created Linked List: ");
+    printList(head);
+    printf("\n");
+    deleteEntry(key);
+    printf("\nLinked List after Deletion of 2: \n");
+    printList(head);
+    return 0;
+}
+OUTPUT:-
+Created Linked List:                                                                                                  
+ 2  3  4  2  2                                                                                                                                                                                                                         
+Linked List after Deletion of 2:                                                                                      
+ 3  4
+--------------------------------------
+/*
+Linked List-Deleting a node
+Let us formulate the problem statement to understand the deletion process. Given a ‘key’, delete the first occurrence of this key in linked list.
+To delete a node from linked list, we need to do following steps.
+1) Find previous node of the node to be deleted.
+2) Changed next of previous node.
+3) Free memory for the node to be deleted.
+
+*/
+
+// A complete working C program to demonstrate deletion in singly linked list
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+ 
+/* Given a reference (pointer to pointer) to the head of a list
+   and an int, inserts a new node on the front of the list. */
+void push(struct Node** head_ref, int new_data)
+{
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref)    = new_node;
+}
+
+/* Given a reference (pointer to pointer) to the head of a list
+   and a key, deletes the first occurrence of key in linked list */
+void deleteNode(struct Node **head_ref, int key)
+{
+    // Store head node
+    struct Node* temp = *head_ref, *prev;
+ 
+    // If head node itself holds the key to be deleted
+    if (temp != NULL && temp->data == key)
+    {
+        *head_ref = temp->next;   // Changed head
+        free(temp);               // free old head
+        return;
+    }
+ 
+    // Search for the key to be deleted, keep track of the previous node as we need to change 'prev->next'
+    while (temp != NULL && temp->data != key) {
+        prev = temp;
+        temp = temp->next;
+    }
+ 
+    // If key was not present in linked list
+    if (temp == NULL) return;
+ 
+    prev->next = temp->next;  // Unlink the node from linked list
+    free(temp);  // Free memory
+}
+
+void printList(struct Node *node)
+{
+    while (node != NULL)
+    {
+        printf(" %d ", node->data);
+        node = node->next;
+    }
+}
+ 
+int main() {
+    /* Start with the empty list */
+    struct Node* head = NULL;
+ 
+    push(&head, 7);
+    push(&head, 1);
+    push(&head, 3);
+    push(&head, 2);
+ 
+    puts("Created Linked List: ");
+    printList(head);
+    deleteNode(&head, 1);
+    puts("\nLinked List after Deletion of 1: ");
+    printList(head);
+    return 0;
+}
+OUTPUT:-
+Created Linked List:                                                                                                  
+ 2  3  1  7                                                                                                           
+Linked List after Deletion of 1:                                                                                      
+ 2  3  7
+------------------------------------
+/*
+Delete all occurrences of a given key in a linked list
+Given a singly linked list, delete all occurrences of a given key in it. For example, consider the following list.
+
+Input: 2 -> 2 -> 1 -> 8 -> 2 ->  3 ->  2 -> 7
+       Key to delete = 2
+Output:  1 -> 8 -> 3 -> 7 
+
+We need to first check for all occurrences at head node and change the head node appropriately. 
+Then we need to check for all occurrences inside a loop and delete them one by one.
+*/
+
+//C Program to delete all occurrences of a given key in linked list
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+ 
+/* Given a reference (pointer to pointer) to the head of a list
+   and an int, inserts a new node on the front of the list. */
+void push(struct Node** head_ref, int new_data)
+{
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref)    = new_node;
+}
+
+/* Given a reference (pointer to pointer) to the head of a list and
+   a key, deletes all occurrence of the given key in linked list */
+void deleteKey(struct Node **head_ref, int key) {
+    // Store head node
+    struct Node* temp = *head_ref, *prev;
+ 
+    // If head node itself holds the key or multiple occurrences of key
+    while (temp != NULL && temp->data == key) {
+        *head_ref = temp->next;   // Changed head
+        free(temp);               // free old head
+        temp = *head_ref;         // Change Temp
+    }
+ 
+    // Delete occurrences other than head
+    while (temp != NULL)
+    {
+        // Search for the key to be deleted, keep track of the
+        // previous node as we need to change 'prev->next'
+        while (temp != NULL && temp->data != key) {
+            prev = temp;
+            temp = temp->next;
+        }
+ 
+        // If key was not present in linked list
+        if (temp == NULL) return;
+ 
+        // Unlink the node from linked list
+        prev->next = temp->next;
+ 
+        free(temp);  // Free memory
+ 
+        //Update Temp for next iteration of outer loop
+        temp = prev->next;
+    }
+}
+
+void printList(struct Node *node) {
+    while (node != NULL)
+    {
+        printf(" %d ", node->data);
+        node = node->next;
+    }
+}
+
+int main() {
+    /* Start with the empty list */
+    struct Node* head = NULL;
+ 
+    push(&head, 7);
+    push(&head, 2);
+    push(&head, 3);
+    push(&head, 2);
+    push(&head, 8);
+    push(&head, 1);
+    push(&head, 2);
+    push(&head, 2);
+ 
+    int key = 2; // key to delete
+ 
+    puts("Created Linked List: ");
+    printList(head);
+ 
+    deleteKey(&head, key);
+    puts("\nLinked List after Deletion of 1: ");
+ 
+    printList(head);
+    return 0;
+}
+OUTPUT:-
+Created Linked List:                                                                                                  
+ 2  2  1  8  2  3  2  7                                                                                               
+Linked List after Deletion of 1:                                                                                      
+ 1  8  3  7
+-----------------------------------
+/*
+Function to check if a singly linked list is palindrome?
+Given a singly linked list of characters, write a function that returns true if the given list is palindrome, else false.
+
+METHOD 1 (Use a Stack)
+A simple solution is to use a stack of list nodes. This mainly involves three steps.
+  1) Traverse the given list from head to tail and push every visited node to stack.
+  2) Traverse the list again. For every visited node, pop a node from stack and compare data of popped node with currently visited node.
+  3) If all nodes matched, then return true, else false.
+  
+Time complexity of above method is O(n), but it requires O(n) extra space.
+
+METHOD 2 (By reversing the list)
+This method takes O(n) time and O(1) extra space.
+  1) Get the middle of the linked list.
+  2) Reverse the second half of the linked list.
+  3) Check if the first half and second half are identical.
+  4) Construct the original linked list by reversing the second half again and attaching it back to the first half
+  
+To divide the list in two halves:-
+ When number of nodes are even, the first and second half contain exactly half nodes. 
+ The challenging thing in this method is to handle the case when number of nodes are odd. 
+ We don’t want the middle node as part of any of the lists as we are going to compare them for equality. 
+ For odd case, we use a separate variable ‘midnode’.
+ 
+ Time Complexity O(n)
+ Auxiliary Space: O(1)
+*/
+
+/* Program to check if a linked list is palindrome */
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    char data;
+    struct Node *next;
+};
+
+/* Function to reverse the linked list  Note that this function may change the head */
+void reverse(struct Node** head_ref) {
+    struct Node* prev   = NULL;
+    struct Node* current = *head_ref;
+    struct Node* next;
+    while (current != NULL) {
+        next  = current->next;
+        current->next = prev;
+        prev = current;
+        current = next;
+    }
+    *head_ref = prev;
+}
+
+/* Function to check if two input lists have same data*/
+int compareLists(struct Node* head1, struct Node *head2) {
+    struct Node* temp1 = head1;
+    struct Node* temp2 = head2;
+ 
+    while (temp1 && temp2) {
+        if (temp1->data == temp2->data) {
+            temp1 = temp1->next;
+            temp2 = temp2->next;
+        }
+        else return 0;
+    }
+ 
+    /* Both are empty reurn 1*/
+    if (temp1 == NULL && temp2 == NULL)
+        return 1;
+ 
+    /* Will reach here when one is NULL and other is not */
+    return 0;
+}
+
+/* Function to check if given linked list is palindrome or not */
+int isPalindrome(struct Node *head) {
+    struct Node *slow_ptr = head, *fast_ptr = head;
+    struct Node *second_half, *prev_of_slow_ptr = head;
+    struct Node *midnode = NULL;  // To handle odd size list
+    int res = 1; // initialize result
+ 
+    if (head!=NULL && head->next!=NULL) {
+        /* Get the middle of the list. Move slow_ptr by 1
+          and fast_ptrr by 2, slow_ptr will have the middle node */
+        while (fast_ptr != NULL && fast_ptr->next != NULL) {
+            fast_ptr = fast_ptr->next->next;
+ 
+            /*We need previous of the slow_ptr for linked lists  with odd elements */
+            prev_of_slow_ptr = slow_ptr;
+            slow_ptr = slow_ptr->next;
+        }
+ 
+        /* fast_ptr would become NULL when there are even elements in list. 
+           And not NULL for odd elements. We need to skip the middle node 
+           for odd case and store it somewhere so that we can restore the original list*/
+        if (fast_ptr != NULL) {
+            midnode = slow_ptr;
+            slow_ptr = slow_ptr->next;
+        }
+ 
+        // Now reverse the second half and compare it with first half
+        second_half = slow_ptr;
+        prev_of_slow_ptr->next = NULL; // NULL terminate first half
+        reverse(&second_half);  // Reverse the second half
+        res = compareLists(head, second_half); // compare
+ 
+        /* Construct the original list back */
+         reverse(&second_half); // Reverse the second half again
+ 
+          // If there was a mid node (odd size case) which was not part of either first half or second half.
+         if (midnode != NULL) {
+            prev_of_slow_ptr->next = midnode;
+            midnode->next = second_half;
+         }else  
+            prev_of_slow_ptr->next = second_half;
+    }
+    return res;
+}
+ 
+/* Given a reference (pointer to pointer) to the head of a list
+   and an int, inserts a new node on the front of the list. */
+void push(struct Node** head_ref, int new_data)
+{
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref)    = new_node;
+}
+
+void printList(struct Node *node) {
+    while (node != NULL)
+    {
+        printf(" %c ", node->data);
+        node = node->next;
+    }
+}
+
+int main() {
+    /* Start with the empty list */
+    struct Node* head = NULL;
+    char str[] = "abacaba";
+    int i;
+ 
+    for (i = 0; str[i] != '\0'; i++) {
+       push(&head, str[i]);
+       printList(head);
+       isPalindrome(head)? printf("Is Palindrome\n"): printf("Not Palindrome\n");
+    }
+ 
+    return 0;
+}
+OUTPUT:-
+ a Is Palindrome                                                                                                      
+ b  a Not Palindrome                                                                                                  
+ a  b  a Is Palindrome                                                                                                
+ c  a  b  a Not Palindrome                                                                                            
+ a  c  a  b  a Not Palindrome                                                                                         
+ b  a  c  a  b  a Not Palindrome                                                                                      
+ a  b  a  c  a  b  a Is Palindrome
+
+
+/*
+METHOD 3 (Using Recursion)
+  Use two pointers left and right. Move right and left using recursion and check for following in each recursive call.
+  1) Sub-list is palindrome.
+  2) Value at current left and right are matching.
+
+  If both above conditions are true then return true.
+  The idea is to use function call stack as container. Recursively traverse till the end of list. 
+  When we return from last NULL, we will be at last node. The last node to be compared with first node of list.
+
+  In order to access first node of list, we need list head to be available in the last call of recursion. 
+  Hence we pass head also to the recursive function. If they both match we need to compare (2, n-2) nodes. 
+  Again when recursion falls back to (n-2)nd node, we need reference to 2nd node from head. 
+  We advance the head pointer in previous call, to refer to next node in the list.
+
+  However, the trick in identifying double pointer. Passing single pointer is as good as pass-by-value, and we will pass the same pointer again and 
+  again. We need to pass the address of head pointer for reflecting the changes in parent recursive calls. 
+  
+Time Complexity: O(n)
+Auxiliary Space: O(n) if Function Call Stack size is considered, otherwise O(1).
+*/
+
+/* Program to check if a linked list is palindrome */
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    char data;
+    struct Node *next;
+};
+
+// Initial parameters to this function are &head and head
+int isPalindromeUtil(struct Node **left, struct  Node *right) {
+   /* stop recursion when right becomes NULL */
+   if (right == NULL)
+      return 1;
+ 
+   /* If sub-list is not palindrome then no need to check for current left and right, return false */
+   int isp = isPalindromeUtil(left, right->next);
+   if (isp == 0)
+      return 0;
+ 
+   /* Check values at current left and right */
+   int isp1 = (right->data == (*left)->data);
+ 
+   /* Move left to next node */
+   *left = (*left)->next;
+ 
+   return isp1;
+}
+ 
+// A wrapper over isPalindromeUtil()
+int isPalindrome(struct Node *head) {
+   isPalindromeUtil(&head, head);
+}
+
+/* Given a reference (pointer to pointer) to the head of a list
+   and an int, inserts a new node on the front of the list. */
+void push(struct Node** head_ref, int new_data)
+{
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref)    = new_node;
+}
+
+void printList(struct Node *node) {
+    while (node != NULL)
+    {
+        printf(" %c ", node->data);
+        node = node->next;
+    }
+}
+
+int main() {
+    /* Start with the empty list */
+    struct Node* head = NULL;
+    char str[] = "abacaba";
+    int i;
+ 
+    for (i = 0; str[i] != '\0'; i++) {
+       push(&head, str[i]);
+       printList(head);
+       isPalindrome(head)? printf("Is Palindrome\n"):printf("Not Palindrome\n");
+    }
+ 
+    return 0;
+}
+OUTPUT:-
+ a Not Palindrome                                                                                                     
+ b  a Not Palindrome                                                                                                  
+ a  b  a Not Palindrome                                                                                               
+ c  a  b  a Not Palindrome                                                                                            
+ a  c  a  b  a Not Palindrome                                                                                         
+ b  a  c  a  b  a Not Palindrome                                                                                      
+ a  b  a  c  a  b  a Not Palindrome
+-------------------------------------------------
+/*
+Find the middle of a given linked list in ?
+  Given a singly linked list, find middle of the linked list. For example, if given linked list is 1->2->3->4->5 then output should be 3.
+  If there are even nodes, then there would be two middle nodes, we need to print second middle element. 
+  For example, if given linked list is 1->2->3->4->5->6 then output should be 4.
+  
+Method 1:
+Traverse the whole linked list and count the no. of nodes. Now traverse the list again till count/2 and return the node at count/2.
+
+Method 2:
+Traverse linked list using two pointers. Move one pointer by one and other pointer by two. 
+When the fast pointer reaches end slow pointer will reach middle of the linked list.
+
+*/
+
+/* Program to check if a linked list is palindrome */
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+/* Function to get the middle of the linked list*/
+void printMiddle(struct Node *head) {
+    struct Node *slow_ptr = head;
+    struct Node *fast_ptr = head;
+
+    if (head!=NULL) {
+        while (fast_ptr != NULL && fast_ptr->next != NULL) {
+            fast_ptr = fast_ptr->next->next;
+            slow_ptr = slow_ptr->next;
+        }
+        printf("\nThe middle element is [%d]\n", slow_ptr->data);
+    }
+}
+
+/* Given a reference (pointer to pointer) to the head of a list
+   and an int, inserts a new node on the front of the list. */
+void push(struct Node** head_ref, int new_data) {
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref)    = new_node;
+}
+
+void printList(struct Node *node) {
+    while (node != NULL)
+    {
+        printf(" %d ", node->data);
+        node = node->next;
+    }
+}
+
+int main() {
+    /* Start with the empty list */
+    struct Node* head = NULL;
+    int i;
+
+    for (i=5; i>0; i--) {
+        push(&head, i);
+        printList(head);
+        printMiddle(head);
+    }
+
+    return 0;
+}
+OUTPUT:-
+ 5                                                                                                                      
+The middle element is [5]                                                                                               
+ 4  5                                                                                                                   
+The middle element is [5]                                                                                               
+ 3  4  5                                                                                                                
+The middle element is [4]                                                                                               
+ 2  3  4  5                                                                                                             
+The middle element is [4]                                                                                               
+ 1  2  3  4  5                                                                                                          
+The middle element is [3]
+
+/*
+Method 3:
+Initialize mid element as head and initialize a counter as 0. 
+Traverse the list from head, while traversing increment the counter and change mid to mid->next whenever the counter is odd. 
+So the mid will move only half of the total length of the list.
+*/
+/* Program to check if a linked list is palindrome */
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+/* Function to get the middle of the linked list*/
+void printMiddle(struct Node *head)
+{
+    int count = 0;
+    struct Node *mid = head;
+ 
+    while (head != NULL) {
+        /* update mid, when 'count' is odd number */
+        if (count & 1)
+            mid = mid->next;
+        ++count;
+        head = head->next;
+    }
+ 
+    /* if empty list is provided */
+    if (mid != NULL)
+        printf("\nThe middle element is [%d]\n", mid->data);
+}
+
+/* Given a reference (pointer to pointer) to the head of a list
+   and an int, inserts a new node on the front of the list. */
+void push(struct Node** head_ref, int new_data) {
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref)    = new_node;
+}
+
+void printList(struct Node *node) {
+    while (node != NULL)
+    {
+        printf(" %d ", node->data);
+        node = node->next;
+    }
+}
+
+int main() {
+    /* Start with the empty list */
+    struct Node* head = NULL;
+    int i;
+
+    for (i=5; i>0; i--) {
+        push(&head, i);
+        printList(head);
+        printMiddle(head);
+    }
+
+    return 0;
+}
+OUTPUT:-
+ 5                                                                                                                      
+The middle element is [5]                                                                                               
+ 4  5                                                                                                                   
+The middle element is [5]                                                                                               
+ 3  4  5                                                                                                                
+The middle element is [4]                                                                                               
+ 2  3  4  5                                                                                                             
+The middle element is [4]                                                                                               
+ 1  2  3  4  5                                                                                                          
+The middle element is [3]
+
+-----------------------------------
+/*
+Print reverse of a Linked List without actually reversing?
+  Given a linked list, print reverse of it using a recursive function. 
+  For example, if the given linked list is 1->2->3->4, then output should be 4->3->2->1.
+
+Note that the question is only about printing the reverse.
+
+Algorithm:-
+printReverse(head)
+  1. call print reverse for hed->next
+  2. print head->data
+  
+Time Complexity: O(n)
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+/* Function to reverse the linked list */
+void printReverse(struct Node* head) {
+    // Base case  
+    if (head == NULL)
+       return;
+    printReverse(head->next);   // print the list after head node
+    printf("%d ", head->data); // After everything else is printed, print head
+}
+  
+/* Given a reference (pointer to pointer) to the head of a list
+   and an int, inserts a new node on the front of the list. */
+void push(struct Node** head_ref, int new_data) {
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref)    = new_node;
+}
+
+void printList(struct Node *node) {
+    while (node != NULL)
+    {
+        printf("%d ", node->data);
+        node = node->next;
+    }
+}
+
+int main() {
+    /* Start with the empty list */
+    struct Node* head = NULL;
+    int i;
+
+    for (i=5; i>0; i--) {
+        push(&head, i);
+    }
+    printList(head);
+    printf("\n");
+    printReverse(head);
+    return 0;
+}
+OUTPUT:-
+1 2 3 4 5                                                                                                             
+5 4 3 2 1
+-------------------------------
+/*
+Remove duplicates from an unsorted linked list?
+  Write a removeDuplicates() function which takes a list and deletes any duplicate nodes from the list. The list is not sorted.
+  For example if the linked list is 12->11->12->21->41->43->21 then removeDuplicates() should convert the list to 12->11->21->41->43.
+  
+METHOD 1 (Using two loops)
+This is the simple way where two loops are used. Outer loop is used to pick the elements one by one and 
+inner loop compares the picked element with rest of the elements.
+
+Time Complexity: O(n^2)
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+/* Function to remove duplicates from a unsorted linked list */
+void removeDuplicates(struct Node *start) {
+    struct Node *ptr1, *ptr2, *dup;
+    ptr1 = start;
+ 
+    /* Pick elements one by one */
+    while (ptr1 != NULL && ptr1->next != NULL) {
+        ptr2 = ptr1;
+ 
+        /* Compare the picked element with rest of the elements */
+        while (ptr2->next != NULL) {
+            /* If duplicate then delete it */
+            if (ptr1->data == ptr2->next->data) {
+                /* sequence of steps is important here */
+                dup = ptr2->next;
+                ptr2->next = ptr2->next->next;
+                free(dup);
+            }
+            else /* This is tricky */
+                ptr2 = ptr2->next;
+        }
+        ptr1 = ptr1->next;
+    }
+}  
+
+/* Given a reference (pointer to pointer) to the head of a list
+   and an int, inserts a new node on the front of the list. */
+void push(struct Node** head_ref, int new_data) {
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref)    = new_node;
+}
+
+void printList(struct Node *node) {
+    while (node != NULL) {
+        printf("%d ", node->data);
+        node = node->next;
+    }
+}
+
+int main() {
+    /* Start with the empty list */
+    struct Node* head = NULL;
+    push(&head, 10);
+    push(&head, 12);
+    push(&head, 11);
+    push(&head, 11);
+    push(&head, 12);
+    push(&head, 11);
+    push(&head, 10);
+    
+    printf("Linked list before removing duplicates\n");
+    printList(head);
+ 
+    removeDuplicates(head);
+ 
+    printf("\nLinked list after removing duplicates\n");
+    printList(head);
+    return 0;
+}
+OUTPUT:-
+Linked list before removing duplicates                                                                                
+10 11 12 11 11 12 10                                                                                                  
+Linked list after removing duplicates                                                                                 
+10 11 12 
+
+/*
+METHOD 2 (Use Sorting):-
+In general, Merge Sort is the best-suited sorting algorithm for sorting linked lists efficiently.
+  1) Sort the elements using Merge Sort. We will soon be writing a post about sorting a linked list. O(nLogn)
+  2) Remove duplicates in linear time using the algorithm for removing duplicates in sorted Linked List. O(n)
+Please note that this method doesn’t preserve the original order of elements.
+Time Complexity: O(nLogn)
+*/
+
+/*
+METHOD 3 (Use Hashing):-
+We traverse the link list from head to end. For every newly encountered element, 
+we check whether it is in the hash table: if yes, we remove it; otherwise we put it in the hash table.
+
+Time Complexity: O(n) on average (assuming that hash table access time is O(1) on average).
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unordered_set>
+using namespace std;
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+/* Function to remove duplicates from a  unsorted linked list */
+void removeDuplicates(struct Node *start) {
+    // Hash to store seen values
+    unordered_set<int> seen;
+ 
+    /* Pick elements one by one */
+    struct Node *curr = start;
+    struct Node *prev = NULL;
+    while (curr != NULL) {
+        // If current value is seen before
+        if (seen.find(curr->data) != seen.end()) {
+           prev->next = curr->next;
+           free(curr);
+        }else {
+           seen.insert(curr->data);
+           prev = curr;
+        }
+        curr = prev->next;
+    }
+}
+/* Given a reference (pointer to pointer) to the head of a list
+   and an int, inserts a new node on the front of the list. */
+void push(struct Node** head_ref, int new_data) {
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref)    = new_node;
+}
+
+void printList(struct Node *node) {
+    while (node != NULL) {
+        printf("%d ", node->data);
+        node = node->next;
+    }
+}
+
+int main() {
+    /* Start with the empty list */
+    struct Node* head = NULL;
+    push(&head, 10);
+    push(&head, 12);
+    push(&head, 11);
+    push(&head, 11);
+    push(&head, 12);
+    push(&head, 11);
+    push(&head, 10);
+    
+    printf("Linked list before removing duplicates\n");
+    printList(head);
+ 
+    removeDuplicates(head);
+ 
+    printf("\nLinked list after removing duplicates\n");
+    printList(head);
+    return 0;
+}
+OUTPUT:-
+Linked list before removing duplicates                                                                                
+10 11 12 11 11 12 10                                                                                                  
+Linked list after removing duplicates                                                                                 
+10 11 12
+
+/*
+Remove duplicates from a sorted linked list?
+  Write a removeDuplicates() function which takes a list sorted in non-decreasing order and deletes any duplicate nodes from the list. 
+  The list should only be traversed once.
+
+  For example if the linked list is 11->11->11->21->43->43->60 then removeDuplicates() should convert the list to 11->21->43->60.
+Time Complexity: O(n) where n is number of nodes in the given linked list.
+
+Algorithm:
+Traverse the list from the head (or start) node. While traversing, compare each node with its next node. 
+If data of next node is same as current node then delete the next node. Before we delete a node, we need to store next pointer of the node
+*/
+#include <stdio.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+/* The function removes duplicates from a sorted list */
+void removeDuplicates(struct Node* head) {
+    /* Pointer to traverse the linked list */
+    struct Node* current = head;
+ 
+    /* Pointer to store the next pointer of a node to be deleted*/
+    struct Node* next_next; 
+   
+    /* do nothing if the list is empty */
+    if (current == NULL) 
+       return; 
+ 
+    /* Traverse the list till last node */
+    while (current->next != NULL) {
+       /* Compare current node with next node */
+       if (current->data == current->next->data) {
+           /* The sequence of steps is important*/              
+           next_next = current->next->next;
+           free(current->next);
+           current->next = next_next;  
+       }
+       else /* This is tricky: only advance if no deletion */
+       {
+          current = current->next; 
+       }
+    }
+}
+
+/* Given a reference (pointer to pointer) to the head of a list
+   and an int, inserts a new node on the front of the list. */
+void push(struct Node** head_ref, int new_data) {
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref)    = new_node;
+}
+
+void printList(struct Node *node) {
+    while (node != NULL) {
+        printf("%d ", node->data);
+        node = node->next;
+    }
+}
+
+int main() {
+    /* Start with the empty list */
+    struct Node* head = NULL;
+    push(&head, 10);
+    push(&head, 10);
+    push(&head, 11);
+    push(&head, 11);
+    push(&head, 11);
+    push(&head, 12);
+    push(&head, 12);
+    
+    printf("Linked list before removing duplicates\n");
+    printList(head);
+ 
+    removeDuplicates(head);
+ 
+    printf("\nLinked list after removing duplicates\n");
+    printList(head);
+    return 0;
+}
+OUTPUT:-
+Linked list before removing duplicates                                                                                
+12 12 11 11 11 10 10                                                                                                  
+Linked list after removing duplicates                                                                                 
+12 11 10 
+--------------------------------------------
+/*
+Move last element to front of a given Linked List?
+Write a C function that moves last element to front in a given Singly Linked List. 
+For example, if the given Linked List is 1->2->3->4->5, then the function should change the list to 5->1->2->3->4.
+
+Algorithm:
+Traverse the list till last node. Use two pointers: one to store the address of last node and other for address of second last node. 
+After the end of loop do following operations.
+ a. Make second last as last (secLast->next = NULL).
+ b. Set next of last as head (last->next = *head_ref).
+ c. Make last as head ( *head_ref = last)
+
+Time Complexity: O(n) where n is the number of nodes in the given Linked List.
+*/
+#include <stdio.h>
+
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+/* We are using a double pointer head_ref here because we change head of the linked list inside this function.*/
+void moveToFront(struct Node **head_ref)
+{
+    /* If linked list is empty, or it contains only one node,
+      then nothing needs to be done, simply return */
+    if (*head_ref == NULL || (*head_ref)->next == NULL)
+        return;
+ 
+    /* Initialize second last and last pointers */
+    struct Node *secLast = NULL;
+    struct Node *last = *head_ref;
+ 
+    /*After this loop secLast contains address of second last
+    node and last contains address of last node in Linked List */
+    while (last->next != NULL) {
+        secLast = last;
+        last = last->next;
+    }
+ 
+    /* Set the next of second last as NULL */
+    secLast->next = NULL;
+ 
+    /* Set next of last as head node */
+    last->next = *head_ref;
+ 
+    /* Change the head pointer to point to last node now */
+    *head_ref = last;
+}
+
+/* Given a reference (pointer to pointer) to the head of a list
+   and an int, inserts a new node on the front of the list. */
+void push(struct Node** head_ref, int new_data) {
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
+    new_node->data  = new_data;
+    new_node->next = (*head_ref);
+    (*head_ref)    = new_node;
+}
+
+void printList(struct Node *node) {
+    while (node != NULL) {
+        printf("%d ", node->data);
+        node = node->next;
+    }
+}
+
+int main() {
+    /* Start with the empty list */
+    struct Node* head = NULL;
+    push(&head, 10);
+    push(&head, 10);
+    push(&head, 11);
+    push(&head, 11);
+    push(&head, 11);
+    push(&head, 12);
+    push(&head, 12);
+    
+    printf("Linked list before moving last to front\n");
+    printList(head);
+ 
+    moveToFront(&head);
+ 
+    printf("\nLinked list after removing last to front\n");
+    printList(head);
+    return 0;
+}
+OUTPUT:-
+Linked list before moving last to front                                                                               
+12 12 11 11 11 10 10                                                                                                  
+Linked list after removing last to front                                                                              
+10 12 12 11 11 11 10
+-----------------------------------------
+Ques:Arrange random number (0,1,2) in a rray into (1,0,2) form.
+// Dutch national Flag algorithm
+#include <iostream>
+using namespace std;
+void swap(int *x, int *y) {
+    int temp = *x;
+    *x = *y;
+    *y = temp;
+}
+
+/*
+Three Colours:-
+The problem was posed with three colours, here `0', `1' and `2'. The array is divided into four sections:
+1. a[1..Lo-1] zeroes (red)
+2. a[Lo..Mid-] ones (white)
+3. a[Mid..Hi] unknown
+4. a[Hi+1..N] twos (blue)
+
+The section of unknown elements, a[Mid..Hi], is shrunk by examining a[Mid]:
+The unknown region is shrunk while maintaining these conditions
+1. Lo := 1; Mid := 1; Hi := N;
+2. while Mid <= Hi do
+      1. Invariant: a[1..Lo-1]=0 and a[Lo..Mid-1]=1 
+         and a[Hi+1..N]=2; a[Mid..Hi] are unknown.
+      2. case a[Mid] in
+         0: swap a[Lo] and a[Mid]; Lo++; Mid++
+         1: Mid++
+         2: swap a[Mid] and a[Hi]; Hi--
+
+Examine a[Mid]. There are three possibilities: a[Mid] is (0) red, (1) white or (2) blue.
+Case (0) a[Mid] is red, swap a[Lo] and a[Mid]; Lo++; Mid++
+Case (1) a[Mid] is white, Mid++
+Case (2) a[Mid] is blue, swap a[Mid] and a[Hi]; Hi--
+Continue until Mid>Hi.
+
+Complexity
+Time : Time complexity is O(n).
+Space: Space complexity is O(1).
+*/
+
+/* Dutch National Flag Algorithm, or 3-way Partitioning */
+void arrangeArray(int input[], int length){
+    int high = length - 1;
+    int low = 0, mid = 0;
+    while(mid <= high) {
+        if (input[mid] == 1) {
+            swap(&input[low],&input[mid]);
+            low = low+1;
+            mid = mid+1;
+        } else if (input[mid] == 2) {
+            swap(&input[mid],&input[high]);
+            high = high-1;
+        } else
+            mid = mid+1;
+    }
+}
+
+/* Sort an array of 0s, 1s and 2s (Simple Counting) 
+  We traverse the array two times. Time complexity will be O(n).
+Problems with below solution.
+1) It requires two traversals of array.
+2) This solution may not work if values are a part of structure. For example, consider a situation where 0 represents Computer Science Stream, 1 represents Electronics and 2 represents Mechanical. We have a list of student objects (or structures) and we want to sort them. We cannot use above sort as we simply put 0s, 1s and 2s one by one. */
+void sort012(int* arr, int n)
+{
+    // Variables to maintain the count of 0's, 1's and 2's in the array
+    int count0 = 0, count1 = 0, count2 = 0;
+    for (int i = 0; i < n; i++) {
+        if (arr[i] == 0)
+            count0++;
+        if (arr[i] == 1)
+            count1++;
+        if (arr[i] == 2)
+            count2++;
+    }
+ 
+    // Putting the 0's in the array in starting.
+    for (int i = 0; i < count0; i++) 
+        arr[i] = 0;
+     
+    // Putting the 1's in the array after the 0's.
+    for (int i = count0; i < (count0 + count1); i++) 
+        arr[i] = 1;
+     
+    // Putting the 2's in the array after the 1's
+    for (int i = (count0 + count1); i < n; i++) 
+        arr[i] = 2;
+     
+    return;
+}
+
+void display(int input[], int length) {
+    int i = 0;
+    while(i < length) {
+        cout << input[i] << " ";
+        i++;
+    }
+    cout << endl;
+}
+int main()
+{
+    int input[] = {0,1,2,2,1,0};
+    display(input, 6);
+    arrangeArray(input, 6);
+    display(input, 6);
+    return 0;
+}
+OUTPUT:-
+0 1 2 2 1 0                                                                                                                   
+1 1 0 0 2 2
+
+Ques: Segregate 0s and 1s in an array?
+You are given an array of 0s and 1s in random order. Segregate 0s on left side and 1s on right side of the array. Traverse array only once.
+
+Input array   =  [0, 1, 0, 1, 0, 0, 1, 1, 1, 0] 
+Output array =  [0, 0, 0, 0, 0, 1, 1, 1, 1, 1] 
+
+/*
+Method 1 (Count 0s or 1s) 
+Thanks to Naveen for suggesting this method.
+1) Count the number of 0s. Let count be C.
+2) Once we have count, we can put C 0s at the beginning and 1s at the remaining n � C positions in array.
+
+Time Complexity : O(n)
+
+Function to segregate 0s and 1s
+The method 1 traverses the array two times. Method 2 does the same in a single pass. */
+void segregate0and1(int arr[], int n)
+{
+    int count = 0; // Counts the no of zeros in arr
+ 
+    for (int i = 0; i < n; i++) {
+        if (arr[i] == 0)
+            count++;
+    }
+ 
+    // Loop fills the arr with 0 until count
+    for (int i = 0; i < count; i++)
+        arr[i] = 0;
+ 
+    // Loop fills remaining arr space with 1
+    for (int i = count; i < n; i++)
+        arr[i] = 1;
+}
+
+/*
+Method 2 (Use two indexes to traverse)
+Maintain two indexes. Initialize first index left as 0 and second index right as n-1. Time Complexity: O(n)
+
+Do following while left < right
+a) Keep incrementing index left while there are 0s at it
+b) Keep decrementing index right while there are 1s at it
+c) If left < right then exchange arr[left] and arr[right]
+*/
+
+/*Function to put all 0s on left and all 1s on right*/
+void segregate0and1(int arr[], int size)
+{
+    /* Initialize left and right indexes */
+    int left = 0, right = size-1;
+ 
+    while (left < right)
+    {
+        /* Increment left index while we see 0 at left */
+        while (arr[left] == 0 && left < right)
+            left++;
+ 
+        /* Decrement right index while we see 1 at right */
+        while (arr[right] == 1 && left < right)
+            right--;
+ 
+        /* If left is smaller than right then there is a 1 at left
+          and a 0 at right.  Exchange arr[left] and arr[right]*/
+        if (left < right)
+        {
+            arr[left] = 0;
+            arr[right] = 1;
+            left++;
+            right--;
+        }
+    }
+}
+
+/*
+3. Another approach : Time complexity: O(n)
+1. Take two pointer low (for element 0) starting from beginning (index = 0) and high (for element 1) starting from end (index = array.length-1).
+Initialize low = 0 and high = array.length-1
+2. It is intended to Put 1 to the right side of the array. Once it is done, then 0 will definitely towards left side of array.
+*/
+/*Function to put all 0s on left and all 1s on right*/
+void segregate0and1(int arr[], int size)
+{
+    int low = 0;
+    int high = size - 1;
+     
+    while(low < high)
+    {
+        if(arr[low] == 1)
+        {
+            swap(arr[low], arr[high]);
+            high--;
+        }else
+            low++;
+    }
+}
+void display(int input[], int length) {
+    int i = 0;
+    while(i < length) {
+        cout << input[i] << " ";
+        i++;
+    }
+    cout << endl;
+}
+int main()
+{
+    int input[] = {0,1,2,2,1,0};
+    display(input, 6);
+    segregate0and1(input, 6);
+    display(input, 6);
+    return 0;
+}

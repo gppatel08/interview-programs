@@ -1,0 +1,174 @@
+/*
+Hash Table is a data structure which stores data in an associative manner. 
+In a hash table, data is stored in an array format, where each data value has its own unique index value. 
+Access of data becomes very fast if we know the index of the desired data.
+Insertion and search operations are very fast irrespective of the size of the data. 
+Hash Table uses an array as a storage medium and uses hash technique to generate an index where an element is to be inserted or is to be located from.
+
+Hashing:-
+Hashing is a technique to convert a range of key values into a range of indexes of an array.
+We're going to use modulo operator to get a range of key values.
+(KEY, VALUE) --> (1,20) (2,70) (42,80) (4,25) (12,44) (14,32) (17,11) (13,78) (37,98)
+
+Key	   Hash	    Array Index
+1	1 % 20  = 1	     1
+2	2 % 20  = 2	     2
+42	42 % 20 = 2	     2
+4	4 % 20  = 4	     4
+12	12 % 20 = 12	12
+14	14 % 20 = 14	14
+17	17 % 20 = 17	17
+13	13 % 20 = 13	13
+37	37 % 20 = 17	17
+
+Linear Probing:-
+As we can see, it may happen that the hashing technique is used to create an already used index of the array. 
+In such a case, we can search the next empty location in the array by looking into the next cell until we find an empty cell. 
+This technique is called linear probing.
+Key	   Hash	    Array Index		After Linear Probing, Array Index
+1	1 % 20  = 1	     1                 1
+2	2 % 20  = 2	     2                 2
+42	42 % 20 = 2	     2                 3
+4	4 % 20  = 4	     4                 4
+12	12 % 20 = 12	12                12
+14	14 % 20 = 14	14                14
+17	17 % 20 = 17	17                17
+13	13 % 20 = 13	13                13
+37	37 % 20 = 17	17                18
+
+Basic Operations:-
+Following are the basic primary operations of a hash table.
+ 1. Search − Searches an element in a hash table.
+ 2. Insert − inserts an element in a hash table.
+ 3. delete − Deletes an element from a hash table.
+
+*/
+
+#include<stdio.h>
+#include<stdlib.h>
+
+#define SIZE 20
+
+struct DataItem {
+   int data;   
+   int key;
+};
+
+struct DataItem* hashArray[SIZE];
+
+int hashCode(int key) {
+   return key % SIZE;
+}
+
+void insert(int key,int data) {
+
+   struct DataItem *item = (struct DataItem*) malloc(sizeof(struct DataItem));
+   item->data = data;  
+   item->key = key;
+
+   //get the hash 
+   int hashIndex = hashCode(key);
+
+   //move in array until an empty or deleted cell
+   while(hashArray[hashIndex] != NULL && hashArray[hashIndex]->key != -1) {
+      //go to next cell
+      ++hashIndex;
+		
+      //wrap around the table
+      hashIndex %= SIZE;
+   }
+	
+   hashArray[hashIndex] = item;
+}
+
+struct DataItem* search(int key){
+   //get the hash
+   int hashIndex = hashCode(key);
+   
+   //move an array until empty
+   while(hashArray[hashIndex] != NULL){
+   
+      if(hashArray[hashIndex]->key == key)
+	     return hashArray[hashIndex];
+		 
+      //go to next cell
+	  ++hashIndex;
+	  
+	  //wrap around the table
+	  hashIndex %= SIZE;
+   }
+   return NULL;
+}
+
+struct DataItem* delete(struct DataItem* item){
+    int key = item->key;
+	                     
+   //get the hash
+   int hashIndex = hashCode(key);
+   
+   //move an array until empty
+   while(hashArray[hashIndex] != NULL){
+      struct DataItem* temp;
+      if(hashArray[hashIndex]->key == key) {
+	     struct DataItem* temp = hashArray[hashIndex];
+		 
+	     struct DataItem* dummyItem = (struct DataItem*) malloc(sizeof(struct DataItem));
+         dummyItem->data = -1;  
+         dummyItem->key = -1;
+		 
+		 hashArray[hashIndex] = dummyItem;
+		 return temp;
+	  }
+      //go to next cell
+	  ++hashIndex;
+	  
+	  //wrap around the table
+	  hashIndex %= SIZE;
+   }
+   return NULL;
+}
+
+void display() {
+   for(int i = 0; i<SIZE; i++) {
+	
+      if(hashArray[i] != NULL)
+         printf(" (%d,%d)",hashArray[i]->key,hashArray[i]->data);
+      else
+         printf(" (~, ~) ");
+   }
+	
+   printf("\n");
+}
+
+int main() {
+   insert(1, 20);
+   insert(2, 70);
+   insert(42, 80);
+   insert(4, 25);
+   insert(12, 44);
+   insert(14, 32);
+   insert(17, 11);
+   insert(13, 78);
+   insert(37, 97);
+
+   display();
+   
+   struct DataItem *item = search(37);
+
+   if(item != NULL) {
+      printf("Element found: (%d, %d)\n", item->key, item->data);
+   } else {
+      printf("Element not found\n");
+   }
+   
+   delete(item);
+   item = search(37);
+
+   if(item != NULL) {
+      printf("Element found & deleted: (%d, %d)\n", item->key, item->data);
+   } else {
+      printf("Element not found\n");
+   }
+   
+   return 0;
+}
