@@ -1,0 +1,77 @@
+Low Level Design(LLD) and High Level Design (HLD) in the Design phase of SDLC:
+------------------------------------------------------------------------------
+High Level design gives overall view of the system while in LLD gives detailed view.
+
+High Level Design(HLD): It design the over all architecture of the entire system from main module to all sub module.
+Low Level Design(LLD) : It defines Internal logic of corresponding submodule designers are preparing individual LLD to Every module.
+
+High Level Design(HLD): is the first output in your system design phase(in SDLC).Here we design the overall architecture of the system.
+The main functional or all the core modules are given shape here.This also include contr0l flow b/w main modules,e-r status etc.
+	Main output's are E-r diagram,flow chart,DFD's etc
+
+Low Level Design(LLD) : we create more detail and specific design of the system.how exactly we make the dB structure,interface design etc
+	Main output's are DB's schema,frameworks,Interface desins etc.
+	
+Level Design or System Design (HLD):
+------------------------------------
+High level Design gives the overall System Design in terms of Functional Architecture and Database design. This is very useful for the developers to 
+understand the flow of the system. In this phase design team, review team (testers) and customers plays a major role. For this the entry criteria are the 
+requirement document that is SRS. And the exit criteria will be HLD, projects standards, the functional design documents, and the database design document.
+
+Low Level Design (LLD):
+-----------------------
+During the detailed phase, the view of the application developed during the high level design is broken down into modules and programs. 
+Logic design is done for every program and then documented as program specifications. For every program, a unit test plan is created.
+It defines the actual logic for each and every component of the system. Class diagrams with all the methods and relation between classes comes under LLD.
+
+The entry criteria for this will be the HLD document. And the exit criteria will the program specification and unit test plan (LLD).
+
+===============================================
+
+HLDBased on SRS, software analysts will convert the requirements into a usable product.They will design an application, which will help the programmers 
+in coding. In the design process, the product is to be broken into independent modules and then taking each module at a time and then further breaking them 
+to arrive at micro levels. The HLD document will contain the following items at a macro level: 
+	- list of modules and a brie description of each module 
+	- brief functionality of each module 
+	- interface relationship among modules 
+	- dependencies between modules 
+	- database tables identified along with key elements 
+	- overall architecture diagrams along with technology details.
+	
+HLD contains details at macro level and so it cannot be given to programmers as a document for coding.
+So the system analysts prepare a micro level design document, called LLD. This document describes each and every module in an elaborate manner, 
+so that the programmer can directly code the program based on this.There will be at least 1 document for each module and there may be more for a module.
+The LLD will contain: 
+	- deailed functional logic of the module, in pseudo code 
+	- database tables, with all elements, including their type and size 
+	- all interface details with complete API references(both requests and responses) 
+	- all dependency issues 
+	-error message listings 
+	- complete input and outputs for a module
+
+===============================================
+
+High Level Design (HLD) gives the overall System Design in terms of Functional Architecture and Database design. 
+It designs the over all architecture of the entire system from main module to all sub module. 
+This is very useful for the developers to understand the flow of the system. 
+In this phase design team, review team (testers) and customers plays a major role. 
+For this the entry criteria are the requirement document that is SRS. And the exit criteria will be HLD, projects standards, 
+the functional design documents, and the database design document. Further, High level deign gives the overview of the development of product. 
+In other words how the program is going to be divided into functions, modules, subdivision etc.
+
+Low Level Design (LLD): During the detailed phase, the view of the application developed during the high level design is broken down into modules and programs. 
+Logic design is done for every program and then documented as program specifications. For every program, a unit test plan is created. 
+The entry criteria for this will be the HLD document. And the exit criteria will the program specification and unit test plan (LLD).
+
+The Low Level Design Document gives the design of the actual program code which is designed based on the High Level Design Document. 
+It defines Internal logic of corresponding submodule designers are preparing and mapping individual LLD's to Every module. 
+A good Low Level Design Document developed will make the program very easy to be developed by developers because if proper analysis is made and 
+the Low Level Design Document is prepared then the code can be developed by developers directly from Low Level Design Document with minimal effort of 
+debugging and testing. 
+
+High Level Design (HLD) is the overall system design - covering the system architecture and database design. 
+It describes the relation between various modules and functions of thesystem. data flow, flow charts and data structures are covered under HLD.
+Low Level Design (LLD) is like detailing the HLD. It defines the actual logic for each andevery component of the system. 
+Class diagrams with all the methods and relation between classes comes under LLD. Programs specs are covered under LLD.
+
+===============================================
