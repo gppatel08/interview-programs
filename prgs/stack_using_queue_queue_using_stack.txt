@@ -1,0 +1,1174 @@
+Implement Queue using Stacks:
+=============================
+Ques: - We are given a stack data structure with push and pop operations, the task is to implement a queue using instances of stack data structure 
+        and operations on them.??
+		
+	- Stack (LIFO): Insertion and deletion happpen on same end. 0-1-2-3-4-5-6 (-<-push & ->-pop from Top)
+	- Queue (FIFO): Insertion and deletion happpen on diferent ends. ( Rear[Enqueue] ->- 0-1-2-3-4-5-6 ->- Front[Dequeue] )
+	
+Solution:
+---------
+A queue can be implemented using two stacks. Let queue to be implemented be q and stacks used to implement q be stack1 and stack2. 
+q can be implemented in two ways:
+	- Method 1 (By making enQueue operation costly): 
+	------------------------------------------------
+	  This method makes sure that oldest entered element is always at the top of stack1, so that deQueue operation just pops from stack1. 
+	  To put the element at top of stack1, stack2 is used.
+	  
+	enQueue(q, x)
+		1) While stack1 is not empty, push everything from stack1 to stack2.
+		2) Push x to stack1 (assuming size of stacks is unlimited).
+		3) Push everything back to stack1.
+		Here time complexity will be O(n)
+
+	deQueue(q)
+		1) If stack1 is empty then error
+		2) Pop an item from stack1 and return it
+		Here time complexity will be O(1)
+		
+	- Method 2 (By making deQueue operation costly):
+	------------------------------------------------
+	  In this method, in en-queue operation, the new element is entered at the top of stack1. 
+	  In de-queue operation, if stack2 is empty then all the elements are moved to stack2 and finally top of stack2 is returned.
+	  
+	enQueue(q,  x)
+		1) Push x to stack1 (assuming size of stacks is unlimited).
+		Here time complexity will be O(1)
+
+	deQueue(q)
+		1) If both stacks are empty then error.
+		2) If stack2 is empty
+			While stack1 is not empty, push everything from stack1 to stack2.
+		3) Pop the element from stack2 and return it.
+		Here time complexity will be O(n)
+		
+NOTE: Method 2 is definitely better than method 1.
+      Method 1 moves all the elements twice in enQueue operation, while method 2 (in deQueue operation) moves the elements once and moves elements 
+	  only if stack2 empty.
+	  
+3. Implementation of method 2 using Function Call Stack:
+--------------------------------------------------------  
+Queue can also be implemented using one user stack and one Function Call Stack. 
+Below is modified Method 2 where recursion (or Function Call Stack) is used to implement queue using only one user defined stack.
+
+	enQueue(x)
+		1) Push x to stack1.
+
+	deQueue:
+		1) If stack1 is empty then error.
+		2) If stack1 has only one element then return it.
+		3) Recursively pop everything from the stack1, store the popped item in a variable res,  push the res back to stack1 and return res
+		
+		The step 3 makes sure that the last popped item is always returned and since the recursion stops when there is only one item in stack1 (step 2), 
+		we get the last element of stack1 in deQueue() and all other items are pushed back in stack1.
+		
+=========================================================================
+
+/* Method 1 (By making enQueue operation costly) 
+   CPP program to implement Queue using two stacks with costly enQueue() 
+*/
+#include<iostream>
+#include<stack>
+using namespace std; 
+  
+struct Queue { 
+  stack<int> stack1, stack2;
+  
+  // enQueue an item into queue
+  void enQueue(int item) {
+      //move all item from stack1 to stack2
+      while(!stack1.empty()) {
+          stack2.push(stack1.top());
+          stack1.pop();
+      }
+      // push item into stack1
+      stack1.push(item);
+      
+      //push everything back to stack1 from stack2
+      while(!stack2.empty()) {
+          stack1.push(stack2.top());
+          stack2.pop();
+      }
+  }
+  
+  // deQueue an item from queue
+  int deQueue() {
+      //if first stack is empty
+      if(stack1.empty()) {
+          cout << "Queue is empty.!" << endl;
+          exit(0);
+      }
+      
+      // Return top of the stack1
+      int item = stack1.top();
+      stack1.pop();
+      return item;
+  }  
+};
+
+int main() {
+    Queue q;
+    q.enQueue(1);
+    q.enQueue(2);
+    q.enQueue(3);
+    
+    cout << "Queue Item : " << q.deQueue() << endl;
+    cout << "Queue Item : " << q.deQueue() << endl;
+    q.enQueue(4);
+    cout << "Queue Item : " << q.deQueue() << endl;
+    cout << "Queue Item : " << q.deQueue() << endl;
+    cout << "Queue Item : " << q.deQueue() << endl;
+}
+/*
+Queue Item : 1                                                                                                                 
+Queue Item : 2                                                                                                                 
+Queue Item : 3                                                                                                                 
+Queue Item : 4                                                                                                                 
+Queue is empty.!
+*/
+
+
+/* Method 2 (By making deQueue operation costly)
+   CPP program to implement Queue using two stacks with costly deQueue() 
+*/
+#include<iostream>
+#include<stack>
+using namespace std; 
+  
+struct Queue { 
+  stack<int> stack1, stack2;
+  
+  // enQueue an item into queue
+  void enQueue(int item) {
+      // push item into stack1
+      stack1.push(item);
+  }
+  
+  // deQueue an item from queue
+  int deQueue() {
+      //if both stack is empty
+      if(stack1.empty() && stack2.empty()) {
+          cout << "Queue is empty.!" << endl;
+          exit(0);
+      }
+      
+      // if stack2 is empty, move elements from stack1 to stack2
+      if(stack2.empty()) {
+          while(!stack1.empty()) {
+              stack2.push(stack1.top());
+              stack1.pop();
+          }
+      }
+      
+      // Return top of the stack2
+      int item = stack2.top();
+      stack2.pop();
+      return item;
+  }  
+};
+
+int main() {
+    Queue q;
+    q.enQueue(1);
+    q.enQueue(2);
+    q.enQueue(3);
+    
+    cout << "Queue Item : " << q.deQueue() << endl;
+    cout << "Queue Item : " << q.deQueue() << endl;
+    q.enQueue(4);
+    cout << "Queue Item : " << q.deQueue() << endl;
+    cout << "Queue Item : " << q.deQueue() << endl;
+    cout << "Queue Item : " << q.deQueue() << endl;
+}
+/*
+OURPUT:
+Queue Item : 1                                                                                                                 
+Queue Item : 2                                                                                                                 
+Queue Item : 3                                                                                                                 
+Queue Item : 4                                                                                                                 
+Queue is empty.!
+*/
+
+
+/* 3. Implementation of method 2 using Function Call Stack:
+   CPP program to implement Queue using one stack and recursive call stack. 
+*/
+#include<iostream>
+#include<stack>
+using namespace std; 
+  
+struct Queue { 
+  stack<int> stack1;
+  
+  // enQueue an item into queue
+  void enQueue(int item) {
+      // push item into stack1
+      stack1.push(item);
+  }
+  
+  // deQueue an item from queue
+  int deQueue() {
+      //if stack1 is empty
+      if(stack1.empty()) {
+          cout << "Queue is empty.!" << endl;
+          exit(0);
+      }
+      
+      // pop an item from stack
+      int item = stack1.top();
+      stack1.pop();
+      
+      // if stack1 becomes empty, return the popped item
+      if(stack1.empty())
+        return item;
+        
+      //recursive call of deQueue()
+      int res = deQueue();
+      
+      //push popped item back to stack1
+      stack1.push(item);
+      
+      //return the result of deQueue() call
+      return res;
+  }  
+};
+
+int main() {
+    Queue q;
+    q.enQueue(1);
+    q.enQueue(2);
+    q.enQueue(3);
+    
+    cout << "Queue Item : " << q.deQueue() << endl;
+    cout << "Queue Item : " << q.deQueue() << endl;
+    q.enQueue(4);
+    cout << "Queue Item : " << q.deQueue() << endl;
+    cout << "Queue Item : " << q.deQueue() << endl;
+    cout << "Queue Item : " << q.deQueue() << endl;
+}
+/*OUTPUT:
+Queue Item : 1                                                                                                                 
+Queue Item : 2                                                                                                                 
+Queue Item : 3                                                                                                                 
+Queue Item : 4                                                                                                                 
+Queue is empty.!
+*/
+
+
+Implement Stack using Queues:
+=============================
+Ques:- We are given a Queue data structure that supports standard operations like enqueue() and dequeue(). 
+       We need to implement a Stack data structure using only instances of Queue and queue operations allowed on the instances.??
+	   
+Solution:
+---------
+A stack can be implemented using two queues. Let stack to be implemented be ‘s’ and queues used to implement be ‘q1’ and ‘q2’. 
+Stack ‘s’ can be implemented in two ways:
+	- Method 1 (By making push operation costly):
+	---------------------------------------------
+		This method makes sure that newly entered element is always at the front of ‘q1’, so that pop operation just dequeues from ‘q1’. 
+		‘q2’ is used to put every new element at front of ‘q1’.
+			push(s, x) // x is the element to be pushed and s is stack
+				1) Enqueue x to q2
+				2) One by one dequeue everything from q1 and enqueue to q2.
+				3) Swap the names of q1 and q2 
+				// Swapping of names is done to avoid one more movement of all elements from q2 to q1. 
+
+			pop(s)
+				1) Dequeue an item from q1 and return it.
+
+	- Method 2 (By making pop operation costly):
+	--------------------------------------------
+		In push operation, the new element is always enqueued to q1. 
+		In pop() operation, if q2 is empty then all the elements except the last, are moved to q2. Finally the last element is dequeued from q1 and returned.
+
+			push(s,  x)
+				1) Enqueue x to q1 (assuming size of q1 is unlimited).
+
+			pop(s)  
+				1) One by one dequeue everything except the last element from q1 and enqueue to q2.
+				2) Dequeue the last item of q1, the dequeued item is result, store it.
+				3) Swap the names of q1 and q2
+				4) Return the item stored in step 2.
+				// Swapping of names is done to avoid one more movement of all elements from q2 to q1.
+				
+/* Method 1 (By making push operation costly):
+   Program to implement a stack using two queue */
+#include<iostream>
+#include<queue>
+using namespace std; 
+  
+class Stack 
+{  
+    queue<int> q1, q2;  // Two inbuilt queues 
+    int curr_size;      // To maintain current number of elements 
+  public: 
+    Stack() { 
+        curr_size = 0; 
+    } 
+    
+    void push(int x) { 
+        curr_size++; 
+        q2.push(x);     // Push x first in empty q2 
+  
+        // Push all the remaining elements in q1 to q2.  
+        while (!q1.empty()) { 
+            q2.push(q1.front()); 
+            q1.pop(); 
+        } 
+  
+        // swap the names of two queues 
+        queue<int> q = q1; 
+        q1 = q2; 
+        q2 = q; 
+    } 
+    
+    void pop() { 
+  
+        // if no elements are there in q1  
+        if (q1.empty()) 
+            return ; 
+        q1.pop(); 
+        curr_size--; 
+    } 
+  
+    int top() { 
+        if (q1.empty()) 
+            return -1; 
+        return q1.front(); 
+    } 
+  
+    int size() { 
+        return curr_size; 
+    } 
+};
+
+int main() {
+    Stack s; 
+    s.push(1); 
+    s.push(2); 
+    s.push(3); 
+  
+    cout << "current size: " << s.size() << endl; 
+    cout << s.top() << endl; 
+    s.pop(); 
+    cout << s.top() << endl; 
+    s.pop(); 
+    cout << s.top() << endl; 
+    cout << "current size: " << s.size() << endl;
+}
+/*OUTPUT:
+current size: 3                                                                                                                
+3                                                                                                                              
+2                                                                                                                              
+1                                                                                                                              
+current size: 1
+*/
+
+
+/* Method 2 (By making pop operation costly):
+   Program to implement a stack using two queue */
+#include<iostream>
+#include<queue>
+using namespace std; 
+  
+class Stack 
+{  
+    queue<int> q1, q2;  // Two inbuilt queues 
+    int curr_size;      // To maintain current number of elements 
+  public: 
+    Stack() { 
+        curr_size = 0; 
+    } 
+    
+    void push(int x) { 
+        q1.push(x); 
+        curr_size++;
+    } 
+    
+    void pop() { 
+        if (q1.empty()) 
+            return; 
+  
+        // Leave one element in q1 and push others in q2. 
+        while (q1.size() != 1) 
+        { 
+            q2.push(q1.front()); 
+            q1.pop(); 
+        } 
+  
+        // Pop the only left element from q1 
+        q1.pop(); 
+        curr_size--; 
+  
+        // swap the names of two queues 
+        queue<int> q = q1; 
+        q1 = q2; 
+        q2 = q; 
+    } 
+  
+    int top() { 
+        if (q1.empty()) 
+            return -1; 
+  
+        while( q1.size() != 1 ) 
+        { 
+           q2.push(q1.front()); 
+           q1.pop(); 
+        }  
+          
+        // last pushed element 
+        int temp = q1.front(); 
+          
+        // to empty the auxiliary queue after last operation 
+        q1.pop(); 
+       
+        // push last element to q2 
+        q2.push(temp); 
+  
+        // swap the two queues names 
+        queue<int> q = q1; 
+        q1 = q2; 
+        q2 = q; 
+        return temp; 
+    } 
+  
+    int size() { 
+        return curr_size; 
+    } 
+};
+
+int main() {
+    Stack s; 
+    s.push(1); 
+    s.push(2); 
+    s.push(3); 
+    s.push(4); 
+  
+    cout << "current size: " << s.size() << endl; 
+    cout << s.top() << endl; 
+    s.pop(); 
+    cout << s.top() << endl; 
+    s.pop(); 
+    cout << s.top() << endl; 
+    cout << "current size: " << s.size() << endl;
+}
+/*OUTPUT:
+current size: 4                                                                                                                
+4                                                                                                                              
+3                                                                                                                              
+2                                                                                                                              
+current size: 2
+*/
+
+
+
+/*
+Queue are a type of container adaptors which operate in a first in first out (FIFO) type of arrangement. 
+Elements are inserted at the back (end) and are deleted from the front.
+
+queue::empty() - empty() function is used to check if the queue container is empty or not.
+queue::size()  - size() function is used to return the size of the list container or the number of elements in the list container.
+queue::front() - This function is used to reference the first or the oldest element of the queue container. 
+                 This function can be used to fetch the first element of a queue.
+queue::back()  - This function is used to reference the last or the newest element of the queue container. 
+                 This function can be used to fetch the first element from the back of a queue.
+queue::push()  - push() function is used to insert an element at the back of the queue. 
+                 The element is added to the queue container and the size of the queue is increased by 1.
+queue::pop()   - pop() function is used to remove an element from the front of the queue(oldest element in the queue). 
+                 The element is removed to the queue container and the size of the queue is decreased by 1.
+*/
+#include<iostream>
+#include<queue>
+using namespace std; 
+  
+int main() {
+    int sum = 0; 
+    queue<int> emqueu; 
+    if (emqueu.empty()) 
+        cout << "True" << endl; 
+    else
+        cout << "False" << endl; 
+    
+    queue<int> myqueue; 
+    myqueue.push(1); 
+    myqueue.push(8); 
+    myqueue.push(3); 
+    myqueue.push(6); 
+    myqueue.push(2); 
+    cout << "myqueue->size : " << myqueue.size() << endl;
+    cout << "Newest Element: " << myqueue.back() << endl;
+    // Queue becomes rear[enqueu] 2, 6, 3, 8, 1 front[dequeu]
+  
+    if (myqueue.front() > myqueue.back()) { 
+        cout << "Difference front > back : " << myqueue.front() - myqueue.back() << endl;
+    } else if (myqueue.front() < myqueue.back()) { 
+        cout << "Difference front < back : " << myqueue.back() - myqueue.front() << endl;
+    } 
+    
+    while (!myqueue.empty()) { 
+        int item = myqueue.front();
+        sum = sum + item; 
+        myqueue.pop(); 
+        cout << item << " ";
+    } 
+    cout << endl << "Sum : " << sum << endl; 
+}
+/*OUTPUT:
+myqueue->size : 5                                                                                                              
+Newest Element: 2                                                                                                              
+Difference front < back : 1                                                                                                    
+1 8 3 6 2                                                                                                                      
+Sum : 20
+*/
+
+
+/*
+Remove duplicates from a sorted linked list
+Write a removeDuplicates() function which takes a list sorted in non-decreasing order and deletes any duplicate nodes from the list. 
+The list should only be traversed once.
+For example if the linked list is 11->11->11->21->43->43->60 then removeDuplicates() should convert the list to 11->21->43->60.
+
+Algorithm:
+Traverse the list from the head (or start) node. While traversing, compare each node with its next node. 
+If data of next node is same as current node then delete the next node. Before we delete a node, we need to store next pointer of the node
+
+Time Complexity: O(n) where n is number of nodes in the given linked list.
+*/
+
+/* C Program to remove duplicates from a sorted linked list */
+#include<iostream>
+using namespace std; 
+
+/* Link list node */
+struct Node { 
+    int data; 
+    struct Node* next; 
+}; 
+  
+/* The function removes duplicates from a sorted list */
+void removeDuplicates(struct Node* head) 
+{ 
+    /* Pointer to traverse the linked list */
+    struct Node* current = head; 
+  
+    /* Pointer to store the next pointer of a node to be deleted*/
+    struct Node* next_next;  
+    
+    /* do nothing if the list is empty */
+    if (current == NULL)  
+       return;  
+  
+    /* Traverse the list till last node */
+    while (current->next != NULL)  
+    { 
+       /* Compare current node with next node */
+       if (current->data == current->next->data) { 
+           /* The sequence of steps is important*/               
+           next_next = current->next->next; 
+           free(current->next); 
+           current->next = next_next;   
+       } 
+       else { /* This is tricky: only advance if no deletion */
+          current = current->next;  
+       } 
+    } 
+} 
+  
+/* Recursive Approach : */
+Node* deleteDuplicates(Node* head) { 
+    if (head == nullptr) return nullptr; 
+    if (head->next == nullptr) return head; 
+  
+    if (head->data == head->next->data) { 
+        Node *tmp; 
+        // If find next element duplicate, preserve the next pointer to be deleted,  
+        // skip it, and then delete the stored one. Return head 
+        tmp = head->next; 
+        head->next = head->next->next; 
+        free(tmp); 
+        return deleteDuplicates(head); 
+    } else { 
+        // if doesn't find next element duplicate, leave head  and check from next element 
+        head->next = deleteDuplicates(head->next); 
+        return head; 
+    } 
+} 
+    
+/* Function to insert a node at the beginging of the linked list */
+void push(struct Node** head_ref, int new_data) 
+{ 
+    /* allocate node */
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node)); 
+              
+    /* put in the data  */
+    new_node->data  = new_data; 
+                  
+    /* link the old list off the new node */
+    new_node->next = (*head_ref);      
+          
+    /* move the head to point to the new node */
+    (*head_ref)    = new_node; 
+} 
+  
+/* Function to print nodes in a given linked list */
+void printList(struct Node *node) { 
+    while (node!=NULL) {
+       printf("%d ", node->data); 
+       node = node->next; 
+    } 
+}  
+  
+/* Drier program to test above functions*/
+int main() 
+{ 
+    /* Start with the empty list */
+    struct Node* head = NULL; 
+    
+    /* Let us create a sorted linked list to test the functions 
+     Created linked list will be 11->11->11->13->13->20 */
+    push(&head, 20); 
+    push(&head, 13); 
+    push(&head, 13);   
+    push(&head, 11); 
+    push(&head, 11); 
+    push(&head, 11);                                     
+  
+    printf("\n Linked list before duplicate removal : "); 
+    printList(head);  
+  
+    /* Remove duplicates from linked list */
+    removeDuplicates(head);  
+  
+    printf("\n Linked list after duplicate removal  : ");          
+    printList(head);   
+    
+    /* Start with the empty list */
+    struct Node* head1 = NULL; 
+    
+    /* Let us create a sorted linked list to test the functions 
+     Created linked list will be 11->11->11->13->13->20 */
+    push(&head1, 20); 
+    push(&head1, 13); 
+    push(&head1, 13);   
+    push(&head1, 11); 
+    push(&head1, 11); 
+    push(&head1, 11);
+    
+    printf("\n Linked list before duplicate removal : "); 
+    printList(head1);  
+    /* Remove duplicates from linked list */
+    deleteDuplicates(head1);  
+    printf("\n Linked list after duplicate removal  : ");          
+    printList(head1); 
+    return 0; 
+} 
+/*OUTPUT:
+ Linked list before duplicate removal : 11 11 11 13 13 20                                                                      
+ Linked list after duplicate removal  : 11 13 20                                                                               
+ Linked list before duplicate removal : 11 11 11 13 13 20                                                                      
+ Linked list after duplicate removal  : 11 13 20
+*/
+
+/* Sorting a vector in C++ */
+#include<iostream>
+#include<vector>
+#include<algorithm>
+using namespace std; 
+
+void show(vector<int> &v) {
+    for (auto x : v) 
+        cout << x << " ";
+    cout << endl;
+}
+
+// An interval has start time and end time 
+struct Interval { 
+    int start, end; 
+}; 
+  
+// Compares two intervals according to staring times. 
+bool compareInterval(Interval i1, Interval i2) { 
+    return (i1.start < i2.start); 
+} 
+
+/* Drier program to test above functions*/
+int main() 
+{ 
+    vector<int> v1{ 1, 5, 8, 9, 6, 7, 3, 4, 2, 0 }; 
+    cout << "Before sorted : "; show(v1);
+    
+    //sort a vector in non-decreasing order(by default ascending order). 
+    sort(v1.begin(), v1.end());
+    cout << "After sorted  : "; show(v1);
+    
+    /* sort() takes a third parameter that is used to specify the order in which elements are to be sorted. 
+    We can pass “greater()” function to sort in descending order. This function does comparison in a way that 
+    puts greater element before.*/
+    vector<int> v2{ 1, 5, 8, 9, 6, 7, 3, 4, 2, 0 }; 
+    cout << "Before sorted : "; show(v2);
+    sort(v2.begin(), v2.end(), greater<int>()); 
+    cout << "After sorted  : "; show(v2);
+    
+    /* How to sort in particular order?
+       We can also write our own comparator function and pass it as a third parameter.*/
+    vector<Interval> v3 { { 6, 8 }, { 1, 9 }, { 2, 4 }, { 4, 7 } }; 
+  
+    // sort the intervals in increasing order of start time 
+    sort(v3.begin(), v3.end(), compareInterval);
+    for (auto x : v3) 
+        cout << "[" << x.start << ", " << x.end << "] "; 
+    return 0; 
+} 
+/*OUTPUT:
+Before sorted : 1 5 8 9 6 7 3 4 2 0                                                                                            
+After sorted  : 0 1 2 3 4 5 6 7 8 9                                                                                            
+Before sorted : 1 5 8 9 6 7 3 4 2 0                                                                                            
+After sorted  : 9 8 7 6 5 4 3 2 1 0                                                                                            
+[1, 9] [2, 4] [4, 7] [6, 8]
+*/
+
+/*
+Implement two stacks in an array:
+Create a data structure twoStacks that represents two stacks. Implementation of twoStacks should use only one array, i.e., 
+both stacks should use the same array for storing elements. Following functions must be supported by twoStacks.
+	push1(int x) –> pushes x to first stack
+	push2(int x) –> pushes x to second stack
+
+	pop1() –> pops an element from first stack and return the popped element
+	pop2() –> pops an element from second stack and return the popped element
+
+Implementation of twoStack should be space efficient.
+Method 2 (A space efficient implementation)
+This method efficiently utilizes the available space. It doesn’t cause an overflow if there is space available in arr[]. 
+The idea is to start two stacks from two extreme corners of arr[]. stack1 starts from the leftmost element, the first element in stack1 is pushed at index 0. 
+The stack2 starts from the rightmost corner, the first element in stack2 is pushed at index (n-1). Both stacks grow (or shrink) in opposite direction. 
+To check for overflow, all we need to check is for space between top elements of both stacks. This check is highlighted in the below code.
+*/
+
+#include<iostream> 
+#include<stdlib.h> 
+  
+using namespace std; 
+  
+class TwoStacks 
+{ 
+    int *arr; 
+    int size; 
+    int top1, top2; 
+public: 
+   TwoStacks(int n) { // constructor 
+       size = n; 
+       arr = new int[n]; 
+       top1 = -1; 
+       top2 = size; 
+   } 
+  
+   // Method to push an element x to stack1 
+   void push1(int x) { 
+       // There is at least one empty space for new element 
+       if (top1 < top2 - 1) { 
+           top1++; 
+           arr[top1] = x; 
+       } else { 
+           cout << "Stack Overflow"; 
+           exit(1); 
+       } 
+   } 
+  
+   // Method to push an element x to stack2 
+   void push2(int x) { 
+       // There is at least one empty space for new element 
+       if (top1 < top2 - 1) { 
+           top2--; 
+           arr[top2] = x; 
+       } else { 
+           cout << "Stack Overflow"; 
+           exit(1); 
+       } 
+   } 
+  
+   // Method to pop an element from first stack 
+   int pop1() { 
+       if (top1 >= 0 ) { 
+          int x = arr[top1]; 
+          top1--; 
+          return x; 
+       } else { 
+           cout << "Stack UnderFlow"; 
+           exit(1); 
+       } 
+   } 
+  
+   // Method to pop an element from second stack 
+   int pop2() { 
+       if (top2 < size) { 
+          int x = arr[top2]; 
+          top2++; 
+          return x; 
+       } else { 
+           cout << "Stack UnderFlow"; 
+           exit(1); 
+       } 
+   } 
+}; 
+  
+/* Driver program to test twStacks class */
+int main() { 
+    TwoStacks ts(5); 
+    ts.push1(5); 
+    ts.push2(10); 
+    ts.push2(15); 
+    ts.push1(11); 
+    ts.push2(7); 
+    cout << "Popped element from stack1 is : " << ts.pop1() << endl; 
+    ts.push2(40); 
+    cout << "Popped element from stack2 is : " << ts.pop2() << endl; 
+    return 0;  
+} 
+/*OUTPUT:
+Popped element from stack1 is : 11                                                                                             
+Popped element from stack2 is : 40
+*/
+
+/*
+Merge Sort for Linked Lists:
+Merge sort is often preferred for sorting a linked list. 
+The slow random-access performance of a linked list makes some other algorithms (such as quicksort) perform poorly, 
+and others (such as heapsort) completely impossible.
+
+Let head be the first node of the linked list to be sorted and headRef be the pointer to head. 
+Note that we need a reference to head in MergeSort() as the below implementation changes next links to sort the linked lists (not data at the nodes), 
+so head node has to be changed if the data at original head is not the smallest value in linked list.
+
+MergeSort(headRef)
+	1) If head is NULL or there is only one element in the Linked List then return.
+	2) Else divide the linked list into two halves.  
+			FrontBackSplit(head, &a, &b); /* a and b are two halves */
+	3) Sort the two halves a and b.
+			MergeSort(a);
+			MergeSort(b);
+	4) Merge the sorted a and b (using SortedMerge() discussed here) and update the head pointer using headRef.
+			*headRef = SortedMerge(a, b);
+*/
+
+#include<iostream> 
+#include<stdlib.h> 
+  
+using namespace std; 
+  
+/* Link list node */
+struct Node { 
+    int data; 
+    struct Node* next; 
+};
+
+/* Split the nodes of the given list into front and back halves, and return the two lists using the 
+   reference parameters. If the length is odd, the extra node should go in the front list. 
+   Uses the fast/slow pointer strategy. */
+void FrontBackSplit(struct Node* source, struct Node** frontRef, struct Node** backRef) { 
+    struct Node* fast; 
+    struct Node* slow; 
+    slow = source; 
+    fast = source->next; 
+  
+    /* Advance 'fast' two nodes, and advance 'slow' one node */
+    while (fast != NULL) { 
+        fast = fast->next; 
+        if (fast != NULL) { 
+            slow = slow->next; 
+            fast = fast->next; 
+        } 
+    } 
+  
+    /* 'slow' is before the midpoint in the list, so split it in two at that point. */
+    *frontRef = source; 
+    *backRef = slow->next; 
+    slow->next = NULL; 
+} 
+
+/* See https://www.geeksforgeeks.org/?p=3622 for details of this function */
+struct Node* SortedMerge(struct Node* a, struct Node* b) { 
+    struct Node* result = NULL; 
+  
+    /* Base cases */
+    if (a == NULL) 
+        return(b); 
+    else if (b==NULL) 
+        return(a); 
+  
+    /* Pick either a or b, and recur */
+    if (a->data <= b->data) { 
+        result = a; 
+        result->next = SortedMerge(a->next, b); 
+    } else { 
+        result = b; 
+        result->next = SortedMerge(a, b->next); 
+    } 
+    return(result); 
+} 
+
+/* sorts the linked list by changing next pointers (not data) */
+void MergeSort(struct Node** headRef) { 
+    struct Node* head = *headRef; 
+    struct Node* a; 
+    struct Node* b; 
+  
+    /* Base case -- length 0 or 1 */
+    if ((head == NULL) || (head->next == NULL)) { 
+        return; 
+    } 
+  
+    /* Split head into 'a' and 'b' sublists */
+    FrontBackSplit(head, &a, &b);  
+  
+    /* Recursively sort the sublists */
+    MergeSort(&a); 
+    MergeSort(&b); 
+  
+    /* answer = merge the two sorted lists together */
+    *headRef = SortedMerge(a, b); 
+} 
+
+/* Function to insert a node at the beginging of the linked list */
+void push(struct Node** head_ref, int new_data) { 
+    /* allocate node */
+    struct Node* new_node = (struct Node*) malloc(sizeof(struct Node)); 
+  
+    /* put in the data */
+    new_node->data = new_data; 
+  
+    /* link the old list off the new node */
+    new_node->next = (*head_ref);  
+  
+    /* move the head to point to the new node */
+    (*head_ref) = new_node; 
+}  
+
+/* Function to print nodes in a given linked list */
+void printList(struct Node *node) { 
+    while(node!=NULL) { 
+        printf("%d ", node->data); 
+        node = node->next; 
+    } 
+} 
+
+/* Drier program to test above functions*/
+int main() { 
+    /* Start with the empty list */
+    struct Node* res = NULL; 
+    struct Node* a = NULL; 
+  
+    /* Let us create a unsorted linked lists to test the functions 
+        Created lists shall be a: 2->3->20->5->10->15 */
+    push(&a, 15); 
+    push(&a, 10); 
+    push(&a, 5);  
+    push(&a, 20); 
+    push(&a, 3); 
+    push(&a, 2);  
+  
+    printf("UnSorted Linked List is: "); 
+    printList(a);
+    
+    /* Sort the above created Linked List */
+    MergeSort(&a); 
+  
+    printf("\nSorted Linked List is  : "); 
+    printList(a);          
+    return 0; 
+} 
+/*OUTPUT:
+UnSorted Linked List is: 2 3 20 5 10 15                                                                                        
+Sorted Linked List is  : 2 3 5 10 15 20
+*/
+
+/*
+Remove duplicates from an unsorted linked list:
+Write a removeDuplicates() function which takes a list and deletes any duplicate nodes from the list. The list is not sorted.
+For example if the linked list is 12->11->12->21->41->43->21 then removeDuplicates() should convert the list to 12->11->21->41->43.
+
+METHOD 1 (Using two loops):
+---------------------------
+This is the simple way where two loops are used. 
+Outer loop is used to pick the elements one by one and inner loop compares the picked element with rest of the elements.
+
+METHOD 2 (Use Sorting):
+-----------------------
+In general, Merge Sort is the best-suited sorting algorithm for sorting linked lists efficiently.
+1) Sort the elements using Merge Sort. We will soon be writing a post about sorting a linked list. O(nLogn)
+2) Remove duplicates in linear time using the algorithm for removing duplicates in sorted Linked List. O(n)
+
+Please note that this method doesn’t preserve the original order of elements.
+Time Complexity: O(nLogn)
+
+METHOD 3 (Use Hashing):
+-----------------------
+We traverse the link list from head to end. For every newly encountered element, 
+we check whether it is in the hash table: if yes, we remove it; otherwise we put it in the hash table.
+*/
+
+/* METHOD 1 (Using two loops) 
+Time Complexity: O(n^2) 
+*/
+
+#include<iostream> 
+#include<stdlib.h> 
+  
+using namespace std; 
+
+/* A linked list node */
+struct Node { 
+    int data; 
+    struct Node *next; 
+}; 
+  
+// Utility function to create a new Node 
+struct Node *newNode(int data) { 
+   Node *temp = new Node; 
+   temp->data = data; 
+   temp->next = NULL; 
+   return temp; 
+} 
+  
+/* Function to remove duplicates from a unsorted linked list */
+void removeDuplicates(struct Node *start) { 
+    struct Node *ptr1, *ptr2, *dup; 
+    ptr1 = start; 
+  
+    /* Pick elements one by one */
+    while (ptr1 != NULL && ptr1->next != NULL) { 
+        ptr2 = ptr1; 
+        /* Compare the picked element with rest of the elements */
+        while (ptr2->next != NULL) { 
+            /* If duplicate then delete it */
+            if (ptr1->data == ptr2->next->data) { 
+                /* sequence of steps is important here */
+                dup = ptr2->next; 
+                ptr2->next = ptr2->next->next; 
+                delete(dup); 
+            } else /* This is tricky */
+                ptr2 = ptr2->next; 
+        } 
+        ptr1 = ptr1->next; 
+    } 
+} 
+  
+/* Function to print nodes in a given linked list */
+void printList(struct Node *node) { 
+    while (node != NULL) { 
+        printf("%d ", node->data); 
+        node = node->next; 
+    } 
+} 
+  
+/* Druver program to test above function */
+int main() 
+{ 
+    /* The constructed linked list is: 
+     10->12->11->11->12->11->10*/
+    struct Node *start = newNode(10); 
+    start->next = newNode(12); 
+    start->next->next = newNode(11); 
+    start->next->next->next = newNode(11); 
+    start->next->next->next->next = newNode(12); 
+    start->next->next->next->next->next = newNode(11); 
+    start->next->next->next->next->next->next = newNode(10); 
+  
+    printf("Linked list before removing duplicates :"); 
+    printList(start); 
+  
+    removeDuplicates(start); 
+  
+    printf("\nLinked list after removing duplicates  :"); 
+    printList(start); 
+  
+    return 0; 
+}
+/*
+OUTPUT:
+Linked list before removing duplicates :10 12 11 11 12 11 10                                                                   
+Linked list after removing duplicates  :10 12 11
+*/
+
+/* METHOD 3 (Use Hashing)
+   We traverse the link list from head to end. For every newly encountered element, 
+   we check whether it is in the hash table: if yes, we remove it; otherwise we put it in the hash table.
+   Time Complexity: O(n) on average (assuming that hash table access time is O(1) on average). */
+#include<iostream> 
+#include<stdlib.h>
+#include<bits/stdc++.h>
+  
+using namespace std; 
+
+/* A linked list node */
+struct Node { 
+    int data; 
+    struct Node *next; 
+}; 
+  
+// Utility function to create a new Node 
+struct Node *newNode(int data) { 
+   Node *temp = new Node; 
+   temp->data = data; 
+   temp->next = NULL; 
+   return temp; 
+} 
+  
+/* Function to remove duplicates from a unsorted linked list */
+void removeDuplicates(struct Node *start) { 
+    // Hash to store seen values 
+    unordered_set<int> seen; 
+  
+    /* Pick elements one by one */
+    struct Node *curr = start; 
+    struct Node *prev = NULL; 
+    while (curr != NULL) { 
+        // If current value is seen before 
+        if (seen.find(curr->data) != seen.end()) { 
+           prev->next = curr->next; 
+           delete (curr); 
+        } else { 
+           seen.insert(curr->data); 
+           prev = curr; 
+        } 
+        curr = prev->next; 
+    } 
+} 
+  
+/* Function to print nodes in a given linked list */
+void printList(struct Node *node) { 
+    while (node != NULL) { 
+        printf("%d ", node->data); 
+        node = node->next; 
+    } 
+} 
+  
+/* Druver program to test above function */
+int main() 
+{ 
+    /* The constructed linked list is: 
+     10->12->11->11->12->11->10*/
+    struct Node *start = newNode(10); 
+    start->next = newNode(12); 
+    start->next->next = newNode(11); 
+    start->next->next->next = newNode(11); 
+    start->next->next->next->next = newNode(12); 
+    start->next->next->next->next->next = newNode(11); 
+    start->next->next->next->next->next->next = newNode(10); 
+  
+    printf("Linked list before removing duplicates :"); 
+    printList(start); 
+  
+    removeDuplicates(start); 
+  
+    printf("\nLinked list after removing duplicates  :"); 
+    printList(start); 
+  
+    return 0; 
+}
+/*
+OUTPUT:
+Linked list before removing duplicates :10 12 11 11 12 11 10                                                                   
+Linked list after removing duplicates  :10 12 11
+*/
