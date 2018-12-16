@@ -1,0 +1,343 @@
+UML is a standard language for specifying, visualizing, constructing, and documenting the artifacts of software systems. 
+
+UML was created by the Object Management Group (OMG) and UML 1.0 specification draft was proposed to the OMG in January 1997. 
+It was initially started to capture the behavior of complex software and non-software system and now it has become an OMG standard. 
+This tutorial gives a complete understanding on UML.
+
+	- UML stands for Unified Modeling Language.
+	- UML is different from the other common programming languages such as C++, Java, COBOL, etc.
+	- UML is a pictorial language used to make software blueprints.
+	- UML can be described as a general purpose visual modeling language to visualize, specify, construct, and document software system.
+	- Although UML is generally used to model software systems, it is not limited within this boundary. 
+	  It is also used to model non-software systems as well. For example, the process flow in a manufacturing unit, etc.
+	  
+UML is not a programming language but tools can be used to generate code in various languages using UML diagrams. 
+UML has a direct relation with object oriented analysis and design. After some standardization, UML has become an OMG standard.
+
+Goals of UML
+- A picture is worth a thousand words, this idiom absolutely fits describing UML. 
+- UML diagrams are not only made for developers but also for business users, common people, and anybody interested to understand the system. 
+  The system can be a software or non-software system. Thus it must be clear that UML is not a development method rather it accompanies with 
+  processes to make it a successful system.
+  
+A Conceptual Model of UML
+- A conceptual model can be defined as a model which is made of concepts and their relationships.
+- A conceptual model is the first step before drawing a UML diagram. 
+  It helps to understand the entities in the real world and how they interact with each other.
+- As UML describes the real-time systems, it is very important to make a conceptual model and then proceed gradually. 
+  The conceptual model of UML can be mastered by learning the following three major elements −
+	- UML building blocks
+	- Rules to connect the building blocks
+	- Common mechanisms of UML
+	
+Object-Oriented Concepts
+- UML can be described as the successor of object-oriented (OO) analysis and design.
+- An object contains both data and methods that control the data. 
+  The data represents the state of the object. 
+  A class describes an object and they also form a hierarchy to model the real-world system. 
+  The hierarchy is represented as inheritance and the classes can also be associated in different ways as per the requirement.
+- Objects are the real-world entities that exist around us and the basic concepts such as abstraction, encapsulation, inheritance, 
+  and polymorphism all can be represented using UML.
+- UML is powerful enough to represent all the concepts that exist in object-oriented analysis and design. 
+  UML diagrams are representation of object-oriented concepts only. Thus, before learning UML, it becomes important to understand OO concept in detail.
+- Following are some fundamental concepts of the object-oriented world −
+	Objects 		− Objects represent an entity and the basic building block.
+	Class 			− Class is the blue print of an object.
+	Abstraction 	− Abstraction represents the behavior of an real world entity.
+	Encapsulation 	− Encapsulation is the mechanism of binding the data together and hiding them from the outside world.
+	Inheritance 	− Inheritance is the mechanism of making new classes from existing ones.
+	Polymorphism 	− It defines the mechanism to exists in different forms.
+	
+OO Analysis and Design
+- OO can be defined as an investigation and to be more specific, it is the investigation of objects. Design means collaboration of identified objects.
+- The purpose of OO analysis and design can described as −
+	- Identifying the objects of a system.
+	- Identifying their relationships.
+	- Making a design, which can be converted to executables using OO languages.
+	- There are three basic steps where the OO concepts are applied and implemented. The steps can be defined as
+		OO Analysis → OO Design → OO implementation using OO languages
+		
+The above three points can be described in detail as −
+	- During OO analysis, the most important purpose is to identify objects and describe them in a proper way. If these objects are identified 
+	  efficiently, then the next job of design is easy. The objects should be identified with responsibilities. Responsibilities are the functions 
+	  performed by the object. Each and every object has some type of responsibilities to be performed. When these responsibilities are collaborated, 
+	  the purpose of the system is fulfilled.
+	- The second phase is OO design. During this phase, emphasis is placed on the requirements and their fulfilment. In this stage, the objects are 
+	  collaborated according to their intended association. After the association is complete, the design is also complete.
+	- The third phase is OO implementation. In this phase, the design is implemented using OO languages such as Java, C++, etc.
+	
+Role of UML in OO Design
+- UML is a modeling language used to model software and non-software systems. Although UML is used for non-software systems, the emphasis is on modeling 
+  OO software applications. Most of the UML diagrams discussed so far are used to model different aspects such as static, dynamic, etc. 
+  Now whatever be the aspect, the artifacts are nothing but objects.
+- If we look into class diagram, object diagram, collaboration diagram, interaction diagrams all would basically be designed based on the objects.
+- Hence, the relation between OO design and UML is very important to understand. The OO design is transformed into UML diagrams according to the requirement. 
+  Before understanding the UML in detail, the OO concept should be learned properly. Once the OO analysis and design is done, the next step is very easy. 
+  The input from OO analysis and design is the input to UML diagrams.
+  
+As UML describes the real-time systems, it is very important to make a conceptual model and then proceed gradually. 
+The conceptual model of UML can be mastered by learning the following three major elements −
+	- UML building blocks
+	- Rules to connect the building blocks
+	- Common mechanisms of UML
+- The building blocks of UML can be defined as −
+	- Things
+	- Relationships
+	- Diagrams
+	
+1. Things
+=========== 
+Things are the most important building blocks of UML. Things can be −
+	- Structural
+	- Behavioral
+	- Grouping
+	- Annotational
+	
+A. Structural Things:
+---------------------
+Structural things define the static part of the model. They represent the physical and conceptual elements. 
+Following are the brief descriptions of the structural things. 
+	- Class 
+	- Interface
+	- Collaboration 
+	- Use case 
+	- Component 
+	- Node 
+(Refer the structural_thing.jpeg file in detail)
+
+B. Behavioral Things:
+---------------------
+A behavioral thing consists of the dynamic parts of UML models. Following are the behavioral things −
+- Interaction − Interaction is defined as a behavior that consists of a group of messages exchanged among elements to accomplish a specific task.
+- State machine − State machine is useful when the state of an object in its life cycle is important. 
+  It defines the sequence of states an object goes through in response to events. Events are external factors responsible for state change
+  (Refer the behavioral_and_grouping_things.jpeg file in detail)
+  
+C. Grouping Things:
+-------------------
+Grouping things can be defined as a mechanism to group elements of a UML model together. There is only one grouping thing available −
+  (Refer the behavioral_and_grouping_things.jpeg file in detail)
+  
+D. Annotational Things:
+-----------------------
+Annotational things can be defined as a mechanism to capture remarks, descriptions, and comments of UML model elements. 
+Note - It is the only one Annotational thing available. A note is used to render comments, constraints, etc. of an UML element.
+(Refer the annotation_things.jpeg file in detail)
+
+2. Relationship:
+================
+Relationship is another most important building block of UML. 
+It shows how the elements are associated with each other and this association describes the functionality of an application.
+There are four kinds of relationships available.
+	- Dependency : Dependency is a relationship between two things in which change in one element also affects the other.
+	- Association: Association is basically a set of links that connects the elements of a UML model. 
+	  It also describes how many objects are taking part in that relationship.
+	- Generalization: Generalization can be defined as a relationship which connects a specialized element with a generalized element. 
+	  It basically describes the inheritance relationship in the world of objects.
+	- Realization: Realization can be defined as a relationship in which two elements are connected. One element describes some responsibility, 
+	  which is not implemented and the other one implements them. This relationship exists in case of interfaces.
+	(Refer the Relationship.jpeg file in detail)
+	
+3. UML Diagrams:
+================
+- UML diagrams are the ultimate output of the entire discussion. All the elements, relationships are used to make a complete UML diagram 
+  and the diagram represents a system.
+- The visual effect of the UML diagram is the most important part of the entire process. All the other elements are used to make it complete.
+- UML includes the following nine diagrams, the details of which are described in the subsequent chapters.
+	1. Class diagram
+	2. Object diagram
+	3. Use case diagram
+	4. Sequence diagram
+	5. Collaboration diagram
+	6. Activity diagram
+	7. Statechart diagram
+	8. Deployment diagram
+	9. Component diagram
+	
+UML - Modeling Types:
+=====================
+There are three important types of UML modeling.
+	- Structural Modeling
+	- Behavioral Modeling
+	- Architectural Modeling
+	
+1. Structural Modeling:
+-----------------------
+Structural modeling captures the static features of a system. They consist of the following −
+	- Classes diagrams
+	- Objects diagrams
+	- Deployment diagrams
+	- Package diagrams
+	- Composite structure diagram
+	- Component diagram
+Structural model represents the framework for the system and this framework is the place where all other components exist. 
+Hence, the class diagram, component diagram and deployment diagrams are part of structural modeling. 
+They all represent the elements and the mechanism to assemble them.
+The structural model never describes the dynamic behavior of the system. Class diagram is the most widely used structural diagram.
+
+2. Behavioral Modeling:
+-----------------------
+Behavioral model describes the interaction in the system. It represents the interaction among the structural diagrams. 
+Behavioral modeling shows the dynamic nature of the system. They consist of the following −
+	- Activity diagrams
+	- Interaction diagrams
+	- Use case diagrams
+All the above show the dynamic sequence of flow in a system.
+
+3. Architectural Modeling:
+--------------------------
+Architectural model represents the overall framework of the system. It contains both structural and behavioral elements of the system. 
+Architectural model can be defined as the blueprint of the entire system. Package diagram comes under architectural modeling.
+
+UML - Standard Diagrams:
+========================
+- The elements are like components which can be associated in different ways to make a complete UML picture, which is known as diagram. 
+  Thus, it is very important to understand the different diagrams to implement the knowledge in real-life systems.
+- Any complex system is best understood by making some kind of diagrams or pictures. These diagrams have a better impact on our understanding. 
+  If we look around, we will realize that the diagrams are not a new concept but it is used widely in different forms in different industries.
+- We prepare UML diagrams to understand the system in a better and simple way. A single diagram is not enough to cover all the aspects of the system. 
+  UML defines various kinds of diagrams to cover most of the aspects of a system.
+- Diagrams are generally made in an incremental and iterative way.
+
+There are two broad categories of diagrams and they are again divided into subcategories −
+A. Structural Diagrams:
+-----------------------
+The structural diagrams represent the static aspect of the system. 
+These static aspects represent those parts of a diagram, which forms the main structure and are therefore stable.
+These static parts are represented by classes, interfaces, objects, components, and nodes. 
+The four structural diagrams are −
+	- Class diagram
+	- Object diagram
+	- Component diagram
+	- Deployment diagram
+	
+B. Behavioral Diagrams:
+-----------------------
+Any system can have two aspects, static and dynamic. So, a model is considered as complete when both the aspects are fully covered.
+Behavioral diagrams basically capture the dynamic aspect of a system. Dynamic aspect can be further described as the changing/moving parts of a system.
+UML has the following five types of behavioral diagrams −
+	- Use case diagram
+	- Sequence diagram
+	- Collaboration diagram
+	- Statechart diagram
+	- Activity diagram
+	
+1. Class Diagram:
+-----------------
+- Class diagrams are the most common diagrams used in UML. 
+- Class diagram consists of classes, interfaces, associations, and collaboration. 
+- Class diagrams basically represent the object-oriented view of a system, which is static in nature.
+- Active class is used in a class diagram to represent the concurrency of the system.
+- Class diagram represents the object orientation of a system. Hence, it is generally used for development purpose. 
+  This is the most widely used diagram at the time of system construction.
+
+2. Object Diagram:
+------------------
+- Object diagrams can be described as an instance of class diagram. Thus, these diagrams are more close to real-life scenarios where we implement a system.
+- Object diagrams are a set of objects and their relationship is just like class diagrams. They also represent the static view of the system.
+- The usage of object diagrams is similar to class diagrams but they are used to build prototype of a system from a practical perspective.
+
+3. Component Diagram:
+---------------------
+- Component diagrams represent a set of components and their relationships. 
+- These components consist of classes, interfaces, or collaborations. Component diagrams represent the implementation view of a system.
+- During the design phase, software artifacts (classes, interfaces, etc.) of a system are arranged in different groups depending upon their relationship. 
+  Now, these groups are known as components.
+- Finally, it can be said component diagrams are used to visualize the implementation.
+
+4. Deployment Diagram:
+----------------------
+- Deployment diagrams are a set of nodes and their relationships. These nodes are physical entities where the components are deployed.
+- Deployment diagrams are used for visualizing the deployment view of a system. This is generally used by the deployment team.
+
+Note:− If the above descriptions and usages are observed carefully then it is very clear that all the diagrams have some relationship with one another. 
+       Component diagrams are dependent upon the classes, interfaces, etc. which are part of class/object diagram. 
+       Again, the deployment diagram is dependent upon the components, which are used to make component diagrams.
+	   
+5. Use Case Diagram:
+--------------------
+- Use case diagrams are a set of use cases, actors, and their relationships. They represent the use case view of a system.
+- A use case represents a particular functionality of a system. Hence, use case diagram is used to describe the relationships among the functionalities 
+  and their internal/external controllers. These controllers are known as actors.
+
+6. Sequence Diagram:
+--------------------
+- A sequence diagram is an interaction diagram. From the name, it is clear that the diagram deals with some sequences, which are the sequence of 
+  messages flowing from one object to another.
+- Interaction among the components of a system is very important from implementation and execution perspective. 
+  Sequence diagram is used to visualize the sequence of calls in a system to perform a specific functionality.
+
+7. Collaboration Diagram:
+--------------------------
+- Collaboration diagram is another form of interaction diagram. 
+- It represents the structural organization of a system and the messages sent/received. 
+- Structural organization consists of objects and links.
+- The purpose of collaboration diagram is similar to sequence diagram. 
+  However, the specific purpose of collaboration diagram is to visualize the organization of objects and their interaction.
+
+8. Statechart Diagram:
+----------------------
+- Any real-time system is expected to be reacted by some kind of internal/external events. These events are responsible for state change of the system.
+- Statechart diagram is used to represent the event driven state change of a system. It basically describes the state change of a class, interface, etc.
+- State chart diagram is used to visualize the reaction of a system by internal/external factors.
+
+9. Activity Diagram:
+--------------------
+- Activity diagram describes the flow of control in a system. 
+  It consists of activities and links. The flow can be sequential, concurrent, or branched.
+- Activities are nothing but the functions of a system. Numbers of activity diagrams are prepared to capture the entire flow in a system.
+- Activity diagrams are used to visualize the flow of controls in a system. This is prepared to have an idea of how the system will work when executed.
+
+Note:− Dynamic nature of a system is very difficult to capture. UML has provided features to capture the dynamics of a system from different angles. 
+       Sequence diagrams and collaboration diagrams are isomorphic, hence they can be converted from one another without losing any information. 
+	   This is also true for Statechart and activity diagram.
+	   
+UML - Basic Notations:
+======================
+- UML is popular for its diagrammatic notations. We all know that UML is for visualizing, specifying, constructing and documenting the components of 
+  software and non-software systems. Hence, visualization is the most important part which needs to be understood and remembered.
+- UML notations are the most important elements in modeling. Efficient and appropriate use of notations is very important for making a complete and 
+  meaningful model. The model is useless, unless its purpose is depicted properly.
+- Different notations are available for things and relationships. UML diagrams are made using the notations of things and relationships. 
+  Extensibility is another important feature which makes UML more powerful and flexible.
+  
+Structural Things:
+------------------
+Graphical notations used in structural things are most widely used in UML. These are considered as the nouns of UML models.	 
+Following are the list of structural things.
+	- Classes
+	- Object
+	- Interface
+	- Collaboration
+	- case
+	- Active classes
+	- Components
+	- Nodes
+	
+Behavioral Things:
+------------------
+Dynamic parts are one of the most important elements in UML. 
+UML has a set of powerful features to represent the dynamic part of software and non-software systems. 
+These features include interactions and state machines.
+Interactions can be of two types −
+	- Sequential (Represented by sequence diagram)
+	- Collaborative (Represented by collaboration diagram)
+
+Grouping Things:
+----------------
+Organizing the UML models is one of the most important aspects of the design. 
+In UML, there is only one element available for grouping and that is package.
+
+Annotational Things:
+--------------------
+In any diagram, explanation of different elements and their functionalities are very important. 
+Hence, UML has notes notation to support this requirement.
+
+Relationships:
+--------------
+A model is not complete unless the relationships between elements are described properly. The Relationship gives a proper meaning to a UML model. 
+Following are the different types of relationships available in UML.
+	- Dependency
+	- Association
+	- Generalization
+	- Extensibility
