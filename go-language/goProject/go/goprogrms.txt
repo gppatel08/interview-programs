@@ -226,9 +226,9 @@ Total Sum :  75
 /* Closures
    Go supports anonymous functions, which can form closures. Anonymous functions are useful when you want to define a function inline 
    without having to name it.
-   This function intSeq returns another function, which we define anonymously in the body of intSeq. 
+   This function intReturn returns another function, which we define anonymously in the body of intReturn. 
    The returned function closes over the variable i to form a closure.
-   We call intSeq, assigning the result (a function) to nextInt. This function value captures its own i value, 
+   We call intReturn, assigning the result (a function) to nextInt. This function value captures its own i value, 
    which will be updated each time we call nextInt.
    See the effect of the closure by calling nextInt a few times.
    To confirm that the state is unique to that particular function, create and test a new one.
@@ -1669,3 +1669,176 @@ a
 b
 c
 -------------------------------------------
+
+package main
+import "fmt"
+
+func piramid_one(input int) {
+	var i, j int
+	input = 5
+  	for i=1; i <= input; i++ {
+  		for j = 1; j <= i; j++ {
+			fmt.Printf("%d ", j)
+		}
+		fmt.Println()
+  	}
+}
+
+func piramid_two(input int) {
+	var i, j int
+	input = 5
+  	for i=1; i <= input; i++ {
+  		for j = 1; j <= i; j++ {
+			fmt.Printf("%d ", j)
+		}
+		
+		for j = i - 1; j > 0; j-- {
+			fmt.Printf("%d ", j)
+		}
+		fmt.Println()
+  	}
+}
+
+func peack_element(slice_elem []int) {
+	var index int
+	var s_len int 
+	s_len = len(slice_elem) - 1
+	for index = 1; index < s_len; index++ {
+		if slice_elem[index - 1] <  slice_elem[index] && slice_elem[index] > slice_elem[index + 1] {
+			fmt.Printf("PeakLeft[%d] < %d > PeakRight[%d]\n", slice_elem[index - 1], slice_elem[index], slice_elem[index + 1])
+		}
+	}
+}
+
+func share_purchage_sell(share_prices []int, purchage_price int) {
+	var purchage_index_exist bool = false
+	var purchage_slice_index int = 0
+	var sell_index_exist bool = false
+	var sell_slice_index int = 0
+	var sell_price int
+	for purchage_index, purchage_value := range share_prices {
+		if purchage_value == purchage_price {
+			purchage_slice_index = purchage_index
+			sell_price = purchage_value 
+			purchage_index_exist = true
+		}
+		
+		if purchage_index_exist == true {
+			if purchage_value > sell_price {
+				sell_price = purchage_value 
+				sell_slice_index = purchage_index
+				sell_index_exist = true
+			}
+		}
+	}
+	
+	if purchage_index_exist == false {
+		fmt.Println("Purchase price is not exist in slice.!")
+		return
+	}
+	
+	if sell_index_exist == false {
+		fmt.Println("profitable sell price is not exist in slice.!")
+		return
+	}
+	
+	fmt.Printf("Purchase[%d] [%d] : Sell[%d] [%d]\n", 
+	purchage_slice_index , share_prices[purchage_slice_index], sell_slice_index, share_prices[sell_slice_index])  
+}
+
+func main() {
+	piramid_one(5)	
+	fmt.Println()
+	piramid_two(5)
+	s_data := []int{2, 3, 12, 4, 7, 8, 5, 9, 10}
+	peack_element(s_data)
+	share_purchage_sell(s_data, 7)
+}
+/*OUTPUT:
+1 
+1 2 
+1 2 3 
+1 2 3 4 
+1 2 3 4 5 
+
+1 
+1 2 1 
+1 2 3 2 1 
+1 2 3 4 3 2 1 
+1 2 3 4 5 4 3 2 1 
+PeakLeft[3] < 12 > PeakRight[4]
+PeakLeft[7] < 8 > PeakRight[5]
+Purchase[4] [7] : Sell[8] [10]
+*/
+
+package main
+import (
+	"fmt"
+	"reflect"
+)
+
+type Geometry interface {
+	area() float64
+}
+
+type Square struct {
+	side float64
+}
+
+type Rectangle struct {
+	width float64
+	height float64
+}
+
+func (c Square) area() float64 {
+	return c.side * c.side 
+}
+
+func (r Rectangle) area() float64 {
+	return r.height * r.width
+}
+
+func logging(str string) func(string) {
+	fmt.Println(str)
+	return func(s string) {
+		fmt.Println(s)
+	}
+}
+
+func GeometryArea(g Geometry) {
+	defer logging("Starting.!") ("Stopping!\n")
+	if reflect.TypeOf(g).Kind() == reflect.Struct {
+		fmt.Println("object g is struct type.")
+	}
+	switch x := g.(type) {
+		case Rectangle:
+			fmt.Println("Rectangle Area: ", x.area())
+			if reflect.TypeOf(x).Kind() == reflect.Struct {
+				fmt.Println("object x is struct type.")
+			}
+		case Square:
+			fmt.Println("Square Area   : ", x.area())
+	}
+}
+
+func main() {
+	r1 := Rectangle{width:5, height:20}
+	s1 := Square{side:20}
+	GeometryArea(r1) 
+	GeometryArea(s1)
+	fmt.Println("Main Done.!")
+}
+/*OUTPUT:
+Starting.!
+object g is struct type.
+Rectangle Area:  100
+object x is struct type.
+Stopping!
+
+Starting.!
+object g is struct type.
+Square Area   :  400
+Stopping!
+
+Main Done.!
+*/

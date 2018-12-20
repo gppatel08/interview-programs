@@ -35,6 +35,68 @@ http://www.imooc.com/learn/407
 https://godoc.org/
 GoDoc hosts documentation for Go packages on Bitbucket, GitHub, Google Project Hosting and Launchpad.
 
+NOTE: Go is a garbage collected programming language which means memory is cleaned up automatically when nothing refers to it anymore.
+
+package main
+import (
+	"fmt"
+)
+
+func swap(_x, _y *int) {
+	var temp int
+	temp = *_x	// temp -<- 10 -<- 0x11111
+	*_x = *_y	// 0x11111 -<- 20 -<- 0x22222
+	*_y = temp	// 0x22222 -<- 10
+}
+
+func main() {
+	x := new(int) 
+	y := new(int)	
+	*x = 10		// 0x11111 -> 10
+	*y = 20		// 0x22222 -> 20
+	fmt.Println("X : ", *x, " , Y : ", *y)
+	swap(x, y)
+	fmt.Println("X : ", *x, " , Y : ", *y)
+	fmt.Println("Main Done.!")
+}
+/*OUTPUT:
+X :  10  , Y :  20
+X :  20  , Y :  10
+Main Done.!
+*/
+
+package main
+import (
+	"fmt"
+	"unsafe"
+)
+type X struct {}
+type Y struct { x float64 }
+type Z struct { // Word Size is 4, and string take 2 word size
+	_x bool		// size = 1
+	_y bool		// size = 2
+	_z bool 	// size = 3 + 1(padding byte)
+	_c string	// size = 4 + 8  
+	_d string	// size = 12 + 8 = 20
+	
+}
+
+func main() {
+	var x X
+	var y Y
+	var z Z
+	fmt.Println("sizeof: ", unsafe.Sizeof(x))
+	fmt.Println("sizeof: ", unsafe.Sizeof(y))
+	fmt.Println("sizeof: ", unsafe.Sizeof(z))
+	fmt.Println("Main Done.!")
+}
+/*OUTPUT:
+sizeof:  0
+sizeof:  8
+sizeof:  20
+Main Done.!
+*/
+--------------------------------------------
 package main
 import (
 	"log"
