@@ -1,0 +1,1551 @@
+/*
+Vector in C++ STL:
+==================
+- Vectors are same as dynamic arrays with the ability to resize itself automatically when an element is inserted or deleted, 
+  with their storage being handled automatically by the container. 
+- Vector elements are placed in contiguous storage so that they can be accessed and traversed using iterators. 
+- In vectors, data is inserted at the end. Inserting at the end takes differential time, as sometimes there may be a need of extending the array. 
+- Removing the last element takes only constant time because no resizing happens. 
+- Inserting and erasing at the beginning or in the middle is linear in time.
+
+1. Iterators:
+-------------
+    begin() 	– Returns an iterator pointing to the first element in the vector
+    end() 		– Returns an iterator pointing to the theoretical element that follows the last element in the vector
+    rbegin()	– Returns a reverse iterator pointing to the last element in the vector (reverse beginning). It moves from last to first element
+    rend() 		– Returns a reverse iterator pointing to the theoretical element preceding the first element in the vector (considered as reverse end)
+    cbegin()	– Returns a constant iterator pointing to the first element in the vector.
+    cend() 		– Returns a constant iterator pointing to the theoretical element that follows the last element in the vector.
+    crbegin() 	– Returns a constant reverse iterator pointing to the last element in the vector (reverse beginning). It moves from last to first element
+    crend() 	– Returns a constant reverse iterator pointing to the theoretical element preceding the first element in the vector (considered as reverse end)
+
+2. Capacity:
+------------
+    size() 			– Returns the number of elements in the vector.
+    max_size() 		– Returns the maximum number of elements that the vector can hold.
+    capacity() 		– Returns the size of the storage space currently allocated to the vector expressed as number of elements.
+    resize() 		– Resizes the container so that it contains ‘g’ elements.
+    empty() 		– Returns whether the container is empty.
+    shrink_to_fit() – Reduces the capacity of the container to fit its size and destroys all elements beyond the capacity.
+    reserve() 		– Requests that the vector capacity be at least enough to contain n elements.
+
+3. Element access:
+------------------
+    reference operator [g] 	– Returns a reference to the element at position ‘g’ in the vector
+    at(g) 					– Returns a reference to the element at position ‘g’ in the vector
+    front() 				– Returns a reference to the first element in the vector
+    back() 					– Returns a reference to the last element in the vector
+    data() 					– Returns a direct pointer to the memory array used internally by the vector to store its owned elements
+	
+4. Modifiers:
+-------------
+    assign() 		– It assigns new value to the vector elements by replacing old ones
+    push_back() 	– It push the elements into a vector from the back
+    pop_back() 		– It is used to pop or remove elements from a vector from the back.
+    insert() 		– It inserts new elements before the element at the specified position
+    erase() 		– It is used to remove elements from a container from the specified position or range.
+    swap() 			– It is used to swap the contents of one vector with another vector of same type and size.
+    clear() 		– It is used to remove all the elements of the vector container
+    emplace() 		– It extends the container by inserting new element at position
+    emplace_back() 	– It is used to insert a new element into the vector container, the new element is added to the end of the vector
+*/
+
+#include <iostream> 
+#include <vector> 
+using namespace std; 
+  
+int main() { 
+    vector<int> vi_exm; 
+    for (int i = 1; i <= 5; i++) 
+        vi_exm.push_back(i); 
+  
+    cout << "Output of begin and end     : "; 
+    for (auto it = vi_exm.begin(); it != vi_exm.end(); ++it) {
+        cout << *it << " "; 
+        *it += 1;
+    }
+    cout << "\nOutput of cbegin and cend   : "; 
+    for (auto cit = vi_exm.cbegin(); cit != vi_exm.cend(); ++cit) {
+        cout << *cit << " "; 
+        //*cit += 1; // Error complie-time since cit is constatnt interator
+    }
+    cout << "\nOutput of rbegin and rend   : "; 
+    for (auto rit = vi_exm.rbegin(); rit != vi_exm.rend(); ++rit) {
+        cout << *rit << " "; 
+        *rit += 1;
+    }
+    cout << "\nOutput of crbegin and crend : "; 
+    for (auto crit = vi_exm.crbegin(); crit != vi_exm.crend(); ++crit) {
+        cout << *crit << " "; 
+        //*crit += 1;// Error complie-time since crit is constatnt interator
+    }
+    
+    cout << "\nSize     : " << vi_exm.size(); 
+    cout << "\nCapacity : " << vi_exm.capacity(); 
+    cout << "\nMax_Size : " << vi_exm.max_size(); 
+    
+    // resizes the vector size to 4 
+    vi_exm.resize(4); 
+    // prints the vector size after resize() 
+    cout << "\nSize     : " << vi_exm.size(); 
+    cout << "\nOutput of begin and end     : "; 
+    for (auto it = vi_exm.begin(); it != vi_exm.end(); it++) {
+        cout << *it << " "; 
+    }
+    // Shrinks the vector 
+    vi_exm.shrink_to_fit(); 
+    cout << "\nOutput of begin and end     : "; 
+    for (auto it = vi_exm.begin(); it != vi_exm.end(); it++) {
+        cout << *it << " "; 
+    }
+    // checks if the vector is empty or not 
+    if (vi_exm.empty() == false) cout << "\nVector is not empty.!"; 
+    else cout << "\nVector is empty.!"; 
+    
+    cout << "\nReference operator [g] : vi_exm[2] = " << vi_exm[2]; 
+    cout << "\nat : vi_exm.at(0) = " << vi_exm.at(0); 
+    cout << "\nfront() : vi_exm.front() = " << vi_exm.front(); 
+    cout << "\nback()  : vi_exm.back()  = " << vi_exm.back(); 
+    // pointer to the first element 
+    int* pos = vi_exm.data(); 
+    cout << "\nThe first element is : " << *pos << endl; 
+    
+    // Assign vector 
+    vector<int> vec_modi; 
+    // fill the array with 10 five times 
+    vec_modi.assign(5, 10); 
+    cout << "\nOutput of begin and end     : "; 
+    for (auto it = vec_modi.begin(); it != vec_modi.end(); it++) {
+        cout << *it << " "; 
+    }
+    // inserts 15 to the last position 
+    vec_modi.push_back(15); 
+    int n = vec_modi.size(); 
+    cout << "\nThe last element is         : " << vec_modi[n - 1]; 
+    // removes last element 
+    vec_modi.pop_back(); 
+    cout << "\nOutput of begin and end     : "; 
+    for (auto it = vec_modi.begin(); it != vec_modi.end(); it++) {
+        cout << *it << " "; 
+    }
+    // inserts 5 at the beginning 
+    vec_modi.insert(vec_modi.begin(), 5); 
+    cout << "\nThe first element is        : " << vec_modi[0]; 
+    // removes the first element 
+    vec_modi.erase(vec_modi.begin()); 
+    cout << "\nThe first element is        : " << vec_modi[0]; 
+    // inserts at the beginning 
+    vec_modi.emplace(vec_modi.begin(), 5); 
+    cout << "\nThe first element is        : " << vec_modi[0]; 
+    // Inserts 20 at the end 
+    vec_modi.emplace_back(20); 
+    n = vec_modi.size(); 
+    cout << "\nThe last element is         : " << vec_modi[n - 1]; 
+    // erases the vector 
+    vec_modi.clear(); 
+    cout << "\nVector size after erase()   : " << vec_modi.size(); 
+    
+    // fill the array with 10 five times 
+    vec_modi.assign(5, 10);
+    cout << "\nOutput of begin and end vec_modi  : "; 
+    for (auto it = vec_modi.begin(); it != vec_modi.end(); it++) {
+        cout << *it << " "; 
+    }
+    cout << "\nOutput of begin and end vi_exm    : "; 
+    for (auto it = vi_exm.begin(); it != vi_exm.end(); it++) {
+        cout << *it << " "; 
+    }
+    // Swaps vec_modi and vi_exm 
+    vec_modi.swap(vi_exm); 
+    cout << "\nOutput of begin and end vec_modi  : "; 
+    for (auto it = vec_modi.begin(); it != vec_modi.end(); it++) {
+        cout << *it << " "; 
+    }
+    cout << "\nOutput of begin and end vi_exm    : "; 
+    for (auto it = vi_exm.begin(); it != vi_exm.end(); it++) {
+        cout << *it << " "; 
+    }
+    return 0; 
+} 
+/*OUTPUT:
+Output of begin and end     : 1 2 3 4 5                                                                                                                                                       
+Output of cbegin and cend   : 2 3 4 5 6                                                                                                                                                       
+Output of rbegin and rend   : 6 5 4 3 2                                                                                                                                                       
+Output of crbegin and crend : 7 6 5 4 3                                                                                                                                                       
+Size     : 5                                                                                                                                                                                  
+Capacity : 8                                                                                                                                                                                  
+Max_Size : 4611686018427387903                                                                                                                                                                
+Size     : 4                                                                                                                                                                                  
+Output of begin and end     : 3 4 5 6                                                                                                                                                         
+Output of begin and end     : 3 4 5 6                                                                                                                                                         
+Vector is not empty.!                                                                                                                                                                         
+Reference operator [g] : vi_exm[2] = 5                                                                                                                                                        
+at : vi_exm.at(0) = 3                                                                                                                                                                         
+front() : vi_exm.front() = 3                                                                                                                                                                  
+back()  : vi_exm.back()  = 6                                                                                                                                                                  
+The first element is : 3                                                                                                                                                                      
+                                                                                                                                                                                              
+Output of begin and end     : 10 10 10 10 10                                                                                                                                                  
+The last element is         : 15                                                                                                                                                              
+Output of begin and end     : 10 10 10 10 10                                                                                                                                                  
+The first element is        : 5                                                                                                                                                               
+The first element is        : 10                                                                                                                                                              
+The first element is        : 5                                                                                                                                                               
+The last element is         : 20                                                                                                                                                              
+Vector size after erase()   : 0                                                                                                                                                               
+Output of begin and end vec_modi  : 10 10 10 10 10                                                                                                                                            
+Output of begin and end vi_exm    : 3 4 5 6                                                                                                                                                   
+Output of begin and end vec_modi  : 3 4 5 6                                                                                                                                                   
+Output of begin and end vi_exm    : 10 10 10 10 10
+*/
+
+/*
+List in C++ Standard Template Library (STL)
+===========================================
+- Lists are sequence containers that allow non-contiguous memory allocation. 
+- As compared to vector, list has slow traversal, but once a position has been found, insertion and deletion are quick. 
+- Normally, when we say a List, we talk about doubly linked list. For implementing a singly linked list, we use forward list.
+
+Functions used with List:
+-------------------------
+    front() 		– Returns the value of the first element in the list.
+    back() 			– Returns the value of the last element in the list .
+    push_front(g) 	– Adds a new element ‘g’ at the beginning of the list .
+    push_back(g) 	– Adds a new element ‘g’ at the end of the list.
+    pop_front() 	– Removes the first element of the list, and reduces size of the list by 1.
+    pop_back() 		– Removes the last element of the list, and reduces size of the list by 1
+    begin()			– begin() function returns an iterator pointing to the first element of the list.  
+    end()			– end() function returns an iterator pointing to the theoretical last element which follows the last element.
+    rbegin() 		– rbegin() returns a reverse iterator which points to the last element of the list. 
+	rend()  		- rend() returns a reverse iterator which points to the position before the beginning of the list.
+    cbegin() 		– cbegin() returns a constant random access iterator which points to the beginning of the list. 
+	cend() 			- cend() returns a constant random access iterator which points to the end of the list.
+    crbegin() 		– crbegin() returns a constant reverse iterator which points to the last element of the list i.e reversed beginning of container. 
+	crend() 		- crend() returns a constant reverse iterator which points to the theoretical element preceding the first element in the list i.e. the reverse end of the list.
+    empty() 		– Returns whether the list is empty(1) or not(0).
+    insert() 		– Inserts new elements in the list before the element at a specified position.
+    erase() 		– Removes a single element or a range of elements from the list.
+    assign() 		– Assigns new elements to list by replacing current elements and resizes the list.
+    remove() 		– Removes all the elements from the list, which are equal to given element.
+    remove_if() 	– Used to remove all the values from the list that correspond true to the predicate or condition given as parameter to the function.
+    reverse() 		– Reverses the list.
+    size() 			– Returns the number of elements in the list.
+    resize()		– Used to resize a list container.
+    sort() 			– Sorts the list in increasing order.
+    max_size() 		– Returns the maximum number of elements a list container can hold.
+    unique() 		– Removes all duplicate consecutive elements from the list.
+    emplace_front() – emplace_front() function is used to insert a new element into the list container, the new element is added to the beginning of the list. 
+	emplace_back() 	- emplace_back() function is used to insert a new element into the list container, the new element is added to the end of the list.
+    clear() 		– clear() function is used to remove all the elements of the list container, thus making it size 0.
+    operator= 		– This operator is used to assign new contents to the container by replacing the existing contents.
+    swap() 			– This function is used to swap the contents of one list with another list of same type and size.
+    splice() 		– Used to transfer elements from one list to another.
+    merge() 		– Merges two sorted lists into one
+    emplace() 		– Extends list by inserting new element at a given position.
+*/
+
+#include <iostream> 
+#include <list> 
+#include <iterator> 
+using namespace std; 
+  
+//function for printing the elements in a list 
+void showlist(list <int> g) { 
+    list <int> :: iterator it; 
+    for(it = g.begin(); it != g.end(); ++it) 
+        cout << ' ' << *it; 
+    cout << '\n'; 
+} 
+  
+int main() { 
+    list <int> gqlist1, gqlist2; 
+    for (int i = 0; i < 10; ++i) { 
+        gqlist1.push_back(i * 2); 
+        gqlist2.push_front(i * 3); 
+    } 
+    cout << "List 1 (gqlist1) is : "; 
+    showlist(gqlist1); 
+  
+    cout << "List 2 (gqlist2) is : "; 
+    showlist(gqlist2); 
+  
+    cout << "gqlist1.front()     : " << gqlist1.front(); 
+    cout << "\ngqlist1.back()      : " << gqlist1.back(); 
+  
+    cout << "\ngqlist1.pop_front() : "; 
+    gqlist1.pop_front(); 
+    showlist(gqlist1); 
+  
+    cout << "gqlist2.pop_back()  : "; 
+    gqlist2.pop_back(); 
+    showlist(gqlist2); 
+  
+    cout << "gqlist1.reverse()   : "; 
+    gqlist1.reverse(); 
+    showlist(gqlist1); 
+  
+    cout << "gqlist2.sort()      : "; 
+    gqlist2.sort(); 
+    showlist(gqlist2); 
+  
+    return 0; 
+} 
+/* OUTPUT:
+List 1 (gqlist1) is :  0 2 4 6 8 10 12 14 16 18                                                                                                                                             
+List 2 (gqlist2) is :  27 24 21 18 15 12 9 6 3 0                                                                                                                                            
+gqlist1.front()     : 0                                                                                                                                                                     
+gqlist1.back()      : 18                                                                                                                                                                    
+gqlist1.pop_front() :  2 4 6 8 10 12 14 16 18                                                                                                                                               
+gqlist2.pop_back()  :  27 24 21 18 15 12 9 6 3                                                                                                                                              
+gqlist1.reverse()   :  18 16 14 12 10 8 6 4 2                                                                                                                                               
+gqlist2.sort()      :  3 6 9 12 15 18 21 24 27
+*/
+
+/*
+Set in C++ Standard Template Library (STL)
+==========================================
+- Sets are a type of associative containers in which each element has to be unique, because the value of the element identifies it. 
+- The value of the element cannot be modified once it is added to the set, though it is possible to remove and add the modified value of that element.
+
+Some basic functions associated with Set:
+-----------------------------------------
+    begin() 	– Returns an iterator to the first element in the set.
+    end() 		– Returns an iterator to the theoretical element that follows last element in the set.
+    size() 		– Returns the number of elements in the set.
+    max_size() 	– Returns the maximum number of elements that the set can hold.
+    empty() 	– Returns whether the set is empty.
+*/
+#include <iostream> 
+#include <set> 
+#include <iterator> 
+using namespace std; 
+  
+int main() { 
+    // empty set container 
+    set <int, greater <int> > gquiz1;         
+  
+    // insert elements in random order 
+    gquiz1.insert(40); 
+    gquiz1.insert(30); 
+    gquiz1.insert(60); 
+    gquiz1.insert(20); 
+    gquiz1.insert(50); 
+    gquiz1.insert(50); // only one 50 will be added to the set 
+    gquiz1.insert(10); 
+  
+    // printing set gquiz1 
+    set <int, greater <int> > :: iterator itr; 
+    cout << "The set gquiz1 is : "; 
+    for (itr = gquiz1.begin(); itr != gquiz1.end(); ++itr) { 
+        cout << ' ' << *itr; 
+    } 
+    cout << endl; 
+  
+    // assigning the elements from gquiz1 to gquiz2 
+    set <int> gquiz2(gquiz1.begin(), gquiz1.end()); 
+  
+    // print all elements of the set gquiz2 
+    cout << "The set gquiz2 after assign from gquiz1 is : "; 
+    for (itr = gquiz2.begin(); itr != gquiz2.end(); ++itr) { 
+        cout << ' ' << *itr; 
+    } 
+    cout << endl; 
+  
+    // remove all elements up to 30 in gquiz2 
+    cout << "gquiz2 after removal of elements less than 30 : "; 
+    gquiz2.erase(gquiz2.begin(), gquiz2.find(30)); 
+    for (itr = gquiz2.begin(); itr != gquiz2.end(); ++itr) { 
+        cout << ' ' << *itr; 
+    } 
+  
+    // remove element with value 50 in gquiz2 
+    int num; 
+    num = gquiz2.erase (50); 
+    cout << "\ngquiz2.erase(50) : "; 
+    cout << num << " removed \t" ; 
+    for (itr = gquiz2.begin(); itr != gquiz2.end(); ++itr) { 
+        cout << ' ' << *itr; 
+    } 
+    cout << endl; 
+    //lower bound and upper bound for set gquiz1 
+    cout << "gquiz1.lower_bound(40) : " << *gquiz1.lower_bound(40) << endl; 
+    cout << "gquiz1.upper_bound(40) : " << *gquiz1.upper_bound(40) << endl; 
+  
+    //lower bound and upper bound for set gquiz2 
+    cout << "gquiz2.lower_bound(40) : " << *gquiz2.lower_bound(40) << endl; 
+    cout << "gquiz2.upper_bound(40) : " << *gquiz2.upper_bound(40) << endl; 
+  
+    return 0; 
+  
+} 
+/*OUTPUT:
+The set gquiz1 is :  60 50 40 30 20 10                                                                                                                                                                                                                                                                                                                                                    
+The set gquiz2 after assign from gquiz1 is :  10 20 30 40 50 60                                                                                                                                                                                                                                                                                                                         
+gquiz2 after removal of elements less than 30 :  30 40 50 60                                                                                                                                  
+gquiz2.erase(50) : 1 removed     30 40 60                                                                                                                                                     
+gquiz1.lower_bound(40) : 40                                                                                                                                                                   
+gquiz1.upper_bound(40) : 30                                                                                                                                                                   
+gquiz2.lower_bound(40) : 40                                                                                                                                                                   
+gquiz2.upper_bound(40) : 60
+*/
+
+/*
+Map in C++ Standard Template Library (STL):
+===========================================
+- Maps are associative containers that store elements in a mapped fashion. 
+- Each element has a key value and a mapped value. 
+- No two mapped values can have same key values.
+
+Some basic functions associated with Map:
+-----------------------------------------
+	begin() 			– Returns an iterator to the first element in the map
+	end() 				– Returns an iterator to the theoretical element that follows last element in the map
+	size() 				– Returns the number of elements in the map
+	max_size() 			– Returns the maximum number of elements that the map can hold
+	empty() 			– Returns whether the map is empty
+	pair insert(k, v) 	– Adds a new element to the map with (keyvalue, mapvalue)
+	erase(iterator pos) – Removes the element at the position pointed by the iterator
+	erase(const keyval)	– Removes the key value ‘keyval’ from the map
+	clear() 			– Removes all the elements from the map
+
+List of all functions of Map:
+-----------------------------
+    map insert() 		– Insert elements with a particular key in the map container. .
+    map count() 		– Returns the number of matches to element with key value ‘g’ in the map.
+    map equal_range() 	– Returns an iterator of pairs. The pair refers to the bounds of a range that includes all the elements in the container which have a key equivalent to k.
+    map erase() 		– Used to erase element from the container.
+    map rend() 			– Returns a reverse iterator pointing to the theoretical element right before the first key-value pair in the map(which is considered its reverse end).
+    map rbegin() 		– Returns a reverse iterator which points to the last element of the map.
+    map find() 			– Returns an iterator to the element with key value ‘g’ in the map if found, else returns the iterator to end.
+    map crbegin()		– crbegin() returns a constant reverse iterator referring to the last element in the map container. 
+	map crend() 		- crend() returns a constant reverse iterator pointing to the theoretical element before the first element in the map.
+    map cbegin()		– cbegin() returns a constant iterator referring to the first element in the map container. 
+    map cend() 			- cend() returns a constant iterator pointing to the theoretical element that follows last element in the multimap.
+	map emplace() 		– Inserts the key and its element in the map container.
+    map max_size()		– Returns the maximum number of elements a map container can hold.
+    map upper_bound() 	– Returns an iterator to the first element that is equivalent to mapped value with key value ‘g’ or definitely will go after the element with key value ‘g’ in the map
+    map operator= 		– Assigns contents of a container to a different container, replacing its current content.
+    map lower_bound() 	– Returns an iterator to the first element that is equivalent to mapped value with key value ‘g’ or definitely will not go before the element with key value ‘g’ in the map.
+    map emplace_hint() 	– Inserts the key and its element in the map container with a given hint.
+    map value_comp() 	– Returns the object that determines how the elements in the map are ordered (‘<' by default).
+    map key_comp() 		– Returns the object that determines how the elements in the map are ordered (‘<' by default).
+    map::size() 		– Returns the number of elements in the map.
+    map::empty() 		– Returns whether the map is empty.
+    map::begin() 		– begin() returns an iterator to the first element in the map. 
+	map::end() 			- end() returns an iterator to the theoretical element that follows last element in the map
+    map::operator[] 	– This operator is used to reference the element present at position given inside the operator.
+    map::clear() 		– Removes all the elements from the map.
+    map::at() 			– at() function is used to return the reference to the element associated with the key k. 
+	map::swap() 		- swap() function is used to exchange the contents of two maps but the maps must be of same type, although sizes may differ.
+*/
+
+#include <iostream> 
+#include <iterator> 
+#include <map> 
+using namespace std; 
+  
+int main() { 
+  
+    // empty map container 
+    map<string, int> mquiz1; 
+  
+    // insert elements in random order 
+    mquiz1.insert(pair<string, int>("alpha", 40)); 
+    mquiz1.insert(pair<string, int>("beta", 30)); 
+    mquiz1.insert(pair<string, int>("gama", 60)); 
+    mquiz1.insert(pair<string, int>("yoyo", 20)); 
+
+    cout << "The map mquiz1 is : \n"; 
+    cout << "\tKEY\tELEMENT\n"; 
+    for (map<string, int>::iterator itr = mquiz1.begin(); itr != mquiz1.end(); ++itr) { 
+        cout << '\t' << itr->first << '\t' << itr->second << endl; 
+    } 
+    cout << endl; 
+    // assigning the elements from mquiz1 to mquiz2 
+    map<string, int> mquiz2(mquiz1.begin(), mquiz1.end()); 
+    cout << "The map mquiz2 is : \n"; 
+    cout << "\tKEY\tELEMENT\n"; 
+    for (map<string, int>::iterator itr = mquiz2.begin(); itr != mquiz2.end(); ++itr) { 
+        cout << '\t' << itr->first << '\t' << itr->second << endl; 
+    } 
+    cout << endl; 
+    // remove all elements up to element with key=3 in mquiz2 
+    cout << "mquiz2 after removal of elements less than key=\"gama\" : \n"; 
+    mquiz2.erase(mquiz2.begin(), mquiz2.find("gama")); 
+    cout << "The map mquiz2 is : \n"; 
+    cout << "\tKEY\tELEMENT\n"; 
+    for (map<string, int>::iterator itr = mquiz2.begin(); itr != mquiz2.end(); ++itr) { 
+        cout << '\t' << itr->first << '\t' << itr->second << endl; 
+    } 
+    cout << endl;
+    // remove all elements with key = 4 
+    int num; 
+    num = mquiz2.erase("yoyo"); 
+    cout << "\mquiz2.erase(\"yoyo\") : "; 
+    cout << num << " removed \n"; 
+    
+    // initialize container 
+    map<int, int> mp; 
+  
+    // insert elements in random order 
+    mp.insert({ 12, 30 }); 
+    mp.insert({ 11, 10 }); 
+    mp.insert({ 15, 50 }); 
+    mp.insert({ 14, 40 }); 
+
+    // when key present key = 12
+    cout << "mp.lower_bound(12) : " << "\tKEY = "; 
+    cout << mp.lower_bound(12)->first << '\t'; 
+    cout << "\tELEMENT = " << mp.lower_bound(12)->second << endl; 
+    
+    // when KEY is not present points to next greater after KEY.  Example: key = 10
+    cout << "mp.lower_bound(10) : " << "\tKEY = "; 
+    cout << mp.lower_bound(10)->first << '\t'; 
+    cout << "\tELEMENT = " << mp.lower_bound(10)->second << endl; 
+    
+    // when key is exceeds the maximum key, so size of mp is returned as key and value as 0 Example key = 20. 
+    cout << "mp.lower_bound(20) : " << "\tKEY = "; 
+    cout << mp.lower_bound(20)->first << '\t'; 
+    cout << "\tELEMENT = " << mp.lower_bound(20)->second << endl; 
+    
+    // when key present key = 14
+    cout << "mp.upper_bound(14) : " << "\tKEY = "; 
+    cout << mp.upper_bound(14)->first << '\t'; 
+    cout << "\tELEMENT = " << mp.upper_bound(14)->second << endl; 
+    
+    // when key NOT present key = 13
+    cout << "mp.upper_bound(13) : " << "\tKEY = "; 
+    cout << mp.upper_bound(13)->first << '\t'; 
+    cout << "\tELEMENT = " << mp.upper_bound(13)->second << endl;
+         
+    // when key is exceeds the maximum key, so size of mp is returned as key and value as 0 Example key = 20. 
+    cout << "mp.upper_bound(20) : " << "\tKEY = "; 
+    cout << mp.upper_bound(20)->first << '\t'; 
+    cout << "\tELEMENT = " << mp.upper_bound(20)->second << endl;
+    return 0; 
+} 
+/*OUTPUT:
+The map mquiz1 is :                                                                                                                                                                           
+        KEY     ELEMENT                                                                                                                                                                       
+        alpha   40                                                                                                                                                                            
+        beta    30                                                                                                                                                                            
+        gama    60                                                                                                                                                                            
+        yoyo    20                                                                                                                                                                            
+                                                                                                                                                                                              
+The map mquiz2 is :                                                                                                                                                                           
+        KEY     ELEMENT                                                                                                                                                                       
+        alpha   40                                                                                                                                                                            
+        beta    30                                                                                                                                                                            
+        gama    60                                                                                                                                                                            
+        yoyo    20                                                                                                                                                                            
+                                                                                                                                                                                              
+mquiz2 after removal of elements less than key="gama" :                                                                                                                                       
+The map mquiz2 is :                                                                                                                                                                           
+        KEY     ELEMENT                                                                                                                                                                       
+        gama    60                                                                                                                                                                            
+        yoyo    20                                                                                                                                                                            
+                                                                                                                                                                                              
+mquiz2.erase("yoyo") : 1 removed                                                                                                                                                              
+mp.lower_bound(12) :    KEY = 12                ELEMENT = 30                                                                                                                                  
+mp.lower_bound(10) :    KEY = 11                ELEMENT = 10                                                                                                                                  
+mp.lower_bound(20) :    KEY = 4         ELEMENT = 0                                                                                                                                           
+mp.upper_bound(14) :    KEY = 15                ELEMENT = 50                                                                                                                                  
+mp.upper_bound(13) :    KEY = 14                ELEMENT = 40                                                                                                                                  
+mp.upper_bound(20) :    KEY = 4         ELEMENT = 0
+*/
+
+/*
+map And multimap:
+=================
+- The default behavior of these data structures is to store elements in ascending order. 
+- How to ensure reverse order or descending order when inserting elements in map and multimap.
+	- The idea is to greater function when an instance of map/multimap.
+
+Descending order in map:
+A map stores key value pairs. A self-balancing-BST (typically Red-Black tree) is used to implement it.
+Example:
+	Input :  (10, "queen"), (20, "rose"),  (5," lion")
+	Output : (20, "rose"),  (10, "queen"), (5," lion")
+*/
+// C++ program makes a map to store elements in descending order. 
+#include<map> 
+#include<iostream>
+using namespace std; 
+  
+int main() { 
+    // Here if greater<int> is used to make sure that elements are stored in descending order of keys. 
+    map<int, string, greater <int> > mymap; 
+  
+    // Inserting the elements one by one 
+    mymap.insert(make_pair(10, "queen")); 	// same as this -> mymap.insert(pair<int, string>(10, "queen")); 
+    mymap.insert(make_pair(20, "rose")); 
+    mymap.insert(make_pair(5," lion")); 
+    for (map<int,string> :: iterator it=mymap.begin() ; it!=mymap.end() ; it++) {
+        cout << "(" << (*it).first << ", " << (*it).second << ")" << endl; 
+    }
+    return 0; 
+}
+/*OUTPUT:
+(20, rose)                                                                                                                                                                                  
+(10, queen)                                                                                                                                                                                 
+(5,  lion)
+*/
+
+/*
+Descending order in multimap:
+-----------------------------
+- Multimap is similar to map with an addition that multiple elements can have same keys. 
+- Rather than each element being unique, the key value and mapped value pair has to be unique in this case.
+Example:
+	Input  :  (10, "queen"), (20, "rose"),  (5," lion"), (20, "van"), (20, "watch"), (5, "joker")
+	Output : (20, rose), (20, van), (20, watch), (10, queen), (5,  lion), (5, joker)
+	
+Some Basic Functions associated with multimap:
+----------------------------------------------
+    begin() 	– Returns an iterator to the first element in the multimap
+    end() 		– Returns an iterator to the theoretical element that follows last element in the multimap
+    size() 		– Returns the number of elements in the multimap
+    max_size() 	– Returns the maximum number of elements that the multimap can hold
+    empty() 	– Returns whether the multimap is empty
+    pair<int,int> insert(keyvalue,multimapvalue) – Adds a new element to the multimap
+
+*/
+
+// C++ program makes a multimap to store elements in descending order. 
+#include<map> 
+#include<iostream>
+using namespace std; 
+  
+int main() { 
+    // Here if greater<int> is used to make sure that elements are stored in descending order of keys. 
+    multimap<int, string, greater <int> > mymap; 
+  
+    // Inserting the elements one by one 
+    mymap.insert(make_pair(10, "queen")); 	// same as this -> mymap.insert(pair<int, string>(10, "queen")); 
+    mymap.insert(make_pair(20, "rose")); 
+    mymap.insert(make_pair(5," lion")); 
+    mymap.insert(make_pair(20, "van")); // Duplicates allowed 
+    mymap.insert(make_pair(20, "watch")); 
+    mymap.insert(make_pair(5,"joker")); 
+
+    for (multimap<int,string> :: iterator it=mymap.begin() ; it!=mymap.end() ; it++) {
+        cout << "(" << (*it).first << ", " << (*it).second << ")" << endl; 
+    }
+    return 0; 
+}
+/*OUTPUT:
+(20, rose)                                                                                                                                                                                  
+(20, van)                                                                                                                                                                                   
+(20, watch)                                                                                                                                                                                 
+(10, queen)                                                                                                                                                                                 
+(5,  lion)                                                                                                                                                                                  
+(5, joker)
+*/
+
+/*
+
+set vs map:
+===========
+- set and map in STL are similar in the sense that they both use Red Black Tree (A self balancing BST). 
+- Note that the time complexities of search, insert and delete are O(Log n).
+
+Differences:
+------------
+- The difference is set is used to store only keys while map is used to store key value pairs. 
+- For example consider in the problem of printing sorted distinct elements, we use set as there is value needed for a key. 
+- While if we change the problem to print frequencies of distinct sorted elements, we use map. We need map to store array values as key and frequencies as value.
+
+Variations of set and map:
+--------------------------
+- Set and Map, both stores unique values and sorted values as well. But If we don’t have such a requirement, we use multiset/multimap and unordered_set/unoredred_map.
+Multimap: Multimap doesn’t allow elements to stored by indexing.
+*/
+
+// CPP program to demonstrate working of Set && Multiset && unoerdered_set
+// CPP program to demonstrate working of Map && Multimap && unoerdered_set
+#include<set> 
+#include<unordered_set> 
+#include<unordered_map> 
+#include<iostream>
+using namespace std; 
+  
+int main() { 
+    set<int> s1; 
+    s1.insert(2); 
+    s1.insert(5); 
+    s1.insert(3); 
+    s1.insert(6); 
+  
+    cout << "Elements in set:\n"; 
+    for (auto it : s1) 
+        cout << it << " "; // Sorted 
+  
+    multiset<int> ms; 
+    ms.insert(1); 
+    ms.insert(3); 
+    ms.insert(4); 
+    ms.insert(2); 
+    ms.insert(2); 
+  
+    cout << "\nElements in Multiset:\n"; 
+    for (auto it : ms) 
+        cout << it << " "; 
+        
+    unordered_set<int> us; 
+    us.insert(1); 
+    us.insert(3); 
+    us.insert(4); 
+    us.insert(2); 
+    us.insert(2); 
+  
+    cout << "\nElements in unordered_set:\n"; 
+    for (auto it : us) 
+        cout << it << " "; // unique && unordered
+        
+    unordered_map<int, int> um; 
+    um[1] = 2; 
+    um[4] = 5; 
+    um[2] = 3; 
+    um[8] = 5; 
+    um[3] = 6; 
+  
+    cout << "\nElements in unordered_map:\n"; 
+    for (auto it : um) 
+        cout << "[ " << it.first << ", " << it.second << "]\n"; // unique && unordered
+    return 0; 
+} 
+/*OUTPUT:
+Elements in set:                                                                                                                                                                              
+2 3 5 6                                                                                                                                                                                       
+Elements in Multiset:                                                                                                                                                                         
+1 2 2 3 4                                                                                                                                                                                     
+Elements in unordered_set:                                                                                                                                                                    
+2 4 1 3                                                                                                                                                                                       
+Elements in unordered_map:                                                                                                                                                                    
+[ 3, 6]                                                                                                                                                                                       
+[ 2, 3]                                                                                                                                                                                       
+[ 8, 5]                                                                                                                                                                                       
+[ 1, 2]                                                                                                                                                                                       
+[ 4, 5]
+*/
+
+/*
+unordered_map in C++ STL
+========================
+- unordered_map is an associated container that stores elements formed by combination of key value and a mapped value. 
+- The key value is used to uniquely identify the element and mapped value is the content associated with the key. 
+- Both key and value can be of any type predefined or user-defined.
+- Internally unordered_map is implemented using Hash Table, the key provided to map are hashed into indices of hash table that is why performance of data structure 
+  depends on hash function a lot but on an average the cost of search, insert and delete from hash table is O(1). 
+  
+unordered_map vs unordered_set :
+---------------------------------
+- In unordered_set, we have only key, no value, these are mainly used to see presence/absence in a set. 
+  For example, consider the problem of counting frequencies of individual words. We can’t use unordered_set (or set) as we can’t store counts.
+
+unordered_map vs map :
+----------------------
+- map (like set) is an ordered sequence of unique keys whereas in unordered_map key can be stored in any order, so unordered.
+- Map is implemented as balanced tree structure that is why it is possible to maintain an order between the elements (by specific tree traversal). 
+- Time complexity of map operations is O(Log n) while for unordered_set, it is O(1) on average.
+
+Methods on unordered_map:
+-------------------------
+A lot of function are available which work on unordered_map. 
+most useful of them are – operator =, operator [], empty and size for capacity, begin and end for iterator, find and count for lookup, insert and erase for modification.
+The C++11 library also provides function to see internally used bucket count, bucket size and also used hash function and various hash policies but they are less useful in real application.
+
+Methods of unordered_map :
+--------------------------
+    at()		: This function in C++ unordered_map returns the reference to the value with the element as key k.
+    begin()		: Returns an iterator pointing to the first element in the container in the unordered_map container
+    end()		: Returns an iterator pointing to the position past the last element in the container in the unordered_map container
+    bucket()	: Returns the bucket number where the element with the key k is located in the map.
+    bucket_count: bucket_count is used to count the total no. of buckets in the unordered_map. No parameter is required to pass into this function.
+    bucket_size	: Returns number of elements in each bucket of the unordered_map.
+    count()		: Count the number of elements present in an unordered_map with a given key.
+    equal_range	: Return the bounds of a range that includes all the elements in the container with a key that compares equal to k.
+*/
+// C++ program to demonstrate functionality of unordered_map 
+#include <iostream> 
+#include <unordered_map> 
+using namespace std; 
+  
+int main() { 
+    // Declaring umap to be of <string, int> type, key will be of string type and mapped value will be of double type 
+    unordered_map<string, int> umap; 
+  
+    // inserting values by using [] operator 
+    umap["GeeksforGeeks"] = 10; 
+    umap["Practice"] = 20; 
+    umap["Contribute"] = 30; 
+    // inserting value by insert function 
+    umap.insert(make_pair("abcdefghi", 3)); 
+    // Traversing an unordered map 
+    for (auto x : umap) 
+      cout << x.first << "\t" << x.second << endl; 
+  
+    string key = "abcdefghi"; 
+    if (umap.find(key) == umap.end()) cout << key << " not found\n"; 
+    else cout << "Found : " << key << endl; 
+    
+    cout << "All Elements : \n"; 
+    for (unordered_map<string, int>:: iterator itr = umap.begin(); itr != umap.end(); itr++) { 
+        // itr works as a pointer to pair<string, int>, type itr->first stores the key part  and itr->second stroes the value part 
+        cout << itr->first << "\t" << itr->second << endl; 
+     } 
+} 
+/*OUTPUT:
+abcdefghi       3                                                                                                                                                                           
+Contribute      30                                                                                                                                                                          
+GeeksforGeeks   10                                                                                                                                                                          
+Practice        20                                                                                                                                                                          
+Found : abcdefghi                                                                                                                                                                           
+All Elements :                                                                                                                                                                              
+abcdefghi       3                                                                                                                                                                           
+Contribute      30                                                                                                                                                                          
+GeeksforGeeks   10                                                                                                                                                                          
+Practice        20
+*/
+
+// C++ program to demonstrate functionality of reverise 
+#include <iostream> 
+using namespace std; 
+struct Node {
+    int data;
+    struct Node *next;
+    Node(int data) {
+        this->data = data;
+        next = NULL;
+    }
+};
+
+struct LinkList {
+    Node *head;
+    LinkList() {
+        head = NULL;
+    }
+    void reverse() {
+        Node *prev = NULL;
+        Node *next = NULL;
+        Node *current = head;
+        while(current != NULL) {
+            next = current->next;
+            current->next = prev;
+            prev = current;
+            current = next;
+        }
+        head = prev;
+    }
+    void push(int data) {
+        Node *temp = new Node(data);
+        temp->next = head;
+        head = temp;
+    }
+    void print(){
+        Node *temp = head;
+        while(temp != NULL) {
+            cout << " " << temp->data;
+            temp = temp->next;
+        }
+    }
+};
+
+int main() {
+    LinkList l1;
+    l1.push(20);
+    l1.push(30);
+    l1.push(40);
+    
+    l1.print();
+    l1.reverse();
+    cout<< endl;
+    l1.print();
+} 
+/*OUTPUT:
+ 40 30 20                                                                                                                                                                                   
+ 20 30 40
+ */
+ 
+ /*
+ 
+Detect and Remove Loop in a Linked List
+========================================
+Write a function detectAndRemoveLoop() that checks whether a given Linked List contains loop and if loop is present then removes the loop and returns true. 
+And if the list doesn’t contain loop then returns false. 
+
+	1->2->3->
+	   |    |
+	   5<-<-4
+	   
+Method 1 (Check one by one):
+----------------------------
+We know that Floyd’s Cycle detection algorithm terminates when fast and slow pointers meet at a common point. 
+We also know that this common point is one of the loop nodes (2 or 3 or 4 or 5 in the above diagram). 
+We store the address of this in a pointer variable say ptr2. Then we start from the head of the Linked List and check for nodes one by one if they are reachable from ptr2. 
+When we find a node that is reachable, we know that this node is the starting node of the loop in Linked List and we can get pointer to the previous of this node.
+
+Method 2 (Better Solution):
+---------------------------
+This method is also dependent on Floyd’s Cycle detection algorithm.
+1) Detect Loop using Floyd’s Cycle detection algo and get the pointer to a loop node.
+2) Count the number of nodes in loop. Let the count be k.
+3) Fix one pointer to the head and another to kth node from head.
+4) Move both pointers at the same pace, they will meet at loop starting node.
+5) Get pointer to the last node of loop and make next of it as NULL.
+
+Method 3 (Optimized Method 2: Without Counting Nodes in Loop):
+--------------------------------------------------------------
+We do not need to count number of nodes in Loop. 
+After detecting the loop, if we start slow pointer from head and move both slow and fast pointers at same speed until fast don’t meet, they would meet at the beginning of the loop.
+
+Method 4 Hashing: Hash the address of the linked list nodes:
+------------------------------------------------------------
+We can hash the addresses of the linked list nodes in an unordered map and just check if the element already exists in the map. 
+If it exists, we have reached a node which already exists by a cycle, hence we need to make the last node’s next pointer NULL.
+*/
+// Detect and Remove Loop in a Linked List
+#include <iostream> 
+#include<unordered_map>
+using namespace std; 
+struct Node {
+    int data;
+    struct Node *next;
+};
+
+struct Node* newNode(int data) {
+    struct Node *temp = (struct Node*) malloc(sizeof(struct Node));
+    temp->data = data;
+    temp->next = NULL;
+    return temp;
+}
+
+void printList(struct Node* head) {
+    while(head != NULL) {
+        cout << head->data << " ";
+        head = head->next;
+    }
+    cout << endl;
+}
+
+//Method 1 (Check one by one):
+void removeLoopMcheckOneByOne(struct Node *loopNode, struct Node *headRef) {
+    struct Node *ptr_one, *ptr_two;
+    ptr_one = headRef;
+    while(1) {
+        //now start the pointer from loop node and check if it ever reach ptr_two   
+        ptr_two = loopNode;
+        while(ptr_two->next != loopNode && ptr_two->next != ptr_one)
+            ptr_two = ptr_two->next;
+        // if ptr_two reached node ptr_one, then there is a loop, beak the loop
+        if(ptr_two->next == ptr_one)
+            break;
+        // if ptr_two did not reach ptr_one, try the next node after ptr_one
+        ptr_one = ptr_one->next;
+    }
+    // after end of the loop ptr_two is the last node in the loop, so make next as NULL to beak it's loop link.
+    ptr_two->next = NULL;
+}
+
+//Method 2 (Better Solution):Count the number of nodes in loop.
+void removeLoopMCountNoOfNodeinLoop(struct Node *loopNode, struct Node *headRef) {
+    struct Node *ptr_one = loopNode;
+    struct Node *ptr_two = loopNode;
+    int k = 1;
+    while(ptr_one->next != ptr_two) {
+        k++;
+        ptr_one = ptr_one->next;
+    }
+    // fix one pointer to head node and other pointer kth node after the head node
+    ptr_one = headRef;
+    ptr_two = headRef;
+    int i = 0;
+    while (i < k) {
+        i++;
+        ptr_two = ptr_two->next;
+    }
+    // move both pointer at the same pace, they will meet at the looping start node
+    while(ptr_one != ptr_two) {
+        ptr_one = ptr_one->next;
+        ptr_two = ptr_two->next;
+    }
+    //get pointer to the last node
+    ptr_two = ptr_two->next;
+    while(ptr_two->next != ptr_one) {
+        ptr_two = ptr_two->next;
+    }
+    // set the next node of the looping end node to fix the loop
+    ptr_two->next = NULL;
+}
+
+//Method 3 (Optimized Method 2: Without Counting Nodes in Loop)
+void removeLoopMWithoutCoutLoopNode(struct Node *slow, struct Node *fast, struct Node *headRef) {
+    if(slow == fast) {
+        slow = headRef;
+        while(slow->next != fast->next) {
+            slow = slow->next;
+            fast = fast->next;
+        }
+    }
+    //since fast next is the looping point, so remove loop
+    fast->next = NULL;
+}
+
+bool detectAndRemoveLoop(struct Node *headRef) {
+    struct Node *slow, *fast;
+    bool loopDetect = false;
+    slow = headRef;
+    fast = headRef;
+    while(slow && fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+        if(slow == fast)  {
+            loopDetect = true;
+            //removeLoopMcheckOneByOne(slow, headRef);
+            //removeLoopMCountNoOfNodeinLoop(slow, headRef);
+            removeLoopMWithoutCoutLoopNode(slow, fast, headRef);
+            break;
+        }
+    }
+    return loopDetect;
+}
+
+// Method 4: Function to detect and remove loop in a linked list that may contain loop 
+bool hashAndRemove(struct Node *headRef) 
+{ 
+    //hash map to hash addresses of the linked list nodes 
+    unordered_map<struct Node*, int> node_map; 
+    bool loopDetect = false;
+    //pointer to last node 
+    struct Node* last = NULL; 
+    while(headRef != NULL) { 
+        if(node_map.find(headRef) == node_map.end()){ //if node not present in the map, insert it in the map
+            node_map[headRef]++; 
+            last = headRef; 
+            headRef = headRef->next; 
+        } else{ //if present, it is a cycle, make the last node's next pointer NULL
+            last->next = NULL; 
+            loopDetect = true;
+            break;  
+        } 
+    }  
+    return loopDetect;
+} 
+
+int main() {
+    struct Node *headRef = NULL;
+    headRef = newNode(10);
+    headRef->next = newNode(20);
+    headRef->next->next = newNode(30);
+    headRef->next->next->next = newNode(40);
+    headRef->next->next->next->next = newNode(50);
+    headRef->next->next->next->next->next = headRef->next->next; // forming loop
+    bool loopExist = detectAndRemoveLoop(headRef);
+    //bool loopExist = hashAndRemove(headRef);
+    cout << "loopDetect : " <<  loopExist << endl;
+    printList(headRef);
+} 
+/*OUTPUT:
+loopDetect : 1                                                                                                                                                                              
+10 20 30 40 50
+*/
+
+/*
+
+How to use POSIX semaphores in C language:
+------------------------------------------
+- Semaphores are very useful in process synchronization and multi-threading. 
+- Well, we have the POSIX semaphore library in Linux systems. Let’s learn how to use it.
+- The basic code of a semaphore is simple as presented here. 
+- But this code cannot be written directly, as the functions require to be atomic and writing code directly would lead to a context switch without function completion and would result in a mess.
+- The POSIX system in Linux presents its own built-in semaphore library. To use it, we have to :
+    Include semaphore.h
+    Compile the code by linking with -lpthread -lrt
+- To lock a semaphore or wait we can use the sem_wait function:
+	int sem_wait(sem_t *sem);
+-To release or signal a semaphore, we use the sem_post function:
+	int sem_post(sem_t *sem);
+- A semaphore is initialized by using sem_init(for processes or threads) or sem_open (for IPC).
+	sem_init(sem_t *sem, int pshared, unsigned int value);
+
+	Where,
+		sem : Specifies the semaphore to be initialized.
+		pshared : This argument specifies whether or not the newly initialized semaphore is shared between processes or between threads. 
+		          A non-zero value means the semaphore is shared between processes and a value of zero means it is shared between threads.
+		value : Specifies the value to assign to the newly initialized semaphore.
+- To destroy a semaphore, we can use sem_destroy.
+	sem_destoy(sem_t *mutex);
+- To declare a semaphore, the data type is sem_t.
+- Compilation should be done with gcc a.c -lpthread -lrt
+*/
+
+#include <stdio.h> 
+#include <pthread.h> 
+#include <semaphore.h> 
+#include <unistd.h> 
+sem_t sem; 
+  
+void* thread(void* arg) { 
+    int n = *(int*)arg;
+    //wait 
+    sem_wait(&sem); 
+    printf("[ %d ] Entered..\n", n); 
+    sleep(2); //critical section 
+    //signal 
+    printf("[ %d ] Just Exiting...\n", n); 
+    sem_post(&sem); 
+} 
+  
+int main() { 
+    sem_init(&sem, 0, 1); 
+    pthread_t t[2]; 
+    int num = 1;
+    pthread_create(&t[0],NULL,&thread,&num); 
+    sleep(1); 
+    num = 2;
+    pthread_create(&t[1],NULL,&thread,&num); 
+    pthread_join(t[0],NULL); 
+    pthread_join(t[1],NULL); 
+    sem_destroy(&sem); 
+    return 0; 
+} 
+/*OUTPUT:
+[ 1 ] Entered..                                                                                                                                                                             
+[ 1 ] Just Exiting...                                                                                                                                                                       
+[ 2 ] Entered..                                                                                                                                                                             
+[ 2 ] Just Exiting...
+*/
+
+// Print even and odd in ordered synchronized fashion
+#include <iostream> 
+#include <pthread.h> 
+#include <semaphore.h> 
+using namespace std; 
+
+sem_t sem_even, sem_odd;
+int num = 0;
+
+void* even_print(void *args) {
+    while(num <= 5) {
+        sem_wait(&sem_even);
+        cout << "Even : " << num << endl;
+        num++;
+        sem_post(&sem_odd);
+    }
+}
+
+void* even_odd(void *args) {
+    while(num <= 5) {
+        sem_wait(&sem_odd);
+        cout << "Odd  : " << num << endl;
+        num++;
+        sem_post(&sem_even);
+    }
+}
+
+int main() {
+    sem_init(&sem_even, 0, 1); 
+    sem_init(&sem_odd, 0, 0); 
+    pthread_t t1,t2; 
+    pthread_create(&t1,NULL,&even_print,NULL); 
+    pthread_create(&t2,NULL,&even_odd,NULL); 
+    pthread_join(t1,NULL); 
+    pthread_join(t2,NULL); 
+    sem_destroy(&sem_even); 
+    sem_destroy(&sem_odd); 
+} 
+/*OUTPUT:
+Even : 0                                                                                                                                                                                    
+Odd  : 1                                                                                                                                                                                    
+Even : 2                                                                                                                                                                                    
+Odd  : 3                                                                                                                                                                                    
+Even : 4                                                                                                                                                                                    
+Odd  : 5                                                                                                                                                                                    
+Even : 6
+*/
+
+/*
+Print numbers in sequence using thread synchronization
+=======================================================
+The problem is to synchronize n number of threads using pthread library. 
+The idea is take thread count and print 1 in first thread, print 2 in second thread, print 3 in third thread, ….. print n in nth thread and again repeat from thread 1 infinitely. 
+Examples :
+	Input : Thread count
+	Output : 1 2 3 ... thread count 1 2 3 ... thread 
+	count 1 2 3 ... thread count ....
+
+	Input : 5
+	Output : 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5 
+	1 2 3 4 5 1 2 3 4 5 ....
+*/
+
+// C code to synchronize threads 
+#include <pthread.h> 
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <unistd.h> 
+  
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; 
+pthread_cond_t* cond = NULL; 
+  
+int NumOfThreads; 
+volatile int cnt = 0; 
+int noOfIteration = 1;
+// function to synchronize threads 
+void* foo(void* arg) { 
+    // turn is a basically to identify a thread 
+    int turn = *(int*)arg; 
+    while (noOfIteration <= 2) { 
+        pthread_mutex_lock(&mutex); 
+          
+        // cnt is used to determne which thread should enter into critical section(printf() statement) 
+        if (turn != cnt) { 
+            pthread_cond_wait(&cond[turn], &mutex); // put all thread except one thread in waiting state 
+        } 
+  
+        // it's a time to print turn can have values starting from 0. Hence + 1 
+        printf("%d ", turn + 1); 
+          
+        // detemine which thread need to be scheduled now 
+        if (cnt < NumOfThreads - 1) { 
+            cnt++; 
+        } else { 
+            cnt = 0;
+            noOfIteration++;
+        } 
+          
+        // weak up next thread 
+        pthread_cond_signal(&cond[cnt]); 
+        pthread_mutex_unlock(&mutex); 
+    } 
+    return NULL; 
+} 
+  
+// Driver code 
+int main() { 
+    pthread_t* tid; 
+    volatile int i; 
+    int* arr; 
+  
+    printf("\nEnter number of threads: "); 
+    scanf("%d", &NumOfThreads); 
+  
+    // allocate memory to cond (conditional variable), thread id's and array of size threads 
+    tid  = (pthread_t*)malloc(sizeof(pthread_t) * NumOfThreads);
+    cond = (pthread_cond_t*)malloc(sizeof(pthread_cond_t) * NumOfThreads); 
+    arr  = (int*)malloc(sizeof(int) * NumOfThreads); 
+  
+    // create threads 
+    for (i = 0; i < NumOfThreads; i++) { 
+        arr[i] = i; 
+        pthread_create(&tid[i], NULL, foo, (void*)&arr[i]); 
+    } 
+  
+    // waiting for thread 
+    for (i = 0; i < NumOfThreads; i++) { 
+        pthread_join(tid[i], NULL); 
+    } 
+    return 0; 
+} 
+
+/*
+
+Sum of an array using pthreads
+===============================
+Sum of array is a small problem where we have to add each element in the array by traversing through the entire array. 
+But when the number of elements are too large, it could take a lot of time. 
+But this could solved by dividing the array into parts and finding sum of each part simultaneously i.e. by finding sum of each portion in parallel.
+
+This could be done by using multi-threading where each core of the processor is used. 
+In our case, each core will evaluate sum of one portion and finally we will add the sum of all the portion to get the final sum. 
+In this way we could improve the performance of a program as well as utilize the cores of processor.
+
+It is better to use one thread for each core. Although you can create as many thread as you want for better understanding of multi-threading.
+Examples:
+	Input :  1, 5, 7, 10, 12, 14, 15, 18, 20, 22, 25, 27, 30, 64, 110, 220
+	Output : sum is 600
+
+	Input :  10, 50, 70, 100, 120, 140, 150, 180, 200, 220, 250, 270, 300, 640, 110, 220
+	Output : sum is 3030
+*/
+
+// CPP Program to find sum of array 
+#include <iostream> 
+#include <pthread.h> 
+#define MAX 16 // size of array 
+#define MAX_THREAD 4 // maximum number of threads 
+using namespace std; 
+  
+int a[] = { 1, 5, 7, 10, 12, 14, 15, 18, 20, 22, 25, 27, 30, 64, 110, 220 }; 
+int sum[4] = { 0 }; 
+int part = 0; 
+  
+void* sum_array(void* arg) { 
+    // Each thread computes sum of 1/4th of array 
+    int thread_part = part++; 
+    for (int i = thread_part * (MAX / 4); i < (thread_part + 1) * (MAX / 4); i++) 
+        sum[thread_part] += a[i]; 
+} 
+  
+int main() { 
+    pthread_t threads[MAX_THREAD]; 
+    // Creating 4 threads 
+    for (int i = 0; i < MAX_THREAD; i++) 
+        pthread_create(&threads[i], NULL, sum_array, (void*)NULL); 
+  
+    // joining 4 threads i.e. waiting for all 4 threads to complete 
+    for (int i = 0; i < MAX_THREAD; i++) 
+        pthread_join(threads[i], NULL); 
+  
+    // adding sum of all 4 parts 
+    int total_sum = 0; 
+    for (int i = 0; i < MAX_THREAD; i++) 
+        total_sum += sum[i]; 
+    cout << "sum is : " << total_sum << endl; 
+    return 0; 
+} 
+/*OUTPUT:
+sum is : 600
+*/
+
+/*
+Sharing a queue among three threads:
+------------------------------------
+Share a queue among three threads A, B, C as per given norms :
+    - Thread A generates random integers and pushes them into a shared queue.
+    - Threads B and C compete with each other to grab an integer from the queue.
+    - The threads B and C compute the sum of integers that they have grabbed from the queue.
+    - Compare the sums as computed by B and C. The greatest is the winner.
+
+Approach :- Create a global queue which is shared among all three threads. First create all three threads and call the respective functions associated with them.
+    - producerFun generates random numbers and push them into queue
+    - add_B function replicates thread B and consumes the queue for certain numbers.
+    - add_C function replicates thread C and consumes the queue for certain numbers.
+Note :- There is mutex lock in every function to avoid any race condition.
+*/
+// CPP program to demonstrate the given task 
+#include <iostream> 
+#include <pthread.h> 
+#include <queue> 
+#include <stdlib.h> 
+#define MAX 10 
+using namespace std; 
+// Declaring global variables 
+int sum_B = 0, sum_C = 0; 
+int consumerCount1 = 0; 
+int consumerCount2 = 0; 
+queue<int> Q; // Shared queue 
+  
+// Getting the mutex 
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; 
+pthread_cond_t dataNotProduced = PTHREAD_COND_INITIALIZER; 
+pthread_cond_t dataNotConsumed = PTHREAD_COND_INITIALIZER; 
+  
+// Function to generate random numbers and push them into queue using thread A 
+void* producerFun(void*) { 
+    static int producerCount = 0; 
+    // Initialising the seed 
+    srand(time(NULL)); 
+    while (1) { 
+        // Getting the lock on queue using mutex 
+        pthread_mutex_lock(&mutex); 
+        if (Q.size() < MAX && producerCount < MAX) { 
+            // Getting the random number 
+            int num = rand() % 10 + 1; 
+            cout << "Produced:  " << num << endl; 
+            // Pushing the number into queue 
+            Q.push(num); 
+            producerCount++; 
+            pthread_cond_broadcast(&dataNotProduced); 
+        } else if (producerCount == MAX) { // If queue is full, release the lock and return
+            pthread_mutex_unlock(&mutex); 
+            return NULL; 
+        } else { // If some other thread is exectuing, wait
+            cout << ">> Producer is in wait.." << endl; 
+            pthread_cond_wait(&dataNotConsumed, &mutex); 
+        } 
+        // Get the mutex unlocked 
+        pthread_mutex_unlock(&mutex); 
+    } 
+} 
+  
+// Function definition for consumer thread B 
+void* add_B(void*) { 
+    while (1) { 
+        // Getting the lock on queue using mutex 
+        pthread_mutex_lock(&mutex); 
+        
+        if (Q.size() > 0) { // Pop only when queue has at least 1 element 
+            // Get the data from the front of queue 
+            int data = Q.front(); 
+            cout << "B thread consumed: " << data << endl; 
+            // Add the data to the integer variable associated with thread B 
+            sum_B += data; 
+            // Pop the consumed data from queue 
+            Q.pop(); 
+            consumerCount1++; 
+            pthread_cond_signal(&dataNotConsumed); 
+        } else if (consumerCount2 + consumerCount1 == MAX) { // Check if consmed numbers from both threads has reached to MAX value
+            pthread_mutex_unlock(&mutex); 
+            return NULL; 
+        } else { // If some other thread is exectuing, wait 
+            cout << ">> B is in wait.." << endl; 
+            pthread_cond_wait(&dataNotProduced, &mutex); 
+        } 
+        // Get the mutex unlocked 
+        pthread_mutex_unlock(&mutex); 
+    } 
+} 
+  
+// Function definition for consumer thread C 
+void* add_C(void*) { 
+    while (1) { 
+        // Getting the lock on queue using mutex 
+        pthread_mutex_lock(&mutex); 
+        // Pop only when queue has at least 1 element 
+        if (Q.size() > 0) { 
+            // Get the data from the front of queue 
+            int data = Q.front(); 
+            cout << "C thread consumed: " << data << endl; 
+            // Add the data to the integer variable associated with thread B 
+            sum_C += data; 
+            // Pop the consumed data from queue 
+            Q.pop(); 
+            consumerCount2++; 
+            pthread_cond_signal(&dataNotConsumed); 
+        } else if (consumerCount2 + consumerCount1 == MAX) { // Check if consmed numbers from both threads has reached to MAX value
+            pthread_mutex_unlock(&mutex); 
+            return NULL; 
+        } else { // If some other thread is exectuing, wait
+            cout << ">> C is in wait.." << endl; 
+            // Wait on a condition 
+            pthread_cond_wait(&dataNotProduced, &mutex); 
+        } 
+        // Get the mutex unlocked 
+        pthread_mutex_unlock(&mutex); 
+    } 
+} 
+  
+int main() { 
+    // Declaring integers used to identify the thread in the system 
+    pthread_t producerThread, consumerThread1, consumerThread2; 
+  
+    // Function to create a threads (pthread_create() takes 4 arguments) 
+    int retProducer = pthread_create(&producerThread, NULL, &producerFun, NULL); 
+    int retConsumer1 = pthread_create(&consumerThread1, NULL, &add_B, NULL); 
+    int retConsumer2 = pthread_create(&consumerThread2, NULL, &add_C, NULL); 
+  
+    // pthread_join suspends execution of the calling thread until the target thread terminates 
+    if (!retProducer) pthread_join(producerThread, NULL); 
+    if (!retConsumer1) pthread_join(consumerThread1, NULL); 
+    if (!retConsumer2) pthread_join(consumerThread2, NULL); 
+  
+    // Checking for the final value of thread 
+    if (sum_C > sum_B) 
+        cout << "Winner is  Thread C" << endl; 
+    else if (sum_C < sum_B) 
+        cout << "Winner is  Thread B" << endl; 
+    else
+        cout << "Both has same score" << endl; 
+    return 0; 
+} 
+/*OUTPUT:
+>> C is in wait..                                                                                                                                                                             
+>> B is in wait..                                                                                                                                                                             
+Produced:  9                                                                                                                                                                                  
+Produced:  9                                                                                                                                                                                  
+Produced:  6                                                                                                                                                                                  
+Produced:  5                                                                                                                                                                                  
+Produced:  10                                                                                                                                                                                 
+Produced:  9                                                                                                                                                                                  
+Produced:  6                                                                                                                                                                                  
+Produced:  4                                                                                                                                                                                  
+Produced:  10                                                                                                                                                                                 
+Produced:  8                                                                                                                                                                                  
+C thread consumed: 9                                                                                                                                                                          
+C thread consumed: 9                                                                                                                                                                          
+C thread consumed: 6                                                                                                                                                                          
+C thread consumed: 5                                                                                                                                                                          
+C thread consumed: 10                                                                                                                                                                         
+C thread consumed: 9                                                                                                                                                                          
+C thread consumed: 6                                                                                                                                                                          
+C thread consumed: 4                                                                                                                                                                          
+C thread consumed: 10                                                                                                                                                                         
+C thread consumed: 8                                                                                                                                                                          
+Winner is  Thread C
+*/
+
+/*
+Multi-threading in C
+=====================
+What is a Thread?
+A thread is a single sequence stream within in a process. 
+Because threads have some of the properties of processes, they are sometimes called lightweight processes.
+
+What are the differences between process and thread?
+Threads are not independent of one other like processes as a result threads shares with other threads their code section, data section and OS resources like open files and signals. 
+But, like process, a thread has its own program counter (PC), a register set, and a stack space.
+
+Why Multi-threading?
+Threads are popular way to improve application through parallelism. For example, in a browser, multiple tabs can be different threads. 
+MS word uses multiple threads, one thread to format the text, other thread to process inputs, etc.
+Threads operate faster than processes due to following reasons:
+	1) Thread creation is much faster.
+	2) Context switching between threads is much faster.
+	3) Threads can be terminated easily
+	4) Communication between threads is faster.
+	
+Can we write multi-threading programs in C?
+Unlike Java, multi-threading is not supported by the language standard. POSIX Threads (or Pthreads) is a POSIX standard for threads. 
+Implementation of pthread is available with gcc compiler. 
+
+How to compile above program?
+To compile a multithreaded program using gcc, we need to link it with the pthreads library. Following is the command used to compile the program.
+
+gfg@ubuntu:~/$ gcc multithread.c -lpthread
+gfg@ubuntu:~/$ ./a.out
+Before Thread
+Printing GeeksQuiz from Thread 
+After Thread
+gfg@ubuntu:~/$ 
+
+- As mentioned above, all threads share data segment. 
+- Global and static variables are stored in data segment. Therefore, they are shared by all threads.
+- Accessing a global variable in a thread is generally a bad idea. What if thread 2 has priority over thread 1 and thread 1 needs to change the variable. 
+  In practice, if it is required to access global variable by multiple threads, then they should be accessed using a mutex.
+*/
+
+
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <unistd.h> 
+#include <pthread.h> 
+// Let us create a global variable to change it in threads 
+int g = 0; 
+
+// The function to be executed by all threads 
+void *myThreadFun(void *vargp) { 
+    // Store the value argument passed to this thread 
+    int *myid = (int *)vargp; 
+    // Let us create a static variable to observe its changes 
+    static int s = 0; 
+    // Change static and global variables 
+    ++s; ++g; 
+    // Print the argument, static and global variables 
+    printf("Thread ID: %d, Static: %d, Global: %d\n", *myid, ++s, ++g); 
+} 
+  
+int main() { 
+    int i; 
+    pthread_t tid[3]; 
+    // Let us create three threads 
+    for (i = 0; i < 3; i++) 
+        pthread_create(&tid[i], NULL, myThreadFun, (void *)&tid[i]); 
+    pthread_exit(NULL); 
+    return 0; 
+} 
+/*OUTPUT:
+Thread ID: 1842644736, Static: 2, Global: 2                                                                                                                                                 
+Thread ID: 1851037440, Static: 4, Global: 4                                                                                                                                                 
+Thread ID: 1859430144, Static: 6, Global: 6
+*/
