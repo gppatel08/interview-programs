@@ -11,31 +11,31 @@ Vector in C++ STL:
 1. Iterators:
 -------------
     begin() 	– Returns an iterator pointing to the first element in the vector
-    end() 		– Returns an iterator pointing to the theoretical element that follows the last element in the vector
+    end() 	– Returns an iterator pointing to the theoretical element that follows the last element in the vector
     rbegin()	– Returns a reverse iterator pointing to the last element in the vector (reverse beginning). It moves from last to first element
-    rend() 		– Returns a reverse iterator pointing to the theoretical element preceding the first element in the vector (considered as reverse end)
+    rend() 	– Returns a reverse iterator pointing to the theoretical element preceding the first element in the vector (considered as reverse end)
     cbegin()	– Returns a constant iterator pointing to the first element in the vector.
-    cend() 		– Returns a constant iterator pointing to the theoretical element that follows the last element in the vector.
+    cend() 	– Returns a constant iterator pointing to the theoretical element that follows the last element in the vector.
     crbegin() 	– Returns a constant reverse iterator pointing to the last element in the vector (reverse beginning). It moves from last to first element
     crend() 	– Returns a constant reverse iterator pointing to the theoretical element preceding the first element in the vector (considered as reverse end)
 
 2. Capacity:
 ------------
-    size() 			– Returns the number of elements in the vector.
+    size() 		– Returns the number of elements in the vector.
     max_size() 		– Returns the maximum number of elements that the vector can hold.
     capacity() 		– Returns the size of the storage space currently allocated to the vector expressed as number of elements.
     resize() 		– Resizes the container so that it contains ‘g’ elements.
     empty() 		– Returns whether the container is empty.
-    shrink_to_fit() – Reduces the capacity of the container to fit its size and destroys all elements beyond the capacity.
+    shrink_to_fit() 	– Reduces the capacity of the container to fit its size and destroys all elements beyond the capacity.
     reserve() 		– Requests that the vector capacity be at least enough to contain n elements.
 
 3. Element access:
 ------------------
     reference operator [g] 	– Returns a reference to the element at position ‘g’ in the vector
-    at(g) 					– Returns a reference to the element at position ‘g’ in the vector
-    front() 				– Returns a reference to the first element in the vector
-    back() 					– Returns a reference to the last element in the vector
-    data() 					– Returns a direct pointer to the memory array used internally by the vector to store its owned elements
+    at(g) 			– Returns a reference to the element at position ‘g’ in the vector
+    front() 			– Returns a reference to the first element in the vector
+    back() 			– Returns a reference to the last element in the vector
+    data() 			– Returns a direct pointer to the memory array used internally by the vector to store its owned elements
 	
 4. Modifiers:
 -------------
@@ -44,7 +44,7 @@ Vector in C++ STL:
     pop_back() 		– It is used to pop or remove elements from a vector from the back.
     insert() 		– It inserts new elements before the element at the specified position
     erase() 		– It is used to remove elements from a container from the specified position or range.
-    swap() 			– It is used to swap the contents of one vector with another vector of same type and size.
+    swap() 		– It is used to swap the contents of one vector with another vector of same type and size.
     clear() 		– It is used to remove all the elements of the vector container
     emplace() 		– It extends the container by inserting new element at position
     emplace_back() 	– It is used to insert a new element into the vector container, the new element is added to the end of the vector
@@ -209,19 +209,20 @@ List in C++ Standard Template Library (STL)
 Functions used with List:
 -------------------------
     front() 		– Returns the value of the first element in the list.
-    back() 			– Returns the value of the last element in the list .
+    back() 		– Returns the value of the last element in the list .
     push_front(g) 	– Adds a new element ‘g’ at the beginning of the list .
     push_back(g) 	– Adds a new element ‘g’ at the end of the list.
     pop_front() 	– Removes the first element of the list, and reduces size of the list by 1.
     pop_back() 		– Removes the last element of the list, and reduces size of the list by 1
-    begin()			– begin() function returns an iterator pointing to the first element of the list.  
-    end()			– end() function returns an iterator pointing to the theoretical last element which follows the last element.
+    begin()		– begin() function returns an iterator pointing to the first element of the list.  
+    end()		– end() function returns an iterator pointing to the theoretical last element which follows the last element.
     rbegin() 		– rbegin() returns a reverse iterator which points to the last element of the list. 
-	rend()  		- rend() returns a reverse iterator which points to the position before the beginning of the list.
+    rend()  		- rend() returns a reverse iterator which points to the position before the beginning of the list.
     cbegin() 		– cbegin() returns a constant random access iterator which points to the beginning of the list. 
-	cend() 			- cend() returns a constant random access iterator which points to the end of the list.
+    cend() 		- cend() returns a constant random access iterator which points to the end of the list.
     crbegin() 		– crbegin() returns a constant reverse iterator which points to the last element of the list i.e reversed beginning of container. 
-	crend() 		- crend() returns a constant reverse iterator which points to the theoretical element preceding the first element in the list i.e. the reverse end of the list.
+    crend() 		- crend() returns a constant reverse iterator which points to the theoretical element preceding the first element in the list 
+                          i.e. the reverse end of the list.
     empty() 		– Returns whether the list is empty(1) or not(0).
     insert() 		– Inserts new elements in the list before the element at a specified position.
     erase() 		– Removes a single element or a range of elements from the list.
@@ -229,16 +230,16 @@ Functions used with List:
     remove() 		– Removes all the elements from the list, which are equal to given element.
     remove_if() 	– Used to remove all the values from the list that correspond true to the predicate or condition given as parameter to the function.
     reverse() 		– Reverses the list.
-    size() 			– Returns the number of elements in the list.
+    size() 		– Returns the number of elements in the list.
     resize()		– Used to resize a list container.
-    sort() 			– Sorts the list in increasing order.
+    sort() 		– Sorts the list in increasing order.
     max_size() 		– Returns the maximum number of elements a list container can hold.
     unique() 		– Removes all duplicate consecutive elements from the list.
-    emplace_front() – emplace_front() function is used to insert a new element into the list container, the new element is added to the beginning of the list. 
-	emplace_back() 	- emplace_back() function is used to insert a new element into the list container, the new element is added to the end of the list.
+    emplace_front() 	– emplace_front() function is used to insert a new element into the list container, the new element is added to the beginning of the list. 
+    emplace_back() 	- emplace_back() function is used to insert a new element into the list container, the new element is added to the end of the list.
     clear() 		– clear() function is used to remove all the elements of the list container, thus making it size 0.
     operator= 		– This operator is used to assign new contents to the container by replacing the existing contents.
-    swap() 			– This function is used to swap the contents of one list with another list of same type and size.
+    swap() 		– This function is used to swap the contents of one list with another list of same type and size.
     splice() 		– Used to transfer elements from one list to another.
     merge() 		– Merges two sorted lists into one
     emplace() 		– Extends list by inserting new element at a given position.
@@ -310,8 +311,8 @@ Set in C++ Standard Template Library (STL)
 Some basic functions associated with Set:
 -----------------------------------------
     begin() 	– Returns an iterator to the first element in the set.
-    end() 		– Returns an iterator to the theoretical element that follows last element in the set.
-    size() 		– Returns the number of elements in the set.
+    end() 	– Returns an iterator to the theoretical element that follows last element in the set.
+    size() 	– Returns the number of elements in the set.
     max_size() 	– Returns the maximum number of elements that the set can hold.
     empty() 	– Returns whether the set is empty.
 */
@@ -398,45 +399,49 @@ Map in C++ Standard Template Library (STL):
 
 Some basic functions associated with Map:
 -----------------------------------------
-	begin() 			– Returns an iterator to the first element in the map
-	end() 				– Returns an iterator to the theoretical element that follows last element in the map
-	size() 				– Returns the number of elements in the map
-	max_size() 			– Returns the maximum number of elements that the map can hold
-	empty() 			– Returns whether the map is empty
+	begin() 		– Returns an iterator to the first element in the map
+	end() 			– Returns an iterator to the theoretical element that follows last element in the map
+	size() 			– Returns the number of elements in the map
+	max_size() 		– Returns the maximum number of elements that the map can hold
+	empty() 		– Returns whether the map is empty
 	pair insert(k, v) 	– Adds a new element to the map with (keyvalue, mapvalue)
-	erase(iterator pos) – Removes the element at the position pointed by the iterator
+	erase(iterator pos) 	– Removes the element at the position pointed by the iterator
 	erase(const keyval)	– Removes the key value ‘keyval’ from the map
-	clear() 			– Removes all the elements from the map
+	clear() 		– Removes all the elements from the map
 
 List of all functions of Map:
 -----------------------------
     map insert() 		– Insert elements with a particular key in the map container. .
     map count() 		– Returns the number of matches to element with key value ‘g’ in the map.
-    map equal_range() 	– Returns an iterator of pairs. The pair refers to the bounds of a range that includes all the elements in the container which have a key equivalent to k.
+    map equal_range() 		– Returns an iterator of pairs. 
+                                  The pair refers to the bounds of a range that includes all the elements in the container which have a key equivalent to k.
     map erase() 		– Used to erase element from the container.
-    map rend() 			– Returns a reverse iterator pointing to the theoretical element right before the first key-value pair in the map(which is considered its reverse end).
+    map rend() 			– Returns a reverse iterator pointing to the theoretical element right before the first key-value pair in the map
+                                  (which is considered its reverse end).
     map rbegin() 		– Returns a reverse iterator which points to the last element of the map.
     map find() 			– Returns an iterator to the element with key value ‘g’ in the map if found, else returns the iterator to end.
     map crbegin()		– crbegin() returns a constant reverse iterator referring to the last element in the map container. 
-	map crend() 		- crend() returns a constant reverse iterator pointing to the theoretical element before the first element in the map.
+    map crend() 		- crend() returns a constant reverse iterator pointing to the theoretical element before the first element in the map.
     map cbegin()		– cbegin() returns a constant iterator referring to the first element in the map container. 
     map cend() 			- cend() returns a constant iterator pointing to the theoretical element that follows last element in the multimap.
-	map emplace() 		– Inserts the key and its element in the map container.
+    map emplace() 		– Inserts the key and its element in the map container.
     map max_size()		– Returns the maximum number of elements a map container can hold.
-    map upper_bound() 	– Returns an iterator to the first element that is equivalent to mapped value with key value ‘g’ or definitely will go after the element with key value ‘g’ in the map
+    map upper_bound() 		– Returns an iterator to the first element that is equivalent to mapped value with key value ‘g’ or definitely will go after 
+                                  the element with key value ‘g’ in the map
     map operator= 		– Assigns contents of a container to a different container, replacing its current content.
-    map lower_bound() 	– Returns an iterator to the first element that is equivalent to mapped value with key value ‘g’ or definitely will not go before the element with key value ‘g’ in the map.
-    map emplace_hint() 	– Inserts the key and its element in the map container with a given hint.
-    map value_comp() 	– Returns the object that determines how the elements in the map are ordered (‘<' by default).
+    map lower_bound() 		– Returns an iterator to the first element that is equivalent to mapped value with key value ‘g’ or definitely will not go before 
+                                  the element with key value ‘g’ in the map.
+    map emplace_hint() 		– Inserts the key and its element in the map container with a given hint.
+    map value_comp() 		– Returns the object that determines how the elements in the map are ordered (‘<' by default).
     map key_comp() 		– Returns the object that determines how the elements in the map are ordered (‘<' by default).
     map::size() 		– Returns the number of elements in the map.
     map::empty() 		– Returns whether the map is empty.
     map::begin() 		– begin() returns an iterator to the first element in the map. 
-	map::end() 			- end() returns an iterator to the theoretical element that follows last element in the map
-    map::operator[] 	– This operator is used to reference the element present at position given inside the operator.
+    map::end() 			- end() returns an iterator to the theoretical element that follows last element in the map
+    map::operator[] 		– This operator is used to reference the element present at position given inside the operator.
     map::clear() 		– Removes all the elements from the map.
     map::at() 			– at() function is used to return the reference to the element associated with the key k. 
-	map::swap() 		- swap() function is used to exchange the contents of two maps but the maps must be of same type, although sizes may differ.
+    map::swap() 		- swap() function is used to exchange the contents of two maps but the maps must be of same type, although sizes may differ.
 */
 
 #include <iostream> 
@@ -559,14 +564,16 @@ map And multimap:
 =================
 - The default behavior of these data structures is to store elements in ascending order. 
 - How to ensure reverse order or descending order when inserting elements in map and multimap.
-	- The idea is to greater function when an instance of map/multimap.
+- The idea is to greater function when an instance of map/multimap.
 
 Descending order in map:
+------------------------
 A map stores key value pairs. A self-balancing-BST (typically Red-Black tree) is used to implement it.
 Example:
 	Input :  (10, "queen"), (20, "rose"),  (5," lion")
 	Output : (20, "rose"),  (10, "queen"), (5," lion")
 */
+
 // C++ program makes a map to store elements in descending order. 
 #include<map> 
 #include<iostream>
@@ -603,8 +610,8 @@ Example:
 Some Basic Functions associated with multimap:
 ----------------------------------------------
     begin() 	– Returns an iterator to the first element in the multimap
-    end() 		– Returns an iterator to the theoretical element that follows last element in the multimap
-    size() 		– Returns the number of elements in the multimap
+    end() 	– Returns an iterator to the theoretical element that follows last element in the multimap
+    size() 	– Returns the number of elements in the multimap
     max_size() 	– Returns the maximum number of elements that the multimap can hold
     empty() 	– Returns whether the multimap is empty
     pair<int,int> insert(keyvalue,multimapvalue) – Adds a new element to the multimap
@@ -658,7 +665,7 @@ Differences:
 Variations of set and map:
 --------------------------
 - Set and Map, both stores unique values and sorted values as well. But If we don’t have such a requirement, we use multiset/multimap and unordered_set/unoredred_map.
-Multimap: Multimap doesn’t allow elements to stored by indexing.
+- Multimap: Multimap doesn’t allow elements to stored by indexing.
 */
 
 // CPP program to demonstrate working of Set && Multiset && unoerdered_set
@@ -729,6 +736,7 @@ Elements in unordered_map:
 [ 4, 5]
 */
 
+
 /*
 unordered_map in C++ STL
 ========================
@@ -751,21 +759,24 @@ unordered_map vs map :
 
 Methods on unordered_map:
 -------------------------
-A lot of function are available which work on unordered_map. 
-most useful of them are – operator =, operator [], empty and size for capacity, begin and end for iterator, find and count for lookup, insert and erase for modification.
-The C++11 library also provides function to see internally used bucket count, bucket size and also used hash function and various hash policies but they are less useful in real application.
+- A lot of function are available which work on unordered_map. 
+- most useful of them are 
+     – operator =, operator [], empty and size for capacity, begin and end for iterator, find and count for lookup, insert and erase for modification.
+- The C++11 library also provides function to see internally used bucket count, bucket size and also used hash function and various hash policies 
+  but they are less useful in real application.
 
 Methods of unordered_map :
 --------------------------
     at()		: This function in C++ unordered_map returns the reference to the value with the element as key k.
     begin()		: Returns an iterator pointing to the first element in the container in the unordered_map container
     end()		: Returns an iterator pointing to the position past the last element in the container in the unordered_map container
-    bucket()	: Returns the bucket number where the element with the key k is located in the map.
-    bucket_count: bucket_count is used to count the total no. of buckets in the unordered_map. No parameter is required to pass into this function.
-    bucket_size	: Returns number of elements in each bucket of the unordered_map.
+    bucket()		: Returns the bucket number where the element with the key k is located in the map.
+    bucket_count	: bucket_count is used to count the total no. of buckets in the unordered_map. No parameter is required to pass into this function.
+    bucket_size		: Returns number of elements in each bucket of the unordered_map.
     count()		: Count the number of elements present in an unordered_map with a given key.
-    equal_range	: Return the bounds of a range that includes all the elements in the container with a key that compares equal to k.
+    equal_range		: Return the bounds of a range that includes all the elements in the container with a key that compares equal to k.
 */
+
 // C++ program to demonstrate functionality of unordered_map 
 #include <iostream> 
 #include <unordered_map> 
@@ -807,6 +818,7 @@ Contribute      30
 GeeksforGeeks   10                                                                                                                                                                          
 Practice        20
 */
+
 
 // C++ program to demonstrate functionality of reverise 
 #include <iostream> 
@@ -865,10 +877,10 @@ int main() {
 /*OUTPUT:
  40 30 20                                                                                                                                                                                   
  20 30 40
- */
+*/
  
- /*
- 
+
+/* 
 Detect and Remove Loop in a Linked List
 ========================================
 Write a function detectAndRemoveLoop() that checks whether a given Linked List contains loop and if loop is present then removes the loop and returns true. 
@@ -882,7 +894,8 @@ Method 1 (Check one by one):
 ----------------------------
 We know that Floyd’s Cycle detection algorithm terminates when fast and slow pointers meet at a common point. 
 We also know that this common point is one of the loop nodes (2 or 3 or 4 or 5 in the above diagram). 
-We store the address of this in a pointer variable say ptr2. Then we start from the head of the Linked List and check for nodes one by one if they are reachable from ptr2. 
+We store the address of this in a pointer variable say ptr2. 
+Then we start from the head of the Linked List and check for nodes one by one if they are reachable from ptr2. 
 When we find a node that is reachable, we know that this node is the starting node of the loop in Linked List and we can get pointer to the previous of this node.
 
 Method 2 (Better Solution):
@@ -896,14 +909,16 @@ This method is also dependent on Floyd’s Cycle detection algorithm.
 
 Method 3 (Optimized Method 2: Without Counting Nodes in Loop):
 --------------------------------------------------------------
-We do not need to count number of nodes in Loop. 
-After detecting the loop, if we start slow pointer from head and move both slow and fast pointers at same speed until fast don’t meet, they would meet at the beginning of the loop.
+- We do not need to count number of nodes in Loop. 
+- After detecting the loop, if we start slow pointer from head and move both slow and fast pointers at same speed until fast don’t meet, 
+  they would meet at the beginning of the loop.
 
 Method 4 Hashing: Hash the address of the linked list nodes:
 ------------------------------------------------------------
 We can hash the addresses of the linked list nodes in an unordered map and just check if the element already exists in the map. 
 If it exists, we have reached a node which already exists by a cycle, hence we need to make the last node’s next pointer NULL.
 */
+
 // Detect and Remove Loop in a Linked List
 #include <iostream> 
 #include<unordered_map>
@@ -1051,13 +1066,13 @@ loopDetect : 1
 */
 
 /*
-
 How to use POSIX semaphores in C language:
 ------------------------------------------
 - Semaphores are very useful in process synchronization and multi-threading. 
 - Well, we have the POSIX semaphore library in Linux systems. Let’s learn how to use it.
 - The basic code of a semaphore is simple as presented here. 
-- But this code cannot be written directly, as the functions require to be atomic and writing code directly would lead to a context switch without function completion and would result in a mess.
+- But this code cannot be written directly, as the functions require to be atomic and writing code directly would lead to a context switch without 
+  function completion and would result in a mess.
 - The POSIX system in Linux presents its own built-in semaphore library. To use it, we have to :
     Include semaphore.h
     Compile the code by linking with -lpthread -lrt
@@ -1069,10 +1084,10 @@ How to use POSIX semaphores in C language:
 	sem_init(sem_t *sem, int pshared, unsigned int value);
 
 	Where,
-		sem : Specifies the semaphore to be initialized.
+		sem 	: Specifies the semaphore to be initialized.
 		pshared : This argument specifies whether or not the newly initialized semaphore is shared between processes or between threads. 
 		          A non-zero value means the semaphore is shared between processes and a value of zero means it is shared between threads.
-		value : Specifies the value to assign to the newly initialized semaphore.
+		value 	: Specifies the value to assign to the newly initialized semaphore.
 - To destroy a semaphore, we can use sem_destroy.
 	sem_destoy(sem_t *mutex);
 - To declare a semaphore, the data type is sem_t.
@@ -1167,8 +1182,9 @@ Even : 6
 /*
 Print numbers in sequence using thread synchronization
 =======================================================
-The problem is to synchronize n number of threads using pthread library. 
-The idea is take thread count and print 1 in first thread, print 2 in second thread, print 3 in third thread, ….. print n in nth thread and again repeat from thread 1 infinitely. 
+- The problem is to synchronize n number of threads using pthread library. 
+- The idea is take thread count and print 1 in first thread, print 2 in second thread, print 3 in third thread, ….. print n in nth thread and 
+  again repeat from thread 1 infinitely. 
 Examples :
 	Input : Thread count
 	Output : 1 2 3 ... thread count 1 2 3 ... thread 
@@ -1249,7 +1265,6 @@ int main() {
 } 
 
 /*
-
 Sum of an array using pthreads
 ===============================
 Sum of array is a small problem where we have to add each element in the array by traversing through the entire array. 
@@ -1317,12 +1332,14 @@ Share a queue among three threads A, B, C as per given norms :
     - The threads B and C compute the sum of integers that they have grabbed from the queue.
     - Compare the sums as computed by B and C. The greatest is the winner.
 
-Approach :- Create a global queue which is shared among all three threads. First create all three threads and call the respective functions associated with them.
+Approach :
+    - Create a global queue which is shared among all three threads. First create all three threads and call the respective functions associated with them.
     - producerFun generates random numbers and push them into queue
     - add_B function replicates thread B and consumes the queue for certain numbers.
     - add_C function replicates thread C and consumes the queue for certain numbers.
 Note :- There is mutex lock in every function to avoid any race condition.
 */
+
 // CPP program to demonstrate the given task 
 #include <iostream> 
 #include <pthread.h> 
@@ -1479,35 +1496,35 @@ Winner is  Thread C
 Multi-threading in C
 =====================
 What is a Thread?
-A thread is a single sequence stream within in a process. 
-Because threads have some of the properties of processes, they are sometimes called lightweight processes.
+  A thread is a single sequence stream within in a process. 
+  Because threads have some of the properties of processes, they are sometimes called lightweight processes.
 
 What are the differences between process and thread?
-Threads are not independent of one other like processes as a result threads shares with other threads their code section, data section and OS resources like open files and signals. 
-But, like process, a thread has its own program counter (PC), a register set, and a stack space.
+  Threads are not independent of one other like processes as a result threads shares with other threads their code section, data section and 
+  OS resources like open files and signals. But, like process, a thread has its own program counter (PC), a register set, and a stack space.
 
 Why Multi-threading?
-Threads are popular way to improve application through parallelism. For example, in a browser, multiple tabs can be different threads. 
-MS word uses multiple threads, one thread to format the text, other thread to process inputs, etc.
-Threads operate faster than processes due to following reasons:
+  Threads are popular way to improve application through parallelism. For example, in a browser, multiple tabs can be different threads. 
+  MS word uses multiple threads, one thread to format the text, other thread to process inputs, etc.
+  Threads operate faster than processes due to following reasons:
 	1) Thread creation is much faster.
 	2) Context switching between threads is much faster.
 	3) Threads can be terminated easily
 	4) Communication between threads is faster.
 	
 Can we write multi-threading programs in C?
-Unlike Java, multi-threading is not supported by the language standard. POSIX Threads (or Pthreads) is a POSIX standard for threads. 
-Implementation of pthread is available with gcc compiler. 
+  Unlike Java, multi-threading is not supported by the language standard. POSIX Threads (or Pthreads) is a POSIX standard for threads. 
+  Implementation of pthread is available with gcc compiler. 
 
 How to compile above program?
-To compile a multithreaded program using gcc, we need to link it with the pthreads library. Following is the command used to compile the program.
+  To compile a multithreaded program using gcc, we need to link it with the pthreads library. Following is the command used to compile the program.
 
-gfg@ubuntu:~/$ gcc multithread.c -lpthread
-gfg@ubuntu:~/$ ./a.out
-Before Thread
-Printing GeeksQuiz from Thread 
-After Thread
-gfg@ubuntu:~/$ 
+	gfg@ubuntu:~/$ gcc multithread.c -lpthread
+	gfg@ubuntu:~/$ ./a.out
+	Before Thread
+	Printing GeeksQuiz from Thread 
+	After Thread
+	gfg@ubuntu:~/$ 
 
 - As mentioned above, all threads share data segment. 
 - Global and static variables are stored in data segment. Therefore, they are shared by all threads.
