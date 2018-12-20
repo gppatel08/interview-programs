@@ -1,3 +1,75 @@
+/*
+Sort a stack using a temporary stack
+====================================
+Given a stack of integers, sort it in ascending order using another temporary stack.
+Examples:
+	Input  : [34, 3, 31, 98, 92, 23]
+	Output : [3, 23, 31, 34, 92, 98]
+
+	Input  : [3, 5, 1, 4, 2, 8]
+	Output : [1, 2, 3, 4, 5, 8]
+	
+Algorithm:
+----------
+	1. Create a temporary stack say tmpStack.
+	2. While input stack is NOT empty do this:
+			A. Pop an element from input stack call it temp
+			B. while temporary stack is NOT empty and top of temporary stack is greater than temp,
+					pop from temporary stack and push it to the input stack
+			C. push temp in temporary stack
+	3. The sorted numbers are in tmpStack
+*/
+#include<iostream> 
+#include<stack>
+#include<bits/stdc++.h>
+using namespace std;
+
+void show(stack<int> st, string s) {
+    cout << s <<" [ ";
+    while(!st.empty()) {
+        cout << st.top() << " ";
+        st.pop();
+    }
+    cout << "]" << endl;
+}
+
+stack<int> sortStack(stack<int> &input) {
+    stack<int> tmp;
+    while(!input.empty()) {
+        int item = input.top();
+        input.pop();
+        cout << "Elem Take Out: " << item << endl;
+        show(input, "Input Element:");
+        while(!tmp.empty() && tmp.top() > item) {
+            input.push(tmp.top());
+            tmp.pop();
+        }
+        tmp.push(item);
+        show(tmp, "Tempo Element:");
+        cout << endl;
+    }
+    return tmp;
+}
+
+int main() { 
+    stack<int> input;
+    input.push(34);
+    input.push(3);
+    input.push(31);
+    input.push(98);
+    input.push(92);
+    input.push(23);
+    
+    show(input, "Stack Element:");
+    stack<int> sortedStack = sortStack(input);
+    show(sortedStack, "Stack Element:");
+    return 0; 
+}
+/*OUTPUT
+Stack Element: [ 23 92 98 31 3 34 ]
+Stack Element: [ 98 92 34 31 23 3 ]
+*/
+
 Implement Queue using Stacks:
 =============================
 Ques: - We are given a stack data structure with push and pop operations, the task is to implement a queue using instances of stack data structure 
@@ -1144,9 +1216,8 @@ void printList(struct Node *node) {
     } 
 } 
   
-/* Druver program to test above function */
-int main() 
-{ 
+/* Driver program to test above function */
+int main() { 
     /* The constructed linked list is: 
      10->12->11->11->12->11->10*/
     struct Node *start = newNode(10); 
