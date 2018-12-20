@@ -208,7 +208,8 @@ NOTE: When you should unique_ptr and when you should use shared_ptr depends on t
 
 	A. The first example below shows unique_ptr. 
 	--------------------------------------------
-        If you want to transfer ownership of an object to another unique_ptr use std::move (I'll discuss this function in the last            paragraph). After the ownership transfer, the smart pointer that ceded the ownership becomes null and get() returns nullptr.
+        If you want to transfer ownership of an object to another unique_ptr use std::move (I'll discuss this function in the last paragraph). 
+		After the ownership transfer, the smart pointer that ceded the ownership becomes null and get() returns nullptr.
 	   
 		void foo(int* p) {
 			std::cout << *p << std::endl;
@@ -526,7 +527,7 @@ h. The following example shows a dummy buffer implementation. The buffer is iden
 
 			temp._buffer = nullptr;
 			temp._size = 0;
-                        return *this;
+            return *this;
 		}
 	};
    
@@ -1655,7 +1656,7 @@ int main() {
 }
 
 /*
-Paranthesis checck for valid expression: "({[abc](x)y}x(v))"
+Paranthesis check for valid expression: "({[abc](x)y}x(v))"
 */
 #include<iostream>
 #include<vector>
