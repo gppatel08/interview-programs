@@ -1,6 +1,151 @@
+1. Queue in C++ STL
+2. Vector in C++ STL
+3. List in C++ STL
+4. Set in C++ STL
+5. Map in C++ STL
+6. unordered_map in C++ STL
+7. map And multimap with order
+8. set vs map
+
+get_allocator Example:
+	- list get_allocator in C++ STL
+	- map get_allocator in C++ STL
+	- deque get_allocator in C++ STL
+	- unordered_multimap get_allocator in C++ STL
+	
+- How to find Segmentation Error in C & C++ ? (Using GDB)
+- Loader in C/C++
+- Memory leak in C++ and How to avoid it?
+- Cases when copy constructor
+- C++ program to demonstrate functionality of reverise link list.
+- Detect and Remove Loop in a Linked List.
+- Print even and odd in ordered synchronized fashion using semaphore.
+- Print numbers in sequence using thread synchronization mutex && conditional variable.
+- Sum of an array using pthreads
+- Sharing a queue among three threads
+- Multi-threading in C
+
 /*
-Vector in C++ STL:
-==================
+1. Queue in C++ STL:
+====================
+- Queue are a type of container adaptors which operate in a first in first out (FIFO) type of arrangement. 
+- Elements are inserted at the back (end) and are deleted from the front.
+
+	- empty() 	– Returns whether the queue is empty.
+	- size()  	– Returns the size of the queue.
+    - swap()  	- Exchange the contents of two queues but the queues must be of same type, although sizes may differ.
+    - emplace() - Insert a new element into the queue container, the new element is added to the end of the queue.
+    - front() 	– front() function returns a reference to the first element of the queue. 
+	- back() 	- back() function returns a reference to the last element of the queue.
+    - push(g) 	– push() function adds the element ‘g’ at the end of the queue. 
+	- pop() 	- pop() function deletes the first element of the queue.
+*/
+
+/* CPP program to illustrate Queue Implementation */
+#include <iostream> 
+#include <queue> 
+using namespace std; 
+  
+int main() { 
+    queue<int> myqueue; 
+    if (myqueue.empty()) cout << "True" << endl; 
+    else cout << "False"; 
+    myqueue.push(1); 
+    myqueue.push(8); 
+    myqueue.push(3); 
+    myqueue.push(6); 
+    myqueue.push(2); 
+    cout << "Queue Size : " << myqueue.size() << endl;
+    int sum = 0, item;
+    while(!myqueue.empty()) {
+        item = myqueue.front();
+        cout << "Item : " << item << endl;
+        sum += item;
+        myqueue.pop();
+    }
+    cout << "Sum : " << sum << endl;
+    return 0; 
+}  
+/*OUTPUT:
+True                                                                                                                             
+Queue Size : 5                                                                                                                   
+Item : 1                                                                                                                         
+Item : 8                                                                                                                         
+Item : 3                                                                                                                         
+Item : 6                                                                                                                         
+Item : 2                                                                                                                         
+Sum : 20
+*/
+
+// Stack and Queue Example in C++
+#include <iostream>
+#include <stack>
+#include <queue>
+using namespace std;
+class Test {
+    private:
+        string name;
+    public:
+        Test(string name): name(name) {}
+        ~Test() { /*cout << "Object Test Destroyed.!" << endl;*/ }
+        void print() const { cout << "Name : " << name << endl; } 
+
+};
+
+int main() {
+    stack<Test> testStack;
+    
+    testStack.push(Test("Mike"));
+    testStack.push(Test("Guru"));
+    testStack.push(Test("Deepu"));
+    testStack.push(Test("Sona"));
+    while(testStack.size() > 0) {
+        Test &t = testStack.top();
+        t.print();
+        testStack.pop();
+    }
+
+    /* 
+    // This is invalid code!
+    Test &test = testStack.top();
+    testStack.pop(); //object is destroyed when poped and 
+    test.print(); //References referes to the destroyed object
+    */
+
+    /* 
+    //This is Valid Code.!
+    Test &test = testStack.top();
+    test.print();
+    testStack.pop();
+
+    Test &test1 = testStack.top();
+    test1.print();
+    testStack.pop();
+    */
+
+    cout << " Queue ---- " << endl;
+    queue<Test> testQueue;
+    testQueue.push(Test("Mike"));
+    testQueue.push(Test("Guru"));
+    testQueue.push(Test("Deepu"));
+    testQueue.push(Test("Sona"));
+
+    testQueue.back().print();
+
+    cout << endl;
+    while(testQueue.size() > 0) {
+        Test &t = testQueue.front();
+        t.print();
+        testQueue.pop();
+    }
+
+    return 0;
+}
+
+
+/*
+2. Vector in C++ STL:
+=====================
 - Vectors are same as dynamic arrays with the ability to resize itself automatically when an element is inserted or deleted, 
   with their storage being handled automatically by the container. 
 - Vector elements are placed in contiguous storage so that they can be accessed and traversed using iterators. 
@@ -199,9 +344,138 @@ Output of begin and end vec_modi  : 3 4 5 6
 Output of begin and end vi_exm    : 10 10 10 10 10
 */
 
+//Vector is resizeable array in c++
 /*
-List in C++ Standard Template Library (STL)
-===========================================
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<string> str;
+
+    str.push_back("one");
+    str.push_back("two");
+    str.push_back("three");
+
+    cout << "THrough loop" << endl;
+    for(int i=0; i < str.size(); i++) {
+        cout << str[i] << endl;
+    }
+
+    cout << "Through iterator look vector" << endl;
+    for(vector<string>::iterator it = str.begin(); it != str.end(); it++) {
+        cout << *it << endl;
+    }
+
+    return 0;
+}
+*/
+
+//Capacity remain un-changed, but size can be resized any time
+//capacity can be changed with reserve method
+/*
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<double> numbers(20);
+    cout << "Size: " << numbers.size() << endl;
+
+    int capacity = numbers.capacity();
+    cout << "Capacity: " << capacity << endl;
+
+    for(int i =0; i < 10000; i++) {
+        if(numbers.capacity() != capacity) {
+            capacity = numbers.capacity();
+            cout << "Capacity: " << capacity << endl;
+            
+        }
+        numbers.push_back(i);
+    }
+
+    numbers.resize(20);
+    cout << "Size: " << numbers.size() << endl;
+    cout << "Capacity: " << numbers.capacity() << endl;
+
+    //capacity can be changed with reserve method
+    cout << "capacity can be changed with reserved method: " << endl;
+    numbers.reserve(200000);
+    cout << "Size: " << numbers.size() << endl;
+    cout << "Capacity: " << numbers.capacity() << endl;
+
+    return 0;
+}
+*/
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector< vector<int> > grid(3, vector<int>(4,7));
+    
+    grid[1].push_back(8);
+
+    for(int row=0; row < grid.size(); row++) {
+        for(int col=0; col < grid[row].size(); col++) {
+            cout << grid[row][col] << flush;
+        }
+        cout << endl;
+    }
+    return 0;
+}
+
+/*
+OUTPUT:
+7777
+77778
+7777
+*/
+
+// sorting vector through own comp implemented friend function
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+class Test {
+    private:
+        int id;
+        string name;
+    public:
+        Test(int id, string name): id(id), name(name) {}
+        ~Test() {}
+        void print() const { cout << id << ": " << name << endl; }
+
+        /*bool operator<(const Test &t) const {
+            return name < t.name;
+        }*/
+
+        friend bool comp(const Test &a, const Test &b);
+};
+
+bool comp(const Test &a, const Test &b) {
+    return a.name < b.name;
+}
+
+int main() {
+    vector<Test> t;
+    t.push_back(Test(10, "ABC"));
+    t.push_back(Test(50, "JKL"));
+    t.push_back(Test(20, "DEF"));
+    t.push_back(Test(40, "GHI"));
+
+    sort(t.begin(), t.end(), comp);
+    for(int i=0; i < t.size(); i++) {
+        t[i].print();
+    }
+    return 0;
+}
+
+
+/*
+3. List in C++ STL:
+===================
 - Lists are sequence containers that allow non-contiguous memory allocation. 
 - As compared to vector, list has slow traversal, but once a position has been found, insertion and deletion are quick. 
 - Normally, when we say a List, we talk about doubly linked list. For implementing a singly linked list, we use forward list.
@@ -302,9 +576,57 @@ gqlist1.reverse()   :  18 16 14 12 10 8 6 4 2
 gqlist2.sort()      :  3 6 9 12 15 18 21 24 27
 */
 
+//list is a singly link list in which element can be added in begining or end or middle
+#include<iostream>
+#include<list>
+
+using namespace std;
+
+int main() {
+    list<int> numbers;
+
+    numbers.push_back(1);
+    numbers.push_back(2);
+    numbers.push_back(3);
+    numbers.push_back(4);
+    numbers.push_back(5);
+    numbers.push_front(0);
+
+    list<int>::iterator it=numbers.begin();
+    it++;
+    numbers.insert(it, 20);
+
+    cout << "Element : " << *it << endl;
+    
+    list<int>::iterator eraseit=numbers.begin();
+    eraseit++;
+    eraseit = numbers.erase(eraseit);
+    cout << "Erase: " << *eraseit << endl;
+
+    for(list<int>::iterator it=numbers.begin(); it != numbers.end();) {
+        if(*it == 2) {
+            numbers.insert(it, 1234);
+        }
+
+        // it++ is removed from the for loop line  because of below code
+        if(*it == 1) {
+            it = numbers.erase(it);
+        }
+        else {
+            it++;
+        }
+    }
+    for(list<int>::iterator it=numbers.begin(); it != numbers.end(); it++) {
+        cout << *it << endl;
+    }
+
+    return 0;
+}
+
+
 /*
-Set in C++ Standard Template Library (STL)
-==========================================
+4. Set in C++ STL:
+==================
 - Sets are a type of associative containers in which each element has to be unique, because the value of the element identifies it. 
 - The value of the element cannot be modified once it is added to the set, though it is possible to remove and add the modified value of that element.
 
@@ -390,9 +712,73 @@ gquiz2.lower_bound(40) : 40
 gquiz2.upper_bound(40) : 60
 */
 
+#include <iostream>
+#include <set>
+
+using namespace std;
+
+class Test {
+    private:
+        int id;
+        string name;
+
+    public:
+        Test(int id, string name): id(id), name(name) { }
+        void print() const {
+            cout << id << ": " << name << endl;
+        }
+
+        bool operator<(const Test &t) const {
+            return name < t.name;
+        }
+};
+
+
+int main() {
+    set<int> numbers;
+
+    numbers.insert(10);
+    numbers.insert(30);
+    numbers.insert(20);
+    numbers.insert(70);
+    numbers.insert(40);
+
+    for(set<int>::iterator it = numbers.begin(); it != numbers.end(); it++) {
+        cout << *it << endl;
+    }
+
+    set<int>::iterator itFind = numbers.find(80);
+    if(itFind != numbers.end()) {
+        cout << "Found: " << *itFind << endl;
+    }
+
+    if(numbers.count(80)) {
+        cout << "Number Found." << endl;
+    }
+    else {
+        cout << "Not Found" << endl;
+    }
+
+
+    cout << endl;
+
+    set<Test> tests;
+    tests.insert(Test(10, "GP"));
+    tests.insert(Test(40, "Sona"));
+    tests.insert(Test(30, "Deepu"));
+    tests.insert(Test(20, "Gopal"));
+    tests.insert(Test(50, "Guru"));
+
+    for(set<Test>::iterator it = tests.begin(); it != tests.end(); it++) {
+        it->print();
+    } 
+    return 0;
+}
+
+
 /*
-Map in C++ Standard Template Library (STL):
-===========================================
+5. Map in C++ STL:
+==================
 - Maps are associative containers that store elements in a mapped fashion. 
 - Each element has a key value and a mapped value. 
 - No two mapped values can have same key values.
@@ -559,9 +945,253 @@ mp.upper_bound(13) :    KEY = 14                ELEMENT = 40
 mp.upper_bound(20) :    KEY = 4         ELEMENT = 0
 */
 
+//Keys in map is always unique
 /*
-map And multimap:
-=================
+#include <iostream>
+#include <map>
+
+using namespace std;
+
+int main() {
+    map<string, int> ages;
+
+    ages["mike"] = 40;
+    ages["raj"] = 15;
+    ages["rohit"] = 25;
+    ages["guru"] = 30;
+    ages["Raman"] = 50;
+
+    cout << "Raj : " << ages["raj"] << endl;
+
+    ages["raj"] = 70;
+
+   // cout << "no map key ABCDE : " << ages["ABCDE"] << endl;
+    if(ages.find("ABCDE") != ages.end()) {
+        cout << "Found Key.." << endl;
+    }
+    else {
+        cout << "Not Found Key.." << endl;
+    }
+
+    cout << endl;
+
+    for(map<string, int>::iterator it = ages.begin(); it != ages.end(); it++) {
+        pair<string, int> age = *it;
+        cout << age.first << " : " << age.second << endl;
+    }
+
+    cout << endl << " ========== without pair ========== " << endl;
+    for(map<string, int>::iterator it = ages.begin(); it != ages.end(); it++) {
+        cout << it->first << " : " << it->second << endl;
+    }
+
+    return 0;
+}
+
+*/
+
+
+/*
+#include <iostream>
+#include <map>
+
+using namespace std;
+
+class Person {
+    private:
+        string name;
+        int age;
+    public:
+        Person(): name(""), age(0){
+
+        }
+
+        Person(string name, int age): name(name), age(age) {
+
+        }
+
+        Person(const Person &p) {
+            cout << "copy cponstructor" << endl;
+            name = p.name;
+            age = p.age;
+        }        
+
+        void print() const {
+            cout << "Name : " << name << ", Age : " << age << endl;
+        }
+
+        bool operator<(const Person &p) const {
+            return name < p.name;
+        }
+};
+
+int main() {
+    map<Person, int> people;
+    
+    //people[0] = Person("Mike", 25);
+    //people[1] = Person("Guru", 32);
+    //people[2] = Person("Sonu", 40);
+
+    people[Person("Mike", 25)] = 25;
+    people[Person("Guru", 32)] = 32;
+    people[Person("Guru", 41)] = 41;
+    people[Person("Sonu", 40)] = 40;
+
+    //people.insert(make_pair(10, Person("Deepu", 25)));
+
+    for(map<Person, int>::iterator it = people.begin(); it != people.end(); it++) {
+        it->first.print();
+    }
+
+    return 0;
+}
+
+*/
+
+#include <iostream>
+#include <map>
+using namespace std;
+
+int main() {
+    multimap<int, string> lookup;
+
+    lookup.insert(make_pair(30, "Guru"));    
+    lookup.insert(make_pair(40, "Sona"));    
+    lookup.insert(make_pair(50, "Deepu"));    
+    lookup.insert(make_pair(20, "Gopal"));    
+    lookup.insert(make_pair(30, "Gpk"));    
+    lookup.insert(make_pair(30, "Gp"));    
+    lookup.insert(make_pair(30, "Gpp"));    
+
+    for(multimap<int, string>::iterator it = lookup.begin(); it != lookup.end(); it++) {
+        cout << it->first << ": " << it->second << endl;
+    }
+
+    cout << endl;
+
+    for(multimap<int, string>::iterator it = lookup.find(30); it != lookup.end(); it++) {
+        cout << it->first << ": " << it->second << endl;
+    }
+
+    cout << endl;
+
+    pair<multimap<int, string>::iterator, multimap<int, string>::iterator> its = lookup.equal_range(30);
+
+    for(multimap<int, string>::iterator it = its.first; it != its.second; it++) {
+        cout << it->first << ": " << it->second << endl;
+    }
+
+}
+
+/* OUTPUT:
+20: Gopal
+30: Guru
+30: Gpk
+30: Gp
+30: Gpp
+40: Sona
+50: Deepu
+
+30: Guru
+30: Gpk
+30: Gp
+30: Gpp
+40: Sona
+50: Deepu
+
+30: Guru
+30: Gpk
+30: Gp
+30: Gpp
+*/
+
+
+/*
+6. unordered_map in C++ STL:
+============================
+- unordered_map is an associated container that stores elements formed by combination of key value and a mapped value. 
+- The key value is used to uniquely identify the element and mapped value is the content associated with the key. 
+- Both key and value can be of any type predefined or user-defined.
+- Internally unordered_map is implemented using Hash Table, the key provided to map are hashed into indices of hash table that is why performance of data structure 
+  depends on hash function a lot but on an average the cost of search, insert and delete from hash table is O(1). 
+  
+unordered_map vs unordered_set :
+---------------------------------
+- In unordered_set, we have only key, no value, these are mainly used to see presence/absence in a set. 
+  For example, consider the problem of counting frequencies of individual words. We can’t use unordered_set (or set) as we can’t store counts.
+
+unordered_map vs map :
+----------------------
+- map (like set) is an ordered sequence of unique keys whereas in unordered_map key can be stored in any order, so unordered.
+- Map is implemented as balanced tree structure that is why it is possible to maintain an order between the elements (by specific tree traversal). 
+- Time complexity of map operations is O(Log n) while for unordered_set, it is O(1) on average.
+
+Methods on unordered_map:
+-------------------------
+- A lot of function are available which work on unordered_map. 
+- most useful of them are 
+     – operator =, operator [], empty and size for capacity, begin and end for iterator, find and count for lookup, insert and erase for modification.
+- The C++11 library also provides function to see internally used bucket count, bucket size and also used hash function and various hash policies 
+  but they are less useful in real application.
+
+Methods of unordered_map :
+--------------------------
+    at()		: This function in C++ unordered_map returns the reference to the value with the element as key k.
+    begin()		: Returns an iterator pointing to the first element in the container in the unordered_map container
+    end()		: Returns an iterator pointing to the position past the last element in the container in the unordered_map container
+    bucket()		: Returns the bucket number where the element with the key k is located in the map.
+    bucket_count	: bucket_count is used to count the total no. of buckets in the unordered_map. No parameter is required to pass into this function.
+    bucket_size		: Returns number of elements in each bucket of the unordered_map.
+    count()		: Count the number of elements present in an unordered_map with a given key.
+    equal_range		: Return the bounds of a range that includes all the elements in the container with a key that compares equal to k.
+*/
+
+// C++ program to demonstrate functionality of unordered_map 
+#include <iostream> 
+#include <unordered_map> 
+using namespace std; 
+  
+int main() { 
+    // Declaring umap to be of <string, int> type, key will be of string type and mapped value will be of double type 
+    unordered_map<string, int> umap; 
+  
+    // inserting values by using [] operator 
+    umap["GeeksforGeeks"] = 10; 
+    umap["Practice"] = 20; 
+    umap["Contribute"] = 30; 
+    // inserting value by insert function 
+    umap.insert(make_pair("abcdefghi", 3)); 
+    // Traversing an unordered map 
+    for (auto x : umap) 
+      cout << x.first << "\t" << x.second << endl; 
+  
+    string key = "abcdefghi"; 
+    if (umap.find(key) == umap.end()) cout << key << " not found\n"; 
+    else cout << "Found : " << key << endl; 
+    
+    cout << "All Elements : \n"; 
+    for (unordered_map<string, int>:: iterator itr = umap.begin(); itr != umap.end(); itr++) { 
+        // itr works as a pointer to pair<string, int>, type itr->first stores the key part  and itr->second stroes the value part 
+        cout << itr->first << "\t" << itr->second << endl; 
+     } 
+} 
+/*OUTPUT:
+abcdefghi       3                                                                                                                                                                           
+Contribute      30                                                                                                                                                                          
+GeeksforGeeks   10                                                                                                                                                                          
+Practice        20                                                                                                                                                                          
+Found : abcdefghi                                                                                                                                                                           
+All Elements :                                                                                                                                                                              
+abcdefghi       3                                                                                                                                                                           
+Contribute      30                                                                                                                                                                          
+GeeksforGeeks   10                                                                                                                                                                          
+Practice        20
+*/
+
+
+/*
+7. map And multimap with order:
+===============================
 - The default behavior of these data structures is to store elements in ascending order. 
 - How to ensure reverse order or descending order when inserting elements in map and multimap.
 - The idea is to greater function when an instance of map/multimap.
@@ -649,10 +1279,10 @@ int main() {
 (5, joker)
 */
 
-/*
 
-set vs map:
-===========
+/*
+8. set vs map:
+==============
 - set and map in STL are similar in the sense that they both use Red Black Tree (A self balancing BST). 
 - Note that the time complexities of search, insert and delete are O(Log n).
 
@@ -738,89 +1368,335 @@ Elements in unordered_map:
 
 
 /*
-unordered_map in C++ STL
-========================
-- unordered_map is an associated container that stores elements formed by combination of key value and a mapped value. 
-- The key value is used to uniquely identify the element and mapped value is the content associated with the key. 
-- Both key and value can be of any type predefined or user-defined.
-- Internally unordered_map is implemented using Hash Table, the key provided to map are hashed into indices of hash table that is why performance of data structure 
-  depends on hash function a lot but on an average the cost of search, insert and delete from hash table is O(1). 
-  
-unordered_map vs unordered_set :
----------------------------------
-- In unordered_set, we have only key, no value, these are mainly used to see presence/absence in a set. 
-  For example, consider the problem of counting frequencies of individual words. We can’t use unordered_set (or set) as we can’t store counts.
-
-unordered_map vs map :
-----------------------
-- map (like set) is an ordered sequence of unique keys whereas in unordered_map key can be stored in any order, so unordered.
-- Map is implemented as balanced tree structure that is why it is possible to maintain an order between the elements (by specific tree traversal). 
-- Time complexity of map operations is O(Log n) while for unordered_set, it is O(1) on average.
-
-Methods on unordered_map:
--------------------------
-- A lot of function are available which work on unordered_map. 
-- most useful of them are 
-     – operator =, operator [], empty and size for capacity, begin and end for iterator, find and count for lookup, insert and erase for modification.
-- The C++11 library also provides function to see internally used bucket count, bucket size and also used hash function and various hash policies 
-  but they are less useful in real application.
-
-Methods of unordered_map :
---------------------------
-    at()		: This function in C++ unordered_map returns the reference to the value with the element as key k.
-    begin()		: Returns an iterator pointing to the first element in the container in the unordered_map container
-    end()		: Returns an iterator pointing to the position past the last element in the container in the unordered_map container
-    bucket()		: Returns the bucket number where the element with the key k is located in the map.
-    bucket_count	: bucket_count is used to count the total no. of buckets in the unordered_map. No parameter is required to pass into this function.
-    bucket_size		: Returns number of elements in each bucket of the unordered_map.
-    count()		: Count the number of elements present in an unordered_map with a given key.
-    equal_range		: Return the bounds of a range that includes all the elements in the container with a key that compares equal to k.
+list get_allocator in C++ STL:
+------------------------------
+list::get_allocator() is an inbuilt in function in C++ STL which is used to get allocator of container list.
+Syntax:
+	Allocator_type get_allocator()
+Parameters: This function does not except any parameter.
+Return value: Returns an allocator associated with list.
 */
-
-// C++ program to demonstrate functionality of unordered_map 
-#include <iostream> 
-#include <unordered_map> 
+#include<iostream>
+#include<list>
 using namespace std; 
-  
 int main() { 
-    // Declaring umap to be of <string, int> type, key will be of string type and mapped value will be of double type 
-    unordered_map<string, int> umap; 
-  
-    // inserting values by using [] operator 
-    umap["GeeksforGeeks"] = 10; 
-    umap["Practice"] = 20; 
-    umap["Contribute"] = 30; 
-    // inserting value by insert function 
-    umap.insert(make_pair("abcdefghi", 3)); 
-    // Traversing an unordered map 
-    for (auto x : umap) 
-      cout << x.first << "\t" << x.second << endl; 
-  
-    string key = "abcdefghi"; 
-    if (umap.find(key) == umap.end()) cout << key << " not found\n"; 
-    else cout << "Found : " << key << endl; 
+    list<int> mylistInt; // Creating a container of type list
+    int* arrayInt; // creating a pointer of type int 
+    arrayInt = mylistInt.get_allocator().allocate(3); // creating array using mylist get_allocator 
+    for (int i = 0; i < 3; i++) // inserting some data into the created array
+        arrayInt[i] = i; 
+    for (int i = 0; i < 3; i++) // printing details of the created array 
+        cout << arrayInt[i] << " "; 
     
-    cout << "All Elements : \n"; 
-    for (unordered_map<string, int>:: iterator itr = umap.begin(); itr != umap.end(); itr++) { 
-        // itr works as a pointer to pair<string, int>, type itr->first stores the key part  and itr->second stroes the value part 
-        cout << itr->first << "\t" << itr->second << endl; 
-     } 
+    list<string> mylistStr; // Creating a container of type list 
+    string* arrayStr; // creating a pointer of type int 
+    arrayStr = mylistStr.get_allocator().allocate(3); // creating array using mylist get_allocator 
+    // inserting some data into array 
+    arrayStr[0] = "Geeks"; 
+    arrayStr[1] = "For"; 
+    arrayStr[2] = "Geeks"; 
+    
+    for (int i = 0; i < 3; i++) // printing details of array 
+        cout << arrayStr[i] << " ";
+} 
+
+/*
+map get_allocator in C++ STL:
+-----------------------------
+map::get_allocator() is a built in function in C++ STL which is used to get allocator of container map.
+Syntax:
+	Allocator_type get_allocator()
+Parameters: This function does not accept any parameter.
+Return value: Returns an allocator associated with map.
+*/
+#include <bits/stdc++.h> 
+using namespace std; 
+int main() { 
+    
+    map<int, int> mp; //'mp' is object of 'map' 
+    //'allocator_type' is inherit in 'map' 'm' is object of 'allocator_type' 
+    map<int, int>::allocator_type m = mp.get_allocator(); 
+  
+    // Comparing the Allocator with Pair<int, int> 
+    cout << "Is allocator Pair<int, int> : " << boolalpha << (m == allocator<pair<int, int>>()); 
+    
+    map<char, int> mm; 
+    pair<const char, int>* a; 
+    a = mm.get_allocator().allocate(8); 
+    cout << endl << "Allocated size = " << sizeof(*a) * 8 << endl; 
+  
+    return 0; 
 } 
 /*OUTPUT:
-abcdefghi       3                                                                                                                                                                           
-Contribute      30                                                                                                                                                                          
-GeeksforGeeks   10                                                                                                                                                                          
-Practice        20                                                                                                                                                                          
-Found : abcdefghi                                                                                                                                                                           
-All Elements :                                                                                                                                                                              
-abcdefghi       3                                                                                                                                                                           
-Contribute      30                                                                                                                                                                          
-GeeksforGeeks   10                                                                                                                                                                          
-Practice        20
+Is allocator Pair<int, int> : true                                                                                             
+Allocated size = 64
+*/
+
+/*
+deque get_allocator in C++ STL:
+-------------------------------
+deque::get_allocator() is a built in function in C++ STL which is used to get allocator of container deque.
+Syntax:
+	Allocator_type get_allocator()
+Parameters: This function does not accept any parameter.
+Return value: Returns an allocator associated with deque.
+*/
+#include <bits/stdc++.h> 
+using namespace std; 
+int main() { 
+    deque<int> de; //'de' is object of 'deque'
+    //'allocator_type' is inherit in 'deque' 'd' is object of 'allocator_type' 
+    deque<int>::allocator_type d = de.get_allocator(); 
+    // Comparing the Allocator with Pair<int, int> 
+    cout << "Is allocator Pair<int, int> : " << boolalpha << (d == allocator<pair<int, int> >()); 
+    
+    deque<int> dee; // Creating a container of type deque 
+    int* array; // creating a pointer of type int 
+    array = dee.get_allocator().allocate(3); // creating array using mylist get_allocator 
+    for (int i = 0; i < 3; i++) // inserting some data into array 
+        array[i] = i; 
+    cout<< endl;
+    for (int i = 0; i < 3; i++) // printing details of array 
+        cout << array[i] << " ";
+  
+    return 0; 
+} 
+/*OUTPUT:
+Is allocator Pair<int, int> : true                                                                                             
+0 1 2
+*/
+
+/*
+unordered_multimap get_allocator in C++ STL:
+--------------------------------------------
+unordered_multimap::get_allocator() is a built in function in C++ STL which is used to get allocator of container unordered_mulitmap.
+Syntax:
+	Allocator_type get_allocator()
+Parameters: This function does not accept any parameter.
+Return value: Returns an allocator associated with unordered_multimap.
+*/
+#include <bits/stdc++.h> 
+using namespace std; 
+int main() { 
+    unordered_multimap<int, int> ump; //'ump' is object of 'unordered_multimap'
+    //'allocator_type' is inherit in 'unordered_multimap' 'u' is object of 'allocator_type' 
+    unordered_multimap<int, int>::allocator_type u = ump.get_allocator(); 
+    // Comparing the Allocator with Pair<int, int> 
+    cout << "Is allocator Pair<int, int> : " << boolalpha << (u == allocator<pair<int, int> >()); 
+    
+    unordered_multimap<char, int> um; 
+    pair<const char, int>* a; 
+    a = um.get_allocator().allocate(8); 
+    cout << endl << "Allocated size = " << sizeof(*a) * 8 << endl; 
+    return 0; 
+} 
+/*OUTPUT:
+Is allocator Pair<int, int> : true                                                                                             
+Allocated size = 64
 */
 
 
-// C++ program to demonstrate functionality of reverise 
+
+==============================================================================================
+
+
+/*
+How to find Segmentation Error in C & C++ ? (Using GDB)
+What is Segmentation Error ?
+	– It is the runtime error caused because of the memory access violation. For Eg :-Stackoverflow, read violation etc..
+	- We often face this problem when working out with pointers in c++/c.
+	
+	// Segmentation Error Demonstration 
+	#include <iostream> 
+	using namespace std;
+	int main() { 
+		int* p = NULL; 
+  
+		// This lines cause the segmentation error because of accessing the unknown memory location. 
+		*p = 1; 
+   
+		cout << *p; 
+		return 0; 
+	} 
+	
+	How to find that error using gdb?
+	Step 1: Compile it.
+		$ gcc -g Program1.cpp.
+	Step 2: Run it.
+		$ ./a.out (it is Object File)
+		If it shows Segmentation fault (core dumped) then follow following steps.
+	Step 3:Debug it
+		$ gdb ./a.out core 
+		Reading symbols from ./a.out...done.
+		/home/logarithm/Desktop/Test Case/Miccl/core: No such file or directory.
+		(gdb)
+			Then just type r and press the enter key .
+			The output will be something like this showing the erroneous statement.
+		(gdb) r
+		Starting program: /home/logarithm/Desktop/Test Case/Miccl/a.out
+
+		Program received signal SIGSEGV, Segmentation fault.
+		0x00005555555547de in main () at Sege.cpp:8
+		8 *p=1;
+		(gdb)
+		Now you have got the line that causes segmentation error.
+		Exit from debugger and correct the program.
+		For exiting type quit and press enter.
+		(gdb) quit
+		A debugging session is active.
+*/
+
+/*
+Loader in C/C++:
+----------------
+- Loader is the program of the operating system which loads the executable from the disk into the primary memory(RAM) for execution. 
+- It allocates the memory space to the executable module in main memory and then transfers control to the beginning instruction of the program.
+
+	Example:
+	#include<stdio.h> 
+	int main() { 
+		printf("Testing of Loader !"); 
+		return 0; 
+	} 
+	
+	What really happens while running the executable: One could also use strace command for the same.
+	$# truss ./a.out
+	execve(“./ak1.out”, 0x2FF20A00, 0x200138A8) argc: 1
+	read_sysconfig(0xF06F8278, 0x00000010, 0xFFFFFFF9, 0x10000000, 0x200007BC, 0x000000C0, 0x06010000, 0xF076A0F0) = 0x00000000
+	sbrk(0x00000000) = 0x20000998
+	vmgetinfo(0x2FF20350, 7, 16) = 0
+	sbrk(0x00000000) = 0x20000998
+	sbrk(0x00000008) = 0x20000998
+	__libc_sbrk(0x00000000) = 0x200009A0
+	loadquery(2, 0x200009C8, 0x00001000) = 0
+	__loadx(0x0A040000, 0xF06F599C, 0x00000000, 0xF05BE208, 0x20001D20) = 0xF05BFD64
+	CONTINUE...
+	
+	The first call which is displayed is ‘execve()‘ which actually is the loader . This loader creates the process which involves:
+		- Reading the file and creating an address space for the process.
+		- Page table entries for the instructions, data and program stack are created and the register set is initialized.
+		- Then, Executes a jump instruction to the first instruction of the program which generally causes a page fault and the first page 
+		  of your instructions is brought into memory.
+		- We also got the _exit(0) call at last instruction which is the _exit system call with argument status as 0 which signifies to 
+		  return back to operating system with successful signal. This _exit got called from return(0) statement.
+*/
+
+
+/*
+Memory leak in C++ and How to avoid it?:
+----------------------------------------
+- Memory leakage occurs in C++ when programmers allocates memory by using new keyword and forgets to deallocate the memory by using 
+  delete() function or delete[] operator. One of the most memory leakage occurs in C++ by using wrong delete operator.
+- The delete operator should be used to free a single allocated memory space, whereas the delete [] operator should be used to free 
+  an array of data values.
+
+Disadvantage with memory leakage:
+- If a program has memory leaks, then its memory usage is satirically increasing since all systems have limited amount of memory and 
+  memory is costly. Hence it will create problems.
+  
+  //Example of memory leakage in C++
+	#include <bits/stdc++.h> 
+	using namespace std; 
+	int main() { 
+		int* ptr = new int(5);
+		// body 
+		// return without deallocating ptr 
+		return 0; 
+	}
+	
+	How to avoid Memory Leak?
+	- Instead of managing memory manually, try to use smart pointers where applicable.
+	- use std::string instead of char *. The std::string class handles all memory management internally, and it’s fast and well-optimized.
+	- Never use a raw pointer unless it’s to interface with an older lib.
+	- The best way to avoid memory leaks in C++ is to have as few new/delete calls at the program level as possible – ideally NONE. 
+	  Anything that requires dynamic memory should be buried inside an RAII object that releases the memory when it goes out of scope. 
+	  RAAI allocate memory in constructor and release it in destructor, so that memory is garanteed to be deallocated when the variable 
+	  leave the current scope.
+	- Allocate memory by new keyword and deallocate memory by delete keyword and write all code between them.
+	
+	//Example to handle memory leaks
+	#include <bits/stdc++.h> 
+	using namespace std; 
+	int main() { 
+		int* ptr = new int(5);
+		// body 
+		// Now delete pointer ptr using delete 
+		delete (ptr);
+		return 0; 
+	}
+*/
+
+/*
+Cases when copy constructor:
+----------------------------
+The following are the cases when copy constructor is called.
+	- When instantiating one object and initializing it with values from another object.
+	- When passing an object by value.
+	- When an object is returned from a function by value.
+	
+	- If a functions receives as argument, passed by value, an object of a class
+		void foo(MyClass a);
+		foo(a);
+	  This is correct. However, note that in C++11 if a is an xvalue and if MyClass has the appropriate constructor MyClass(MyClass&&), 
+	  a can be moved into the parameter.
+	  
+	- The copy-constructor and the move-constructor are two of the default compiler-generated member functions of a class. 
+	  If you do not supply them yourself, the compiler will generously do so for you under specific circumstances
+	  
+	- When a function returns (by value) an object of the class
+    MyClass foo () {
+        MyClass temp;
+        ....
+        return temp; // copy constructor called
+    }
+    Through return-value optimization, as mentioned in some of the answers, the compiler can remove the call to the copy-constructor. 
+	By using the compiler option -fno-elide-constructors, you can disable copy-elison and see that the copy-constructor would indeed 
+	be called in these situations.
+	
+	- MyClass& operator=(MyClass const&)
+	The copy-constructor is not invoked here. This is because the assignment operator takes a reference to its object, and 
+	therefore no copy-construction is performed. Copy-assignment is different from copy-initialization because copy-initialization is only 
+	done when an object is being initialized. 
+	
+- Example:
+---------- 
+class a {
+public:
+    a() {
+        printf("constructor called\n");
+    };  
+    a(const a& other) { 
+        printf("copy constructor called\n");
+    };    
+    a& operator=(const a& other) {
+        printf("copy assignment operator called\n");
+        return *this; 
+    };
+};
+So then this code:
+
+a b; //constructor
+a c; //constructor
+b = c; //copy assignment
+c = a(b); //copy constructor, then copy assignment
+produces this as the result:
+
+constructor called
+constructor called
+copy assignment operator called
+copy constructor called
+copy assignment operator called
+Another interesting thing, say you have the following code:
+
+a* b = new a(); //constructor called
+a* c; //nothing is called
+c = b; //still nothing is called
+c = new a(*b); //copy constructor is called
+This occurs because when you when you assign a pointer, that does nothing to the actual object.
+*/
+
+
+// C++ program to demonstrate functionality of reverise link list. 
 #include <iostream> 
 using namespace std; 
 struct Node {
@@ -1066,6 +1942,45 @@ loopDetect : 1
 */
 
 /*
+Default derived class constructor will call the default base class constructor, if base class default construcctor is private.
+*/
+#include<iostream>
+using namespace std;
+class Base {
+        Base() { cout << "Base constructor" << endl; }
+    public:
+        Base(int x) { cout << "Base constructor parametrized - " << x << endl; }
+        virtual ~Base() { cout << "Base destructor" << endl; }
+};
+
+class Derived : public Base {
+    public:
+		/* Default derived class constructor will call the default base class constructor, this case since base class defaulrt construcctor is private.
+		   Hence base class's default constructor won't be able to call, that's why throw compile time error.
+		   Solution: explicit call the public base class constructor to make it work as below:
+			Derived() : Base(10) { cout << "Derived constructor parametrized" << endl; }	// Ok
+		*/
+        Derived() { cout << "Derived constructor parametrized" << endl; }  // Compile-time error
+        Derived(int x) : Base(x) { cout << "Derived constructor parametrized - " << x << endl; }
+        ~Derived() { cout << "Derived destructor" << endl; }
+};
+
+int main() {
+    Base *b = new Derived(5);
+    delete b;
+    return 0;
+}
+/*
+main.cpp: In constructor ‘Derived::Derived()’:
+main.cpp:4:9: error: ‘Base::Base()’ is private
+         Base() { cout << "Base constructor" << endl; }
+         ^
+main.cpp:12:19: error: within this context
+         Derived() { cout << "Derived constructor parametrized" << endl; }
+                   ^
+*/
+
+/*
 How to use POSIX semaphores in C language:
 ------------------------------------------
 - Semaphores are very useful in process synchronization and multi-threading. 
@@ -1131,7 +2046,7 @@ int main() {
 [ 2 ] Just Exiting...
 */
 
-// Print even and odd in ordered synchronized fashion
+// Print even and odd in ordered synchronized fashion using semaphore.
 #include <iostream> 
 #include <pthread.h> 
 #include <semaphore.h> 
@@ -1180,8 +2095,8 @@ Even : 6
 */
 
 /*
-Print numbers in sequence using thread synchronization
-=======================================================
+Print numbers in sequence using thread synchronization mutex && conditional variable:
+=====================================================================================
 - The problem is to synchronize n number of threads using pthread library. 
 - The idea is take thread count and print 1 in first thread, print 2 in second thread, print 3 in third thread, ….. print n in nth thread and 
   again repeat from thread 1 infinitely. 
@@ -1322,6 +2237,7 @@ int main() {
 /*OUTPUT:
 sum is : 600
 */
+
 
 /*
 Sharing a queue among three threads:
