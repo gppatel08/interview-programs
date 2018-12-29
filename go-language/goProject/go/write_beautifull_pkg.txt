@@ -1,0 +1,659 @@
+type Handler interface {
+	ServeHTTP(w http.ResponseWriter, r *http.Request)
+}
+
+type HandlerFunc func(w http.ResponseWriter, r *http.Request)
+func (h HandlerFunc)ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h(w, r)
+}
+
+type StatusHandler int
+func (s StatusHandler)ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	code := int(s)
+	w.WriteHeader(code)
+	io.WriteString(w, http.StatusText(code))
+}
+var (
+	NotFoundHandler		= StatusHandler(404)
+	NotImplementedHandler	= StatusHandler(501)
+	NotLegalHandler		= StatusHandler(451)
+)
+
+subfolders
+	- cmd -> for commands
+	- pkg -> for package code
+	- testdata -> for you guessed it test data
+	- internal -> for internal stuff that only your code will import
+	- docs -> additional documents
+	- Be sensible
+	
+- use multiplr .go files
+- keep types close to where they are used
+- organise by responsibility(user type goes into users.go)
+- optimise for godoc and provide examples.
+
+Leave concurrency to the user:
+------------------------------
+Avoid this:
+	package thing
+	func DoAmazingThing() {
+		go StartDoingAmazingThing()
+	}
+- User won't necessarily know it is going to do this.
+
+- if they want to, the user can do this
+	go this.DoAmazingThing()
+	//do other stuff at the same time
+	and they know whats going only
+	
+	and they can use it in a blocking way to:
+	thing.DoAmazingThing()
+	
+- force yourself to see things from the user's point of view
+
+- Naming things
+----------------
+- Remember the package name is part of the API
+	package tea
+	func BrewTea(steeptime time.Duration) error { //Not OK
+	func Brew(steeptime time.Duration) error { //OK
+		//...
+	}
+	
+	 as
+	err := tea.BrewTea(1 * time.Minute)	// Not OK from the outside
+	err := tea.Brew(1 * time.Minute)	// OK from the outside
+	
+- Expose yourself to the API footprint from the begning
+	- Put test code in different package
+		package proj_test
+		func Test(t *testing.T) {
+			g := proj.FormatGreeter("Hi %s")
+			g.Greet("Prior")
+		}
+	- Defintely do this foe examples
+	- Use godoc early godoc -http=:8080
+	
+- Dont log stuff out
+	or, atleast let the users turn it off
+
+- Make zero values useful
+	type Greeter struct {
+		Format string
+	}
+	
+	func (g Greeter) Greet(name string) string {
+		if g.Format == "" {
+			g.Format = "Hi %s"
+		}
+		return fmt.Sprintf(g.Format, name)
+	}
+	
+	func main() {
+		var g Greeter 
+		fmt.Println(g.Greet("Dear"))
+	} // OUTPUT: Hi Dear
+	
+	or,
+	func main() {
+		g := Greeter {Format: "Hey there, %s"} 
+		fmt.Println(g.Greet("Dear"))
+	} // OUTPUT: Hey there Dear
+	
+- Avoid constructors if u can
+	b := tea.NewBrewer(2 * time.Minute)	// avoid constructors
+	
+	b := tea.Brewer{SteepTime: 2 * time.Minute}  // Use like this, it is very clear
+
+- Don't autometically add interfaces:
+	I love interfaces, but love smaller APIs even more
+	type Greeter interface {
+		greet(name string) string
+	}
+	type formatGreeter struct {
+		Format string
+	}
+	func (g formatGreeter) Greet(name string) string {
+		return fmt.Sprintf(g.Format, name)
+	}
+- Another way to shrink the API footprint
+	type Greeter interface {
+		greet(name string) string
+	}
+	func formatGreeter(format string) Greeter {
+		return formatGreeter{format: format}
+	}
+	type formatGreeter struct {
+		Format string
+	}
+	func (g formatGreeter) Greet(name string) string {
+		return fmt.Sprintf(g.Format, name)
+	}
+	
+- Use Go-like names:
+	- time.ParseTimeString -> time.Parse
+	- MarshalWithIndentation -> MarshalIndent
+	- TearDown -> Close
+	
+- Ask the user for http.Client
+	If your package makes HTTP requests, ask the user to provide a http.Client
+	- Let user specify timeouts, redirect policy, proxies etc.
+	- You can still default to http.DefaultClient
+	- Google App Engine has urlfetch.NewClient - so your package wouldn't work here.
+	
+- context : If you use context, it should be the first argument:
+	func StartSomethingAmazing(ctx Context.Context, region string, intensity int) {
+		// code
+	}
+	
+- Don't mess with the global state
+	- Don't add flags
+	- Avoid init
+	- Don't mess with things in the standard library
+	  (e.g changing http.DefaultClient to set a timeout)
+	- Imorting your package shouldn't have side-effects
+	
+- Subpackages are just packages
+	import "github.com/matryer/vice/test"
+	func TestTransport(t *testing.T) {
+		test.Transport(t, newTestTransport)
+	}
+	
+	changed to:
+	import "github.com/matryer/vice/vicetest"
+	func TestTransport(t *testing.T) {
+		vicetest.Transport(t, newTestTransport)
+	}
+	
+- Come up with a good name
+	- Short
+	- Clear
+	- To the point
+	- Be creative and have fun
+	- Not every Go project needs to mention Go
+	
+- Give your project a logo or mascot
+	- Projects that have a logo, are 85% more likely to get used.
+	- Great way for artists to contribute to open-source projects
+	
+- Name that project
+	- shout out the project name that these logos belong to.
+	
+- gorilla toolkit
+  travis CI
+  machine box
+  prometheus
+  NSQ
+  HUGO
+  
+- go lint
+- go vet
+- github.com/alecthomas/gometalinter - run many linters
+- goreportcard.com
+
+- How to spot quality package:
+	- Did the use 'go fmt'?
+	- Are there '_test.go' files.?
+	- Does the code read well? Do the names sound weird? 
+	  Does it feel like Go code.?
+	- Have they just ported from a different language?
+	  (Are they using java names.?)
+	- How many dependencies does it have.?(less is better)
+	
+=========================================================
+The execution tracer (go tool trace) is one of Go's most powerful diagnosis tools, but its power and complexity make it difficult to learn. 
+See how it can help you understand goroutines' interactions in great detail, uncovering latency bugs and logical races.
+- Go execution tracer. (see document detail : $go doc runtime/trace)
+- The tracer capture a wide range of execution events.
+- A trace can be analysed later with 'go too trace' command.
+- Trace is a tool for viewing trace files. (see document: go doc cmd/trace)
+- View the trace in a web browser:
+	$go tool trace trace.out
+- 
+
+type quotaPool struct {
+	c chan int		// positive quota here
+	mu sync.Mutex
+	quota int		// zero or negative quota here
+}
+
+func newQuotaPool(q int) *quotaPool {
+	qp := &quotaPool{c:make(chan int, 1),}
+	if q > 0 {
+		qb.c <- q
+	} else {
+		qb.quota = q
+	}
+	return qp
+}
+
+func (qp *quotaPool) acquire<-chan int {
+	return qp.c
+}
+
+func (qp *quotaPool) add(n int) {
+	qp.mu.Lock(); defer qp.mu.Unlock()
+	if qp.quota += n; qp.quota <= 0 {
+		return
+	}
+	select {
+		case qp.c <- qp.quota:
+			qp.quota = 0
+		default:
+	}
+}
+
+func (qp *quotaPool) cancel() {
+	qp.mu.Lock(); defer qp.mu.Unlock()
+	select {
+		case n := <-qp.c: 
+			qp.quota += n
+		default:
+	}
+}
+
+//Here adding cancel + add functionality together
+func (qp *quotaPool) add(v int) {
+	qp.mu.Lock(); defer qp.mu.Unlock()
+	select {
+		case n := <-qp.c: 
+			qp.quota += n
+		default:
+	}
+	if qp.quota += v; qp.quota > 0 {
+		qp.c <- qp.quota
+		qp.quota = 0
+	}
+}
+
+- Three ways to get data:
+	1. Testing with -trace flags
+	2. Direct runtime/trace use
+	3. net/http/pprof handlers
+- runtime.ReadMemStats
+	- Go 1.8 or earlier
+	- large (40 GB) heap
+	- leads to long pauses
+	Fixed in Go 1.9
+
+- go test -trace
+- go build -trace
+- go install -trace
+
+==============================
+WARNING: DATA RACE
+Read at 0x00c420141500 by gorooutine 27:
+	...
+Previous Write at 0x00c420141500 by gorooutine 26:
+	...
+Note : This about logical race, not a data race. (because of not proper syncronization done)
+
+- Go Garbage collection timeline:
+	Go 1:	Program fully stopped
+	Go 1.1: GC uses parallel threads
+	Go 1.4: Precise collection
+	GO 1.5: global pauses<10ms
+	GO 1.8: global pauses<100 micro seconds
+- Everythings stops when GC begins and ends mark phase.
+- Goroutines can stop when...
+	1. allocating memory 
+	2. calling funcrions
+	3. communicating
+	4. crunching numbers in loop
+
+	seens in:
+	- encoding/base64
+	- encoding/json
+	- ../golang/protobuf/proto
+	it's measurable for 1MB values
+
+- Write a tight loop to see the GC behaviour:
+  go func() {
+	for i:=0; i <1e9; i++ { }
+  }
+	
+- golang.org/issue/10958
+  The GO 1.10 comipler should have a general, permanent fix
+  Workaround available now
+  
+- A mark/sweep GC:
+	- "mark" finds the in-use memeory
+	- "sweep" reclaims the rest
+
+=====================================================
+Well defined Document for GO:
+https://www.programming-books.io/essential/go/d6da4b8481f94757bae43be1fdfa9e73-gopath-goroot-gobin
+
+- gofmt -> used to format the go code
+	gofmt -w main.go // rewriting into same files
+- When GOBIN is set, there are two distinct behaviours: 
+	1. When using go build <gofile.go>, the executable is created in the same folder. 
+	2. When using go install <gofile.go> the executable is created in GOBIN
+	
+	$ go run go-chan.go
+	$ go build go-chan.go
+	$ ls
+	go-chan.exe*  go-chan.go
+	$ file go-chan.exe
+	go-chan.exe: PE32+ executable (console) x86-64 (stripped to external PDB), for MS Windows
+	$ GOOS=linux go build go-chan.go
+	$ ls
+	go-chan  go-chan.exe*  go-chan.go
+	$ file go-chan
+	go-chan: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, Go BuildID=1SzfXJRLS3o0F5-JEgNh/XM0qH_g10srBZZthYxDx/N6aS6ynQ9tJuSYIFFjlQ/5gfPGwS_wxvIef3rxRJp, not stripped
+	$ GOOS=windows go build go-chan.go
+	$ pwd
+	/e/git-repository/go-wrkspace
+	// going to github, downloading the code, installing the binary in bin folder.
+	$ go get github.com/golang/example/hello
+	$ ls src/
+	bin/        channel/    github.com/
+	$ src/bin/hello.exe
+	Hello, Go examples!
+	// list the package, must be executed in that folder where package is defined.
+	$ go list
+	channel/go-chan
+	// This will give the name of package
+	$ go list -f '{{ .Name }}'
+	main
+	// This will give the documentaion detail which is added as comment in the package code.(// or /* */)
+	$ go list -f '{{ .Doc }}'
+	This file contain channel concept
+	// Give me all the imports used in this package
+	$ go list -f '{{ .Imports }}'
+	[fmt time]
+	// strings depends on the list of packages mentioned
+	$ go list -f '{{ .Imports }}' strings
+	[errors internal/bytealg io unicode unicode/utf8 unsafe]
+	$ go list -f '{{ join .Imports "\n"}}' strings
+	errors
+	internal/bytealg
+	io
+	unicode
+	unicode/utf8
+	unsafe
+	// go doc will give you documentaion for current package 
+	$ go doc
+	This file contain channel concept
+	// and explicity we can get the documentation for other package by specifying the name
+	$ go doc fmt
+	package fmt // import "fmt"
+	Package fmt implements formatted I/O with functions analogous to C's printf
+	and scanf. The format 'verbs' are derived from C's but are simpler.
+	cont...
+	// This will give the detail about Function definition in strings package
+	$ go doc strings Compare
+	func Compare(a, b string) int
+		Compare returns an integer comparing two strings lexicographically. The
+		result will be 0 if a==b, -1 if a < b, and +1 if a > b.
+	
+		Compare is included only for symmetry with package bytes. It is usually
+		clearer and always faster to use the built-in string comparison operators
+		==, <, >, and so on.
+	// This will give the locally running home page about GO document. (C:\go\bin\godoc.exe)
+	// this will contain document for standard libray as well as third party(your own as well defined package.)
+	$godoc -http=:6060
+	
+
+$ $go env | grep -i "^GO"
+GOPATH=E:\git-repository\go-wrkspace
+GOROOT=C:\Go\
+GOBIN=E:\goProject\go\bin
+
+$ go env | grep -i "GO"
+set GOARCH=amd64
+set GOBIN=E:\goProject\go\bin
+set GOCACHE=C:\Users\admin\AppData\Local\go-build
+set GOEXE=.exe
+set GOFLAGS=
+set GOHOSTARCH=amd64
+set GOHOSTOS=windows
+set GOOS=windows
+set GOPATH=E:\git-repository\go-wrkspace
+set GOPROXY=
+set GORACE=
+set GOROOT=C:\Go
+set GOTMPDIR=
+set GOTOOLDIR=C:\Go\pkg\tool\windows_amd64
+set GCCGO=gccgo
+set CGO_ENABLED=1
+set GOMOD=
+set CGO_CFLAGS=-g -O2
+set CGO_CPPFLAGS=
+set CGO_CXXFLAGS=-g -O2
+set CGO_FFLAGS=-g -O2
+set CGO_LDFLAGS=-g -O2
+set GOGCCFLAGS=-m64 -mthreads -fmessage-length=0 -fdebug-prefix-map=C:\Users\admin\AppData\Local\Temp\go-build081915914=/tmp/go-build -gno-record-gcc-switches
+
+E:
+|---> git-repository
+                 |-----> go-wrkspace
+				                 |----->src
+								 |       |-->channel
+								 |               |---->go-chan
+								 |                        |----> go-chan.go
+								 |
+								 |------>bin
+[E\git-repository\go-wrkspace]$								 
+$ go install src/channel/go-chan/go-chan.go
+go install: no install location for .go files listed on command line (GOBIN notset)
+
+$ cd src/
+[E\git-repository\go-wrkspace\src]$		
+$ go install channel/go-chan/go-chan.go
+go install: no install location for .go files listed on command line (GOBIN notset)
+
+$ cd channel/
+[E\git-repository\go-wrkspace\src\channel]$		
+$ go install go-chan/go-chan.go
+go install: no install location for .go files listed on command line (GOBIN notset)
+
+$ cd go-chan/
+[E\git-repository\go-wrkspace\src\channel\go-chan]$		
+$ go install go-chan.go
+go install: no install location for .go files listed on command line (GOBIN notset)
+
+
+Regarding setting GOBIN variable version not requiring it and just relying on GOPATH:
+=====================================================================================
+- GOBIN is required if we don't have a package, i.e. the file is directly in the GOPATH directory. 
+  This is likely when we are trying out the Go features as learners
+- For typical Go projects, the files are under the package directories. 
+  For these, GOPATH is good enough.
+- In other words, both the following solutions would work: 
+	a. Set GOBIN explicitly as $GOPATH/bin [only for learning purposes, can avoid] 
+	b. Create a subdirectory which would be your package name and move the .go files to it
+- go install installs packages not individual files. 
+  Please read all of golang.org/cmd/go and see how to set up your files.
+-------------------------------
+Actually there are 2 different kinds of behavior.
+	- go install <package>
+	  this is documented in 'Compile and install packages and dependencies' You don't need GOBIN if you set GOPATH correctly.
+	- go install <gofile>
+	  this is not documented and you need GOBIN env variable in this mode.
+- go install <gofile> is documented, in go help packages to which go install --help refers to. 
+  Problem is that go install (in 1.9.2 and earlier) has inconsistent behaviour, in one case it requires and 
+  in other it does not require GOBIN to be explicitly set.
+- Note: if we don't set GOBIN path, 'go build' will generate the binary in the diretory where it is executed.
+  [E\git-repository\go-wrkspace]$ go build src/channel/go-chan/go-chan.go
+  [E\git-repository\go-wrkspace]$ ls
+  go-chan.exe*  src/
+- But this will not work, if we don't set GOBIN path:
+  [E\git-repository\go-wrkspace]$ go install src/channel/go-chan/go-chan.go
+  go install: no install location for .go files listed on command line (GOBIN notset)
+-------------------------------
+Check your GOPATH variable.
+Make sure:
+	- your sources are under GOPATH/src
+	- you have a bin folder within your GOPATH folder.
+- The bin directory holds compiled commands.
+- Each command is named for its source directory, but only the final element, not the entire path. 
+  That is, the command with source in 'DIR/src/foo/quux' is installed into 'DIR/bin/quux', not 'DIR/bin/foo/quux'. 
+  The "foo/" prefix is stripped so that you can add 'DIR/bin' to your PATH to get at the installed commands.
+- If the GOBIN environment variable is set, commands are installed to the directory it names instead of 'DIR/bin'. 
+- GOBIN must be an absolute path.
+- The Go path is a list of directory trees containing Go source code. 
+  It is consulted to resolve imports that cannot be found in the standard Go tree.
+- GO install the package, not a single file that's why go install doesn't take file.
+- setting GOBIN path will worke for install with filename.(create $GOPATH/bin directory explicitly for this)
+	export GOBIN=$GOPATH/bin
+- you cannot go install a filename.go. You can only install a package.
+- 'go run' only works with Go source files (filenames that end in .go) and 
+  'go install' only accepts packages. Packages are named by their import paths or file system path.
+- This refers to the package by import path.(Example: import paths) 
+  (given that $GOPATH="E\git-repository\go-wrkspace", the go tools look for source code in E\git-repository\go-wrkspace\src)
+  [E\git-repository\go-wrkspace\src]$ go install channel/go-chan
+- Below are interpreted as file system paths because of the leading periods.(Example: file system path)
+   [E\git-repository\go-wrkspace\src\channel]$go install ./go-chan
+   [E\git-repository\go-wrkspace\src\channel\go-chan]$go install .
+-------------------------------
+- if your GOPATH env is correctly set to your workspace you don't need to set GOBIN env variable.
+- Please check your go environment variables by running $go env | grep -i "^GO" and look out for 
+  GOROOT and GOPATH to check if GOROOT is pointing to your GO source installation and GOPATH pointing to your workspace.
+- If everything is correct then navigate to the subdir where 'yourpkg.go' resides then run 
+  $go build (without file name) first and 
+  $go install (again withour file name) second , if you don't see any error message on the screen 
+  your package is ready at your workspace/pkg/youros/../yourpackage.a
+
+====================================
+GO
+	- build		- run		- install
+	- get 		- test		- tool
+	- fmt 		- vet		- doc
+	- list
+	
+	- goimports
+	- golint
+	- errcheck
+	- go-torch
+	
+$ go test
+PASS
+ok      channel/http-server     1.006s
+$ ls
+httpserver.go  httpserver_test.go
+$ go test -count=1
+PASS
+ok      channel/http-server     1.051s
+$ go test -c   // it create the test binary as well
+$ ls
+httpserver.go  http-server.test.exe*  httpserver_test.go
+$ go test -bench .
+goos: windows
+goarch: amd64
+pkg: channel/http-server
+BenchmarkMyHandler-4      200000              5451 ns/op
+PASS
+ok      channel/http-server     1.934s
+$ go test -bench . -benchmem
+goos: windows
+goarch: amd64
+pkg: channel/http-server
+BenchmarkMyHandler-4      300000              4431 ns/op            1456 B/op         12 allocs/op
+PASS
+ok      channel/http-server     3.020s
+$ go test -bench . -benchmem -cpuprofile prof.CPU
+goos: windows
+goarch: amd64
+pkg: channel/http-server
+BenchmarkMyHandler-4      300000              5391 ns/op            1456 B/op         12 allocs/op
+PASS
+ok      channel/http-server     3.585s
+$ ls
+httpserver.go  http-server.test.exe*  httpserver_test.go  prof.CPU
+$ go tool pprof http-server.test.exe prof.CPU
+File: http-server.test.exe
+Type: cpu
+Time: Dec 22, 2018 at 9:13am (PST)
+Duration: 2.82s, Total samples = 2.73s (96.79%)
+Entering interactive mode (type "help" for commands, "o" for options)
+(pprof) web
+$ go test -bench . -benchmem -cpuprofile prof.CPU -memprofile mf.mem
+goos: windows
+goarch: amd64
+pkg: channel/http-server
+BenchmarkMyHandler-4      300000              5127 ns/op            1456 B/op         12 allocs/op
+PASS
+ok      channel/http-server     3.457s
+$ ls
+httpserver.go  http-server.test.exe*  httpserver_test.go  mf.mem  prof.CPU
+$ go tool pprof http-server.test.exe mf.mem
+File: http-server.test.exe
+Type: alloc_space
+Time: Dec 22, 2018 at 9:18am (PST)
+Entering interactive mode (type "help" for commands, "o" for options)
+(pprof) top
+Showing nodes accounting for 679.65MB, 99.31% of 684.40MB total
+Dropped 28 nodes (cum <= 3.42MB)
+Showing top 10 nodes out of 15
+      flat  flat%   sum%        cum   cum%
+  193.05MB 28.21% 28.21%   193.05MB 28.21%  net/http/httptest.cloneHeader
+  166.55MB 24.34% 52.54%   166.55MB 24.34%  net/textproto.MIMEHeader.Set
+  137.03MB 20.02% 72.56%   200.54MB 29.30%  net/http.NewRequest
+  111.51MB 16.29% 88.86%   111.51MB 16.29%  net/http/httptest.NewRecorder (inline)
+   63.51MB  9.28% 98.14%    63.51MB  9.28%  net/url.parse
+       8MB  1.17% 99.31%   367.61MB 53.71%  channel/http-server.MyHandlerWithStringHas
+         0     0% 99.31%   679.65MB 99.31%  channel/http-server.BenchmarkMyHandler
+         0     0% 99.31%   359.61MB 52.54%  fmt.Fprintf
+         0     0% 99.31%   166.55MB 24.34%  net/http.Header.Set
+         0     0% 99.31%   359.61MB 52.54%  net/http/httptest.(*ResponseRecorder).Write
+(pprof) list MyHandlerWithStringHas
+Total: 684.40MB
+ROUTINE ======================== channel/http-server.MyHandlerWithStringHas in E:\git-repository\go-wrkspace\src\channel\http-server\httpserver.go
+       8MB   367.61MB (flat, cum) 53.71% of Total
+         .          .     21:
+         .          .     22:func MyHandlerWithStringHas(w http.ResponseWriter, r *http.Request) {
+         .          .     23:    path  := r.URL.Path[1:]
+         .          .     24:    if strings.HasSuffix(path, "@golang.org") {
+         .          .     25:   name := strings.TrimSuffix(path, "@golang.org")
+       8MB   367.61MB     26:        fmt.Fprintf(w, "Hello, Mr. %s!", name)
+         .          .     27:        return
+         .          .     28:    }
+         .          .     29:    fmt.Fprintf(w, "Hello Mr. India.!")
+         .          .     30:}
+         .          .     31:
+(pprof)exit
+$ go tool pprof --alloc_objects http-server.test.exe mf.mem
+File: http-server.test.exe
+Type: alloc_objects
+Time: Dec 22, 2018 at 9:18am (PST)
+Entering interactive mode (type "help" for commands, "o" for options)
+(pprof) top
+Showing nodes accounting for 6172169, 100% of 6172906 total
+Dropped 28 nodes (cum <= 30864)
+Showing top 10 nodes out of 15
+      flat  flat%   sum%        cum   cum%
+   1590930 25.77% 25.77%    1590930 25.77%  net/http/httptest.cloneHeader
+   1485594 24.07% 49.84%    1485594 24.07%  net/http/httptest.NewRecorder (inline)
+   1090446 17.67% 67.50%    1090446 17.67%  net/textproto.MIMEHeader.Set
+    960648 15.56% 83.07%    1480903 23.99%  net/http.NewRequest
+    524296  8.49% 91.56%    3205672 51.93%  channel/http-server.MyHandlerWithStringHas
+    520255  8.43%   100%     520255  8.43%  net/url.parse
+         0     0%   100%    6172169   100%  channel/http-server.BenchmarkMyHandler
+         0     0%   100%    2681376 43.44%  fmt.Fprintf
+         0     0%   100%    1090446 17.67%  net/http.Header.Set
+         0     0%   100%    2681376 43.44%  net/http/httptest.(*ResponseRecorder).Write
+(pprof) list MyHandlerWithStringHas
+Total: 6172906
+ROUTINE ======================== channel/http-server.MyHandlerWithStringHas in E:\git-repository\go-wrkspace\src\channel\http-server\httpserver.go
+    524296    3205672 (flat, cum) 51.93% of Total
+         .          .     21:
+         .          .     22:func MyHandlerWithStringHas(w http.ResponseWriter, r *http.Request) {
+         .          .     23:    path  := r.URL.Path[1:]
+         .          .     24:    if strings.HasSuffix(path, "@golang.org") {
+         .          .     25:   name := strings.TrimSuffix(path, "@golang.org")
+    524296    3205672     26:        fmt.Fprintf(w, "Hello, Mr. %s!", name)
+         .          .     27:        return
+         .          .     28:    }
+         .          .     29:    fmt.Fprintf(w, "Hello Mr. India.!")
+         .          .     30:}
+         .          .     31:
+(pprof) exit
+=============================
+$gofmt -d main.go
+
+
+	
+	
+	
+	
