@@ -89,41 +89,41 @@ _vptr :
 	
 Here we have 3 classes Base, D1 and D2. Where D1 and D2 are derived from class Base:
 
-#include<iostream.h>
-class Base {  
- public:  
-    virtual void function1() {cout<<"Base :: function1()\n";}  
-    virtual void function2() {cout<<"Base :: function2()\n";}  
-    virtual ~Base(){}
-};  
+	#include<iostream.h>
+	class Base {  
+	 public:  
+	    virtual void function1() {cout<<"Base :: function1()\n";}  
+	    virtual void function2() {cout<<"Base :: function2()\n";}  
+	    virtual ~Base(){}
+	};  
    
-class D1: public Base {  
-public:  
-   ~D1(){};
-   virtual void function1() { cout<<"D1 :: function1()\n"; }
-};  
+	class D1: public Base {  
+	public:  
+	   ~D1(){};
+	   virtual void function1() { cout<<"D1 :: function1()\n"; }
+	};  
   
-class D2: public Base {  
-public:  
-   ~D2(){};
-   virtual void function2() { cout<< "D2 :: function2\n";} 
-};  
+	class D2: public Base {  
+	public:  
+	   ~D2(){};
+	   virtual void function2() { cout<< "D2 :: function2\n";} 
+	};  
 
-int main() {
-  D1 *d = new D1;;
-  Base *b = d; 
+	int main() {
+	  D1 *d = new D1;;
+	  Base *b = d; 
 
-  b->function1();
-  b->function2();
+	  b->function1();
+	  b->function2();
 
-  delete (b);
+	  delete (b);
   
-  return (0);
-}
+	  return (0);
+	}
 
-output:
-D1 :: function1()
-Base :: function2()
+	OUTPUT:
+		D1 :: function1()
+		Base :: function2()
 
 Expalnation :
 -------------
@@ -202,7 +202,7 @@ How virtual functions works internally using vTable and vPointer?
 	
 	As the above class contains more than 0 virtual functions i.e. convert() and encrypt(), 
 	Hence it has a vTable associated with it. vTable will look like this:
-	     ---------------------
+	         ---------------------
 		|       vTable        |    
 		|---------------------|
 		| convert()'s address |
@@ -217,7 +217,7 @@ How virtual functions works internally using vTable and vPointer?
 
 	Memory layout of each of the object is as follows:
 	
-	     -----------------------------------------------------------------------------
+	         -----------------------------------------------------------------------------
 		|                                                                             |
 		|     -----------------------                                                 |
 		|    | *ptr1 - Memory Layout |                                                |
@@ -233,7 +233,7 @@ How virtual functions works internally using vTable and vPointer?
 		|    |      vPointer --->--->|------>------------->| convert()'s address |    |
 		|    |-----------------------|                     | encrypt()'s address |    |
 		|    |      m_count          |                      ---------------------     |
-		|     -----------------------		                        |                 |
+		|     -----------------------  	                            |                 |
 		|                                                           |                 |
 		|     -----------------------                               |                 |
 		|    | *ptr3 - Memory Layout |                              |                 |
@@ -241,9 +241,9 @@ How virtual functions works internally using vTable and vPointer?
 		|    |      vPointer --->--->|------>---------------------->                  |		
 		|    |-----------------------|                                                |
 		|    |      m_count          |                                                |
-		|     -----------------------		                                          |
+		|     -----------------------		                                      |
 		|                                                                             |
-         -----------------------------------------------------------------------------
+                 -----------------------------------------------------------------------------
 		 
 		               - vPointer and vTable for MsgConverter class
 					   
@@ -273,7 +273,7 @@ How virtual functions works internally using vTable and vPointer?
 	  as virtual because in its base class this function is virtual.
 	- So, there is a vTable for this new class too. vTable for this new class is,
 	
-	     ---------------------
+	         ---------------------
 		|       vTable        |    
 		|---------------------|
 		| convert()'s address |
@@ -283,18 +283,18 @@ How virtual functions works internally using vTable and vPointer?
 	- Now when we create a object of NewMsgConverter then first 4 bytes of this object i.e. vpointer points to the vTable of this new class.
 			MsgConverter * pNewPtr = new NewMsgConverter();
 		
-         -----------------------------------------------------------------------------------		
+                 -----------------------------------------------------------------------------------		
 		|                                                                                   |
 		|     --------------------------                    ---------------------------     |
-	    |    | *pNewPtr - Memory Layout |                  | vTable of NewMsgConverter |    |    
+	        |    | *pNewPtr - Memory Layout |                  | vTable of NewMsgConverter |    |    
 		|    |--------------------------|                  |---------------------------|    | 
 		|    |      vPointer --->--->---|------>---------->|    convert()'s address    |    |    
 		|    |--------------------------|                   ---------------------------     |
 		|    |      m_count             |                                                   |
-		|     --------------------------		                                            |
+		|     --------------------------		                                    |
 		|                                                                                   |
 		 -----------------------------------------------------------------------------------
-							vTable and vPointer for NewMsgConverter
+					vTable and vPointer for NewMsgConverter
 							
 	- vTable of the NewMsgConverter contains the function address of Derived class’s (NewMsgConverter class) convert() function.
     - So, if we call the function convert from pNewPtr then convert() function of Derived class is called i.e.
