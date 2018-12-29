@@ -416,4 +416,3121 @@ int main() {
 }
 
 
+reference_and_pointer:
+======================
+
+#include <iostream>
+using namespace std;
+
+/*
+1. Memory Address - same address for reference but different for pinter
+2. Reassignment is not possible with reference
+3. NULL value cant be assigned for reference (int &a = NULL)
+4. Arithmatic Operations are not provided for references ( a++ not allowd but (&a)++ yes)
+5. Indirection - one level of indirection in reference as allowd but for pointer n level.
+
+*/
+
+int main() {
+  int i = 0;
+  int &r = i;  //reference
+  int *p = &i; // pointer
+
+  cout << "&i = " << &i << ", &r = " << &r << ", &p = " << &p << endl;
+
+  int var = 90;
+  r = var;
+
+  cout << "i = " << i << ", r = " << r << ", var = " << var << endl;
+
+  p = &var;
+  *p = 60;
+  cout << "i = " << i << ", var = " << var << ", *p = " << *p << endl;
+
+  int a = 20;
+  int &b = a;
+  int &c = b;
+  
+  cout << "a = " << a << ", b = " << b << ", c = " << c << endl;
+  
+  return 0;
+}
+
+
+whenToUseRefOverPointer:
+========================
+
+/*
+Question: When should we use reference over pointer and vice versa?
+
+REFERENCE: Use References in function parameter and return type
+
+ 1. Pass Big Objects - (take alwys as reference)
+ 2. To avoid object slicing
+ 3. To modify local variable of caller function
+ 4. To achieve run time polymorphism in a function
+ 5. Must use referncee in copy constructor parameter
+
+
+POINTERS: Use pointers in algorithm and data structures like link list, tree, graph etc.
+   
+ Reason 1: sometime we put NULL/nullptr in node.
+ Reason 2: sometime we change pointers to point some another node.
+*/
+
+#include <iostream>
+using namespace std;
+
+//#define PASS_BIG_OBJ_AS_REFERENCE 1
+#define OBJ_SLICING 2
+
+#ifdef PASS_BIG_OBJ_AS_REFERENCE
+class BigClass { };
+
+void function1(BigClass obj) { }
+
+void function2(BigClass& obj) { }
+
+int main() {
+  BigClass obj;
+  function1(obj); // in this case it will copy the whole obj data to calling function
+  function2(obj); // in this case only reference of obj will be passed
+  return 0;
+}
+#endif
+
+#ifdef OBJ_SLICING
+class Base {
+    int x;
+  public:
+    Base(){}
+    Base(const Base& b):x(b.x){}
+    virtual void print() { cout << "Base" << endl;  }
+};
+
+class Derived: public Base {
+    int y;
+  public:
+    virtual void print() { cout << "Derived" << endl;  }
+    
+};
+
+void function1(Base b) { b.print(); } 
+
+// This function will be polymorphic, Hence based on the passed object type print function will get called
+// below function with reference will achive run time polymorphim
+void function2(Base& b) { b.print(); } // virtual behaviour can be achived without pointer through reference(&)
+
+int main() {
+  Derived d;
+  function1(d); // it has sliced out the derived part from the derived object d, Hence Base print will get called
+  function2(d); // virtual behaviour is achieved through reference, Hence Derived print will get called
+
+  Base b;
+  function2(b);
+
+  return 0;
+}
+
+#endif
+
+
+void_void_pointer:
+==================
+
+/*
+Question: what is void and void pointer(void*) in C/C++?
+
+Topic: void
+  1. void is used to denote nothing
+  2. if some function is not returning anything then we use void type to denote that.
+  3. if some function doesn't take any parameters then we use void to denote this.
+  4. we can not create void variable.
+  5. sizeof void is 1 in gcc compilers but in other it is not valid to check sizeof void.
+
+Topic: void*
+  1. void* is universal pointer
+  2. we can convert any data type pointer to void* (except function pointer, const or volatile)
+  3. void* can not be dereferenced
+*/
+
+#include <iostream>
+using namespace std;
+
+//#define CANT_VOID_VARIABLE 1
+//#define VOID_RETURN_VOID_FUN_PARAMETER 2
+//#define SIZE_OF_VOID 3
+//#define VALID_CODE 4
+//#define FUNCTION_PTR_TO_VOID_PTR 5
+//#define CONST_DTYPE_PTR_TO_VOID_PTR 6
+//#define VOLATILE_DTYPE_PTR_TO_VOID_PTR 7
+#define CANT_DEREFERENCE_VOID_PTR 8
+//#define VALID_CONVERSION 9
+
+void function (void) {
+  cout << "C++" << endl;
+}
+
+int main() {
+
+#ifdef CANT_VOID_VARIABLE
+  void x;  // error: variable or field 'x' declared void
+#endif
+
+#ifdef VOID_RETURN_VOID_FUN_PARAMETER
+  function(); // OUTPUT: C++
+#endif
+
+#ifdef SIZE_OF_VOID
+  // gcc/g++ gives -> warning: invalid application of 'sizeof' to a void type [ -Wpointer-arith ]
+  /* http://rextester.com/l/cpp_online_compiler_visual --> vc++ gives below error:
+                  source_file.cpp(7): error C2070: 'void': illegal sizeof operand
+                  Microsoft (R) C/C++ Optimizing Compiler Version 19.00.23506 for x64 */
+  cout << "sizeof(void): " << sizeof(void) << endl; // OUTPUT: sizeof(void): 1
+#endif
+
+#ifdef VALID_CODE
+  int *a = new int(10);
+  void *v = a; //  valid code
+
+  void *v1 = static_cast<void*>(a); // compile time error: const data type can't be convert into void*
+#endif
+
+#ifdef FUNCTION_PTR_TO_VOID_PTR
+  void *v2 = static_cast<void*>(function); // error: invalid static_cast from type 'void()' to type 'void*'
+#endif
+
+#ifdef CONST_DTYPE_PTR_TO_VOID_PTR
+  const int *i = new int(10);
+  void *v3 = static_cast<void*>(i); // error: invalid static_cast from type 'const int*' to type 'void*'
+#endif
+
+#ifdef VOLATILE_DTYPE_PTR_TO_VOID_PTR
+  volatile int *i = new int(10);
+  void *v3 = static_cast<void*>(i); 
+#endif
+
+#ifdef CANT_DEREFERENCE_VOID_PTR
+  int *i = new int(10);
+  void *v3 = static_cast<void*>(i); 
+
+  cout << *v3 << endl; // error: 'void*' is not a pointer-to-object type
+#endif
+
+#ifdef VALID_CONVERSION
+  int *i = new int(10);
+  void *v3 = static_cast<void*>(i);
+  cout << *(static_cast<int*>(v3)) << endl;
+#endif
+
+  return 0;
+}
+
+
+/*
+Bottom Line:
+------------
+  1. SO only void means nothing and void* means pointer to anything(except function pointer, const or volatile)
+
+Use Cases:
+----------
+  1. malloc and calloc returns void* so that we can typecast to our desired data type.
+  2. void* are used to create generic function in C. (compare function used in qsort function in C).
+*/
+
+
+
+builtInDefaultConstructor:
+==========================
+
+/* C++ default constructor | Built-in types */
+
+#include <iostream>
+using namespace std;
+ 
+int main() {
+ 
+   cout << "int(): " << int() << endl;
+   return 0;
+}
+
+/*
+  A constructor without any arguments or with default values for every argument, is treated as default constructor. 
+  It will be called by the compiler when in need (precisely code will be generated for default constructor based on need).
+
+  C++ allows even built-in type (primitive types) to have default constructors. 
+  The function style cast int() is analogous to casting 0 to required type. The program prints 0 on console.
+
+  The initial content of the article triggered many discussions, given below is consolidation:-
+  It is worth to be cognizant of reference vs. value semantics in C++ and the concept of Plain Old Data types. 
+  From Wiki, primitive types and POD types have no user-defined copy assignment operator, no user-defined destructor, 
+  and no non-static data members that are not themselves PODs. Moreover, a POD class must be an aggregate, meaning it has no 
+  user-declared constructors, no private nor protected non-static data, no base classes and no virtual functions.
+
+  An excerpt (from a mail note) from the creator of C++, “I think you mix up ‘actual constructor calls’ with conceptually 
+  having a constructor. Built-in types are considered to have constructors”.
+
+  The code snippet above mentioned int() is considered to be conceptually having constructor. However, there will not be any 
+  code generated to make an explicit constructor call. But when we observe assembly output, code will be generated to 
+  initialize the identifier using value semantics.  */
+
+
+
+defaultConstructor:
+===================
+
+/*
+Default Constructors:
+----------------------
+  A constructor without any arguments or with default value for every argument, is said to be default constructor. 
+  What is the significance of default constructor? Will the code be generated for every default constructor? 
+  Will there be any code inserted by compiler to the user implemented default constructor behind the scenes?
+
+  The compiler will implicitly declare default constructor if not provided by programmer, it will define it when in need. 
+  Compiler defined default constructor is required to do certain initialization of class internals. 
+  It will not touch the data members or plain old data types (aggregates like array, structures, etc…). 
+  However, the compiler generates code for default constructor based on situation.
+
+  Consider a class derived from another class with default constructor, or a class containing another class object with 
+  default constructor. The compiler needs to insert code to call the default constructors of base class/embedded object.
+*/
+
+#include <iostream>
+using namespace std;
+ 
+class Base {
+public:
+    // compiler "declares" constructor
+};
+ 
+class A {
+public:
+    // User defined constructor
+    A() {
+        cout << "A Constructor" << endl;
+    }
+ 
+    // uninitialized
+    int size;
+};
+ 
+class B : public A
+{
+    // compiler defines default constructor of B, and
+    // inserts stub to call A constructor
+ 
+    // compiler won't initialize any data of A
+};
+ 
+class C : public A
+{
+public:
+    C()  {
+        // User defined default constructor of C, and Compiler inserts stub to call A's construtor
+        cout << "B Constructor" << endl;
+ 
+        // compiler won't initialize any data of A
+    }
+};
+ 
+class D
+{
+public:
+    D() {
+        // User defined default constructor of D, and a - constructor to be called, compiler inserts stub to call A constructor
+        cout << "D Constructor" << endl;
+ 
+        // compiler won't initialize any data of 'a'
+    }
+ 
+private:
+    A a;
+};
+ 
+int main()
+{
+    Base base;
+ 
+    B b;
+    C c;
+    D d;
+ 
+    return 0;
+}
+
+/*
+B b;
+----
+A Constructor
+
+C c;
+----
+A Constructor
+B Constructor
+
+D d;
+----
+A Constructor
+D Constructor
+
+  There are different scenarios in which compiler needs to insert code to ensure some necessary initialization as per language 
+  requirement. We will have them in upcoming posts. Our objective is to be aware of C++ internals, not to use them incorrectly.
+*/
+
+
+defaultAndCopyConstructor:
+==========================
+
+/*
+  When does compiler create default and copy constructors in C++?
+
+  In C++, compiler creates a default constructor if we don’t define our own constructor. 
+  Compiler created default constructor has empty body, i.e., it doesn’t assign default values to data members.
+
+  Compiler also creates a copy constructor if we don’t write our own copy constructor. 
+  Unlike default constructor, body of compiler created copy constructor is not empty, it copies all data members of passed 
+  object to the object which is being created. 
+
+  When should we write our own copy constructor?
+  Don’t write a copy constructor if shallow copies are ok: In C++, If an object has no pointers or any run time allocation 
+  of resource like file handle, a network connection..etc, a shallow copy is probably sufficient. 
+  Therefore the default copy constructor, default assignment operator, and default destructor are ok and you don’t need to 
+  write your own.*/
+
+
+#include <iostream>
+using namespace std;
+
+//#define ONLY_COPY_CONSTRUCTOR 1
+#define ONLY_DEFAULT_CONSTRUCTOR 2
+
+#ifdef ONLY_COPY_CONSTRUCTOR 
+/*
+  What happens when we write only a copy constructor – does compiler create default constructor?
+  Compiler doesn’t create a default constructor if we write any constructor even if it is copy constructor. 
+  For example, the following program doesn’t compile.
+*/
+ 
+class Point
+{
+    int x, y;
+public:
+   Point(const Point &p) { x = p.x; y = p.y; }
+};
+ 
+int main()
+{
+    Point p1;  // COMPILER ERROR
+    Point p2 = p1;
+    return 0;
+}
+/*Output:
+    COMPILER ERROR: no matching function for call to 'Point::Point()
+
+defaultAndCopyConstructor.cpp: In function ‘int main()’:
+defaultAndCopyConstructor.cpp:34:11: error: no matching function for call to ‘Point::Point()’
+     Point p1;  // COMPILER ERROR
+           ^
+defaultAndCopyConstructor.cpp:29:4: note: candidate: Point::Point(const Point&)
+    Point(const Point &p) { x = p.x; y = p.y; }
+    ^
+defaultAndCopyConstructor.cpp:29:4: note:   candidate expects 1 argument, 0 provided */
+#endif
+
+#ifdef ONLY_DEFAULT_CONSTRUCTOR
+/* 
+  What about reverse – what happens when we write a normal constructor and don’t write a copy constructor?
+  Reverse is not true. Compiler creates a copy constructor if we don’t write our own. 
+  Compiler creates it even if we have written other constructors in class. For example, the below program works fine.
+
+  So we need to write copy constructor only when we have pointers or run time allocation of resource like file handle, 
+  a network connection, etc */
+
+class Point
+{
+    int x, y;
+public:
+   Point(int i, int j) { x = 10; y = 20; }
+   int getX() { return x; }
+   int getY() { return y; }
+};
+ 
+int main()
+{
+    Point p1(10, 20);
+    Point p2 = p1; // This compiles fine
+    cout << "x = " << p2.getX() << " y = " << p2.getY() << endl;
+    return 0;
+}
+
+/* Output:
+x = 10 y = 20 */
+
+#endif
+
+
+playingWithDestructor:
+======================
+
+/*
+  Output of the below program is “i = 3”.
+  Why the output is i= 3 and not 10? 
+
+  While returning from a function, destructor is the last method to be executed. The destructor for the object “ob” is called 
+  after the value of i is copied to the return value of the function. So, before destructor could change the value of i to 10, 
+  the current value of i gets copied & hence the output is i = 3.
+
+  How to make the program to output “i = 10” ? 
+  Following are two ways of returning updated value:
+     1. Return by Reference:
+     2. Create the object ob in a block scope
+*/
+
+#include <iostream>
+using namespace std;
+
+//#define CASE_I 1
+//#define CASE_II 2
+#define CASE_III 3
+
+#ifdef CASE_I
+int i;
+ 
+class A {
+public:
+    ~A() { i=10; }
+};
+ 
+int foo() {
+    i=3;
+    A ob;
+    return i;
+}
+ 
+int main() {
+    cout << "i = " << foo() << endl;
+    return 0;
+}
+#endif
+
+#ifdef CASE_II
+/* 1. Return by Reference:
+      Since reference gives the l-value of the variable,by using return by reference the program will output “i = 10”. */
+int i;
+ 
+class A {
+public:
+    ~A() { i = 10; }
+};
+ 
+int& foo() {
+    i = 3;
+    A ob;
+    return i;
+}
+ 
+int main() {
+    cout << "i = " << foo() << endl;
+    return 0;
+}
+
+/* The function foo() returns the l-value of the variable i. So, the address of i will be copied in the return value. 
+   Since, the references are automatically dereferened. It will output “i = 10”.*/
+#endif
+
+#ifdef CASE_III
+/* 2. Create the object ob in a block scope
+      Since the object ob is created in the block scope, the destructor of the object will be called after the block ends, 
+      thereby changing the value of i to 10. Finally 10 will copied to the return value. */
+int i;
+
+class A {
+public:
+    ~A() { i = 10; }
+};
+
+int foo() {
+    i = 3;
+
+    {
+      A ob;
+    }
+
+    return i;
+}
+
+int main() {
+    cout << "i = " << foo() << endl;
+    return 0;
+}
+#endif
+
+
+privateDestructor:
+==================
+
+/*
+Question: What is the use of private destructor?
+Answer  : Whenever we want to control destruction of objects of a class, we make the destructor private. 
+          For dynamically created objects, it may happen that you pass a pointer to the object to a function and the function 
+          deletes the object. If the object is referred after the function call, the reference will become dangling. 
+          See this for more details.
+          The simple answer to why I made the destructor private was that I didn't want anyone to be able to destroy the object.
+*/
+
+#include <iostream>
+using namespace std;
+ 
+//#define CASE_I 1	
+//#define CASE_II 2	
+//#define CASE_III 3	
+//#define CASE_IV 4	
+//#define CASE_V 5	
+#define CASE_VI 6	
+
+
+class Test {
+  private:
+    ~Test() {}
+};
+
+#ifdef CASE_I
+/* The above program compiles and runs fine. It is not compiler error to create private destructors. */
+int main(){ 
+
+}
+#endif
+
+
+#ifdef CASE_II
+/* The below program fails in compilation. The compiler notices that the local variable ‘t’ cannot be destructed 
+   because the destructor is private. */
+int main() { 
+  Test t; 
+}
+/* OUTPUT:
+privateDestructor.cpp: In function ‘int main()’:
+privateDestructor.cpp:22:5: error: ‘Test::~Test()’ is private
+     ~Test() {}
+     ^
+privateDestructor.cpp:37:8: error: within this context
+   Test t; 
+        ^
+*/
+#endif
+
+
+#ifdef CASE_III
+/* The below program works fine. There is no object being constructed, the program just creates a pointer of type “Test *”, 
+   so nothing is destructed. */
+int main() {
+  Test *t; 
+}
+#endif
+
+
+#ifdef CASE_IV
+/* The below program also works fine. When something is created using dynamic memory allocation, 
+   it is programmer’s responsibility to delete it. So compiler doesn’t bother. */
+int main() {
+  Test *t = new Test;
+}
+#endif
+
+#ifdef CASE_V
+/* The below program fails in compilation. When we call delete, desturctor is called. */
+int main() { 
+   Test *t = new Test;
+   delete t;
+}
+/* OUTPUT:
+privateDestructor.cpp: In function ‘int main()’:
+privateDestructor.cpp:22:5: error: ‘Test::~Test()’ is private
+     ~Test() {}
+     ^
+privateDestructor.cpp:72:11: error: within this context
+    delete t;
+           ^
+*/
+#endif
+
+
+#ifdef CASE_VI
+/* We noticed in the above programs, when a class has private destructur, only dynamic objects of that class can be created. 
+   Following is a way to create classes with private destructors and have a function as friend of the class. 
+   The function can only delete the objects. */
+
+ 
+/* A class with private destuctor */
+class Test1 {
+private:
+    ~Test1() {}
+    friend void destructTest(Test1*);
+};
+ 
+// Only this function can destruct objects of Test
+void destructTest(Test1* ptr)
+{
+    delete ptr;
+}
+ 
+int main()
+{
+    // create an object
+    Test1 *ptr = new Test1;
+ 
+    // destruct the object
+    destructTest (ptr);
+ 
+    return 0;
+}
+#endif
+
+
+virtual_destructor:
+===================
+
+/* 
+why we need virtual destructor?
+Ans: There is one rule of thumb that if you have any function as virtual then you should create your destructor virtual.
+*/
+
+#include <iostream>
+using namespace std;
+
+class Base {
+  public:
+    virtual void fun() { cout << "Base fun" << endl; }
+    Base() { cout << "Base Constructor" << endl; }
+    virtual ~Base() { cout << "Base Destructor" << endl; }
+};
+
+class Derived: public Base {
+  public:
+    virtual void fun() { cout << "Derived fun" << endl; }
+    Derived() { cout << "Derived Constructor" << endl; }
+    ~Derived() { cout << "Derived Destructor" << endl; }
+};
+
+int main() {
+  Base *b1 = new Base();
+  Base *b2 = new Derived();
+
+  cout << endl;
+  b1->fun();
+  b2->fun();
+
+  cout << endl;
+  delete b1;
+  delete b2;
+
+  return 0;
+}
+
+
+virtualDestructor:
+==================
+
+/*
+Virtual Destructor:
+-------------------
+    Deleting a derived class object using a pointer to a base class that has a non-virtual destructor results in 
+    undefined behavior. To correct this situation, the base class should be defined with a virtual destructor. 
+    For example, following program results in undefined behavior.
+
+    Although the output of following program may be different on different compilers
+*/
+
+/* CPP program without virtual destructor causing undefined behavior */
+#include<iostream> 
+using namespace std;
+ 
+//#define WITHOUT_VIRTUAL_KEYWORD 1
+#define WITH_VIRTUAL_KEYWORD 2
+
+#ifdef WITHOUT_VIRTUAL_KEYWORD
+class base {
+  public:
+    base() { cout<<"Constructing base \n"; }
+    ~base() { cout<<"Destructing base \n"; }     
+};
+ 
+class derived: public base {
+  public:
+    derived() { cout<<"Constructing derived \n"; }
+    ~derived() { cout<<"Destructing derived \n"; }
+};
+ 
+int main(void)
+{
+  derived *d = new derived();  
+  base *b = d;
+
+  delete b;
+
+  return 0;
+}
+/* OUTPUT:
+
+Constructing base 
+Constructing derived 
+Destructing base
+
+*/
+#endif
+
+
+#ifdef WITH_VIRTUAL_KEYWORD
+
+/* Making base class destructor virtual guarantees that the object of derived class is destructed properly, 
+   i.e., both base class and derived class destructors are called. For example, 
+  
+   As a guideline, any time you have a virtual function in a class, you should immediately add a virtual destructor 
+   (even if it does nothing). This way, you ensure against any surprises later. */
+
+class base {
+  public:
+    base() { cout<<"Constructing base \n"; }
+    virtual ~base() { cout<<"Destructing base \n"; }     
+};
+ 
+class derived: public base {
+  public:
+    derived() { cout<<"Constructing derived \n"; }
+    ~derived() { cout<<"Destructing derived \n"; }
+};
+ 
+int main(void)
+{
+  derived *d = new derived();  
+  base *b = d;
+
+  delete b;
+
+  return 0;
+}
+
+/* OUTPUT:
+
+Constructing base 
+Constructing derived 
+Destructing derived 
+Destructing base
+
+*/
+#endif
+
+
+callingVirtualFunctionsInConsDestructor:
+========================================
+
+/*
+NOTE: It is highly recommended to avoid calling virtual methods from constructor/destructor.
+
+  Calling virtual functions from a constructor or destructor is considered dangerous most of the times and 
+  must be avoided whenever possible. All the C++ implementations need to call the version of the function defined at the level 
+  of the hierarchy in the current constructor and not further.
+
+  You can call a virtual function in a constructor. The Objects are constructed from the base up, “base before derived”.
+*/
+
+/* CPP program to illustrate calling virtual methods in constructor/destructor */
+#include<iostream>
+using namespace std;
+ 
+class dog {
+public:
+    dog() {
+        cout<< "Constructor called" <<endl;
+        bark() ;
+    }
+ 
+    ~dog() { bark(); }
+ 
+    virtual void bark() { cout<< "Virtual method called" <<endl; }
+ 
+    void seeCat() { bark(); }
+};
+ 
+class Yellowdog : public dog {
+public:
+        Yellowdog() { cout<< "Derived class Constructor called" <<endl; }
+        void bark() { cout<< "Derived class Virtual method called" <<endl; }
+};
+ 
+int main() {
+    Yellowdog d;
+    d.seeCat();
+}
+
+/* Output:
+
+Constructor called
+Virtual method called
+Derived class Constructor called
+Derived class Virtual method called
+Virtual method called 
+
+Explanation:
+
+  1. bark method in dog class is invoked in constructor as well as destructor.
+  2. When the object of Yellowdog is created, constructor of dog and then of Yellowdog is called and 
+     reverse order of calling for destructor.
+  3. Although, bark method is virtual method but when it is called inside constructor it will behave as non-virtual method 
+     because by the time constructor of dog(base) class is called as in above code, Yellowdog(derived) class is not constructed 
+     by that time.
+  4. Therefore, it is dangerous to call the member function of class whose object is not constructed yet and compiler calls the 
+     dog class verison of bark method. And same is with the destructor, when object ‘d’ of Yellowdog gets destroyed, destructor 
+     of Yellowdog class is called first and then destructor for dog class is called but by this time Yellowdog is already 
+     destroyed, hence dog class verison of bark is called.
+*/
+
+
+copyElision:
+============
+
+/*
+Copy elision in C++:
+--------------------
+  Copy elision (or Copy omission) is a compiler optimization technique that avoids unnecessary copying of objects. 
+  Now a days, almost every compiler uses it. Let us understand it with the help of an example. */
+
+#include <iostream>
+using namespace std;
+  
+class B {
+public:    
+    B(const char* str = "\0") { //default constructor
+        cout << "Constructor called" << endl;
+    }    
+     
+    B(const B &b) { //copy constructor
+        cout << "Copy constructor called" << endl;
+    } 
+};
+  
+int main() { 
+    B ob = "copy me"; 
+    return 0;
+}
+
+/* OUTPUT:
+$g++ copyElision.cpp -o m
+$./m
+
+Constructor called
+
+  Why copy constructor is not called?
+  According to theory, when the object “ob” is being constructed, one argument constructor is used to convert “copy me” 
+  to a temporary object & that temporary object is copied to the object “ob”. So the statement
+
+     B ob = "copy me";  should be broken down by the compiler as  B ob = B("copy me");
+
+     However, most of the C++ compilers avoid such overheads of creating a temporary object & then copying it.
+
+  The modern compilers break down the statement B ob = "copy me"; //copy initialization as
+    B ob("copy me"); //direct initialization
+
+  and thus eliding call to copy constructor. However, if we still want to ensure that the compiler doesn’t elide the call to copy 
+  constructor [disable the copy elision], we can compile the program using “-fno-elide-constructors” option with g++ and 
+  see the output as following:
+
+  $ g++ copyElision.cpp -fno-elide-constructors -o m
+  $ ./m
+
+  Constructor called
+  Copy constructor called
+
+  If “-fno-elide-constructors” option is used, first default constructor is called to create a temporary object, 
+  then copy constructor is called to copy the temporary object to ob.
+*/
+
+
+shallowDeepCopy:
+================
+
+/*
+The idea is when you create a class and have pointer data member in that class then you should not 
+rely on compiler generated copy constructor(Shallow Copy) in general, there we should implement 
+our own copy constructor(Deep Copy).
+*/
+
+#include <iostream>
+
+using namespace std;
+
+class Base {
+    int *_ptr;
+    int  _val;
+  public:
+    Base():_ptr(new int(0)), _val(0) {}
+   /* Base(const Base& b) {
+      _ptr  = new int;
+      *_ptr = *b._ptr;
+      _val  = b._val;
+    }
+
+    ~Base() { delete _ptr; }
+*/
+    void setPtr(int ptr) { *_ptr = ptr; }
+    void setVal(int val) { _val = val; }
+    int getPtr() { return *_ptr; }
+    int getVal() { return _val; }
+};
+
+
+int main() {
+  Base b1;
+  b1.setPtr(10);
+  b1.setVal(20);
+
+  //shallow copy simply copy the pointer value, hence b1 and b2's _ptr will point to same memory address
+  // b2._ptr = b1._ptr
+  // b2._val = b1._val
+    Base b2 = b1;
+    b2.setPtr(40);
+
+  cout << "b1 ptr: " << b1.getPtr() << endl;
+  cout << "b1 val: " << b1.getVal() << endl;
+  cout << "b2 ptr: " << b2.getPtr() << endl;
+  cout << "b2 Val: " << b2.getVal() << endl;
+  return 0;
+}
+
+/*
+b1 ptr: 10
+b1 val: 20
+b2 ptr: 40
+b2 Val: 20
+*/
+
+/* if we wont provide the deep copy constructor, then output will be as below:
+b1 ptr: 40
+b1 val: 20
+b2 ptr: 40
+b2 Val: 20
+*/
+
+
+sizeOfClass:
+============
+
+/*
+  Class A has a VPTR which is not there in class B. 
+  In a typical implementation of virtual functions, compiler places a VPTR with every object. 
+  Compiler secretly adds some code in every constructor to this.
+*/
+
+#include <iostream>
+using namespace std;
+
+class A {
+public:
+    virtual void fun();
+};
+
+class B {
+public:
+   void fun();
+};
+
+int main() {
+    int a = sizeof(A), b = sizeof(B);
+    cout << "a: " << a << ", b: " << b << endl;
+    if (a == b) 
+      cout << "a == b" << endl;
+    else if (a > b) 
+      cout << "a > b" << endl;
+    else 
+      cout << "a < b" << endl;
+
+    return 0;
+}
+
+/* Here WORD size is 64 bits (8 bytes), Hence vptr pointer takes 8 bytes address.
+a: 8, b: 1
+a > b
+*/
+
+
+sizeOfEmptyClass:
+=================
+
+/* Q. why the size of an empy class or struct is not zero in C++ */ 
+
+#include <iostream>
+using namespace std;
+class Base {};
+struct Base1 { };
+
+/*if any member is already in class, then no need to give extra space by compiler 
+to differentiate between two object  */
+class Base3 {
+  int _i;
+};
+
+int main() {
+
+  /* the reason is c++ compiler make sure that two objects are different from each other so to make that difference you need to have base class have 
+     atleast one byte size in empty class/struct case and in C/C++ smallest byte is 1 byte */ 
+
+  cout << "size of Base : " << sizeof(Base) << endl;
+  cout << "size of Base1: " << sizeof(Base1) << endl;
+
+  Base3 b1, b2;
+  cout << "size of Base3: " << sizeof(Base3) << endl;
+  cout << &b1 << " :  " << &b2 << endl;
+
+  if(&b1 == &b2)
+    cout << "YES!" << endl;
+  else
+    cout << "NO!" << endl;
+  return 0;
+}
+
+
+friendFunction:
+===============
+
+/* 
+One of the important concepts of OOP is data hiding, i.e., a nonmember function cannot access an object's private or protected data.
+
+But, sometimes this restriction may force programmer to write long and complex codes. 
+So, there is mechanism built in C++ programming to access private or protected data from non-member functions.
+
+This is done using a friend function or/and a friend class. 
+
+//1. friend Function in C++
+If a function is defined as a friend function then, the private and protected data of a class can be accessed using the function.
+
+   The complier knows a given function is a friend function by the use of the keyword friend.
+
+   For accessing the data, the declaration of a friend function should be made inside the body of the class 
+   (can be anywhere inside class either in private or public section) starting with keyword friend.
+
+Declaration of friend function in C++:
+-------------------------------------
+class class_name {
+    ... .. ...
+    friend return_type function_name(argument/s);
+    ... .. ...
+}
+
+
+  Now, you can define the friend function as a normal function to access the data of the class. 
+  No friend keyword is used in the definition.
+
+class className {
+    ... .. ...
+    friend return_type functionName(argument/s);
+    ... .. ...
+}
+
+return_type functionName(argument/s) {
+    ... .. ...
+    // Private and protected data of className can be accessed from
+    // this function because it is a friend function of className.
+    ... .. ...
+}
+
+*/
+
+#ifdef CASE_I
+/* C++ program to demonstrate the working of friend function.*/
+#include <iostream>
+using namespace std;
+
+class Distance {
+    private:
+        int meter;
+    public:
+        Distance(): meter(0) { }
+        //friend function
+        friend int addFive(Distance);
+};
+
+// friend function definition
+int addFive(Distance d) {
+    //accessing private data from non-member function
+    d.meter += 5;
+    return d.meter;
+}
+
+int main() {
+    Distance D;
+    cout<<"Distance: "<< addFive(D);
+    return 0;
+}
+
+#endif
+
+/*
+ Here, friend function addFive() is declared inside Distance class. So, the private data meter can be accessed from this function.
+
+ A more meaningful use would to when you need to operate on objects of two different classes. 
+ That's when the friend function can be very helpful.
+
+ We can definitely operate on two objects of different classes without using the friend function 
+ but the program will be long, complex and hard to understand.
+*/
+
+#ifdef CASE_II
+/* Example 2: Addition of members of two different classes using friend Function
+   In this program, classes A and B have declared add() as a friend function. 
+   Thus, this function can access private data of both class.
+
+   Here, add() function adds the private data numA and numB of two objects objectA and objectB, 
+   and returns it to the main function.
+
+   To make this program work properly, a forward declaration of a class class B should be made as shown in the above example.
+
+   This is because class B is referenced within the class A using code: friend int add(A , B);.
+*/
+
+#include <iostream>
+using namespace std;
+
+// forward declaration
+class B;
+class A {
+    private:
+      int numA;
+    public:
+      A(): numA(12) { }
+      // friend function declaration
+      friend int add(A, B);
+};
+
+class B {
+    private:
+       int numB;
+    public:
+       B(): numB(1) { }
+       // friend function declaration
+       friend int add(A , B);
+};
+
+// Function add() is the friend function of classes A and B that accesses the member variables numA and numB
+int add(A objectA, B objectB) {
+   return (objectA.numA + objectB.numB);
+}
+
+int main() {
+    A objectA;
+    B objectB;
+    cout<<"Sum: "<< add(objectA, objectB);
+    return 0;
+}
+#endif
+
+#ifdef CASE_III
+/*
+Friend Class in C++ Programming:
+--------------------------------
+Similarly, like a friend function, a class can also be made a friend of another class using keyword friend. For example:
+
+... .. ...
+class B;
+class A {
+   // class B is a friend class of class A
+   friend class B;
+   ... .. ...
+}
+
+class B {
+   ... .. ...
+}
+
+When a class is made a friend class, all the member functions of that class becomes friend functions.
+
+ In this program, all member functions of class B will be friend functions of class A. Thus, any member function of class B can 
+ access the private and protected data of class A. But, member functions of class A cannot access the data of class B. */
+#endif
+
+#ifdef PUBLIC_PRIVATE_PROTECTED_CLASS_INHERITENCE
+
+/*
+Public, Protected and Private Inheritance in C++ Programming:-
+--------------------------------------------------------------
+   You can declare a derived class from a base class with different access control, 
+   i.e., public inheritance, protected inheritance or private inheritance.
+
+#include <iostream>
+using namespace std;
+
+class base {
+.... ... ....
+};
+
+class derived : access_specifier base {
+.... ... ....
+};
+
+     Note: Either public, protected or private keyword is used in place of access_specifier term used in the above code.
+
+Example of public, protected and private inheritance in C++:
+------------------------------------------------------------
+
+class base {
+	public:
+		int x;
+	protected:
+		int y;
+	private:
+		int z;
+};
+
+class publicDerived: public base {
+	// x is public
+	// y is protected
+	// z is not accessible from publicDerived
+};
+
+class protectedDerived: protected base {
+	// x is protected
+	// y is protected
+	// z is not accessible from protectedDerived
+};
+
+class privateDerived: private base {
+	// x is private
+	// y is private
+	// z is not accessible from privateDerived
+}
+
+
+     ----------------------------------------------------------------------------------------------------------
+     |                          Accessibility in PUBLIC Inheritance                                           |
+     ----------------------------------------------------------------------------------------------------------
+     |	Accessibility 				| private_variables | protected_variables | public_variables  |
+     |---------------------------------------------------------------------------------------------------------
+     |	Accessible from own class? 		|	YES	    |		YES	  |		YES   |
+     |	Accessible from derived class? 		|	NO	    |		YES	  |		YES   |  
+     |	Accessible from 2nd derived class? 	|	NO	    |		YES	  |		YES   |
+     ----------------------------------------------------------------------------------------------------------
+
+     -----------------------------------------------------------------------------------------------------------------------------------
+     |                                       Accessibility in PROTECTED Inheritance                                                    |
+     ----------------------------------------------------------------------------------------------------------------------------------|
+     |  Accessibility                           | private_variables | protected_variables | public_variables                           |
+     |---------------------------------------------------------------------------------------------------------------------------------|
+     |  Accessible from own class?              |       YES         |           YES       |    YES                                     |
+     |  Accessible from derived class?          |       NO          |           YES       |    YES(inherited as protected variables)   |  
+     |  Accessible from 2nd derived class?      |       NO          |           YES       |    YES                                     |
+     -----------------------------------------------------------------------------------------------------------------------------------
+
+     -----------------------------------------------------------------------------------------------------------------------------------------
+     |                                                  Accessibility in PRIVATE Inheritance                                                  |
+     ------------------------------------------------------------------------------------------------------------------------------------------
+     |  Accessibility                      | private_variables | protected_variables                   | public_variables                     |
+     |-----------------------------------------------------------------------------------------------------------------------------------------
+     |  Accessible from own class?         |       YES         |   YES                                 |  YES                                 |
+     |  Accessible from derived class?     |       NO          |   YES(inherited as private variables) |  YES(inherited as private variables) |      
+     |  Accessible from 2nd derived class? |       NO          |   NO                                  |  NO                                  |
+     ------------------------------------------------------------------------------------------------------------------------------------------
+
+*/
+
+
+function_overload_override:
+===========================
+
+#include <iostream>
+using namespace std;
+
+//#define FUNCTION_OVERLOAD 1
+//#define FUNCTION_OVERRIDE_1 2
+#define FUNCTION_OVERRIDE_2 3
+
+
+/* 1. Function Overloading Exmple: it is called compile-time or static or early binding */
+
+#ifdef FUNCTION_OVERLOAD
+void print(int a) { cout << "Integer Fun: " << a << endl; }  // -> print01 because of name mangling smthng
+
+void print(double a) { cout << "Double Fun: " << a << endl; } // -> print02 because of name mangling smthng
+
+void print(char a) { cout << "Char Fun: " << a << endl; } // -> print03 because of name mangling smthng
+
+int main() {
+  // these function is bounding with the help of input parameters(arguments)
+  // retrun type is not considered for function overloading
+  // all print function should be in same scope for function overloading behaviour
+  print(10);
+  print(5.5);
+  print('a');
+  return 0;
+}
+#endif
+
+/* Function overriding:
+=======================
+2. Function overriding is needed when we perform inheritence and there is a function in Base class which is
+inherited into Derived but we want to provide our own definition for that derived class. in sort we dont want
+to take that particular function from Base class so in that case we can write new definition for that function
+in our Derived calss with same name as it is Base and this is called function overriding
+*/
+
+#ifdef FUNCTION_OVERRIDE_1
+class Base {
+  public:
+    void print() { cout << "Base class " << endl; }
+};
+
+class Derived: public Base {
+  public:
+    void print() { cout << "Derived class " << endl; }
+};
+
+
+int main() {
+  Base b;
+  Derived d;
+
+  b.print();
+  d.print();
+
+  return 0;
+}
+
+#endif
+
+#ifdef FUNCTION_OVERRIDE_2
+/* override keyword must be used w.r.t virtual keyword */
+
+class Person {
+  public:
+   virtual void print() { cout << "Person" << endl; }
+};
+
+class Man: public Person {
+  public:
+   void print() override { cout << "Guru" << endl; }
+};
+
+class Women: public Person {
+  public:
+   void print() override { cout << "Deepu" << endl; } 
+
+   //error: ‘void Women::print1()’ marked ‘override’, but does not override
+   //void print1() override { cout << "Deepu" << endl; } 
+};
+
+int main() {
+  Man m;
+  m.print();
+
+  Person *p = &m; // static binding
+  p->print();
+
+  return 0;
+}
+
+#endif
+
+
+function_chaining:
+==================
+
+/*
+Question: What is function chaining in C++?
+Answer  : it gives good code analysis power.
+*/
+
+#include <iostream>
+using  namespace std;
+//#define CASE_I 1
+#define CASE_II 2
+
+class Base {
+    int _a, _b;
+  public: 
+    /* alwys return the reference otherwise it will return the copy of the object.
+       which means returning and return object is NOT the same object. */
+    
+#ifdef CASE_I
+    Base setA(int a) { _a = a; return *this; }
+    Base setB(int b) { _b = b; return *this; }
+#endif
+
+#ifdef CASE_II
+    Base& setA(int a) { _a = a; return *this; }
+    Base& setB(int b) { _b = b; return *this; }
+#endif
+
+    void print() { cout << "a = " << _a << ", b = " << _b << endl; }
+};
+
+int main() {
+  Base b;
+
+  b.setA(10).setB(20).print(); 
+  b.print();
+
+  return 0;
+}
+
+/*
+CASE I: In case of non-reference retrun, copy of the object returned hence 
+        return object will be having different address from the returning object.
+        b.setA(10) -- > wil return copy of object, so if we set setB(20) from the
+        copy of object it will only set 20 to the returned copy of object, Not with
+        the object b. thats why object b will get set variable _a and NOT _b.
+$ ./m
+a = 10, b = 20
+a = 10, b = 0
+
+CASE II: In case of referce return it wil work on the original object.
+         so both _a and _b get reflected in the object b.
+$ ./m
+a = 10, b = 20
+a = 10, b = 20
+
+*/
+
+
+whyCopyConstTakeArgsAsReference:
+================================
+
+#include <iostream>
+using namespace std;
+class Foo {
+    int _bar;
+  public:
+    Foo() {}
+    /* error: invalid constructor; you probably meant ‘Foo (const Foo&)’
+     Foo(const Foo obj) { _bar = obj._bar; }
+     Here if we wont give pass by refernce, then it will be infinite call*/
+    Foo(const Foo &obj) { _bar = obj._bar; }
+    void setBar(int newBar) { _bar = newBar; }
+    int getBar() { return _bar; }
+};
+
+int main() {
+  Foo f1;
+  f1.setBar(10);
+
+  Foo f2 = f1;  // here copy constructor will be called
+  cout << "f2 : " << f1.getBar() << endl;
+  return 0;
+}
+
+
+virtualInheritence:
+===================
+
+/* A virtual function is a member function in base class that you expect to redefine in derived classes. */
+
+#include <iostream>
+using namespace std;
+
+//#define CASE_I 1
+//#define CASE_II 2
+#define CASE_III 3
+
+#ifdef CASE_I
+/* We created the Weapon class and derived two classes Bomb and Gun to load features of respective weapons. */
+
+class Weapon {
+    public:
+       void loadFeatures() { cout << "Loading weapon features.\n"; }
+};
+
+class Bomb : public Weapon {
+    public:
+       void loadFeatures() { cout << "Loading bomb features.\n"; }
+};
+
+class Gun : public Weapon {
+    public:
+       void loadFeatures() { cout << "Loading gun features.\n"; }
+};
+
+int main() {
+    Weapon *w = new Weapon;
+    Bomb *b = new Bomb;
+    Gun *g = new Gun;
+
+    w->loadFeatures();
+    b->loadFeatures();
+    g->loadFeatures();
+
+    return 0;
+}
+/* OUTPUT:
+Loading weapon features.
+Loading bomb features.
+Loading gun features.
+*/
+#endif
+
+#ifdef CASE_II
+class Weapon {
+    public: 
+       void features() { cout << "Loading weapon features.\n"; }
+};
+
+class Bomb : public Weapon {
+    public: 
+       void features() { cout << "Loading bomb features.\n"; }
+};
+
+class Gun : public Weapon {
+    public: 
+       void features() { cout << "Loading gun features.\n"; }
+};
+
+/*
+ However, our game project started getting bigger and bigger. And, we decided to create a 
+ separate Loader class to load weapon features.
+
+ This Loader class loads additional features of a weapon depending on which weapon is selected.
+ The loadFeatures() loads the feature of a specific weapon.
+*/
+class Loader {
+   public:
+     void loadFeatures(Weapon *weapon) {
+        weapon->features();
+     }     
+};
+
+int main() {
+    Loader *l = new Loader;
+    Weapon *w;
+    Bomb b;
+    Gun g;
+
+    w = &b;
+    l->loadFeatures(w);
+
+    w = &g;
+    l->loadFeatures(w);
+
+    return 0;
+}
+
+/* OUTPUT:
+Loading weapon features.
+Loading weapon features.
+
+ Our implementation seemed correct. However, weapon features was loaded 3 times. Why?
+
+ Initially, the Weapon object w1 is pointing to the b1 object (of Bomb) class. And, we tried to load the features 
+ of Bomb object by passing it to loadFeatures() function using l object to pointer (of Loader class).
+
+ Similarly, we tried to load the features of Gun object.
+
+ However, the loadFeatures() function of the Loader class takes pointer to object of a Weapon class as an argument:
+
+         void loadFeatures(Weapon *weapon)
+
+ That's the reason weapon features are loaded 3 times. To solve this issue, we need to make function of 
+ base class (Weapon class) virtual using virtual keyword.
+
+class Weapon {
+    public:
+      virtual void features()
+         { cout << "Loading weapon features.\n"; }
+};
+
+*/
+#endif
+
+
+#ifdef CASE_III
+/*
+ Using Virtual Function to Solve the Problem
+ Also, notice that, the l->loadFeatures(w) function calls the function of different classes depending upon what l object is 
+ pointing. Using virtual function made our code not only clearer but flexible too.*/
+
+class Weapon {
+    public:
+      virtual void features() { cout << "Loading weapon features.\n"; }
+};
+
+class Bomb : public Weapon {
+    public:
+       void features() { cout << "Loading bomb features.\n"; }
+};
+
+class Gun : public Weapon {
+    public:
+       void features() { cout << "Loading gun features.\n"; }
+};
+
+
+// If we want to add another weapon (let's say knife), we can easily add and load features of it. How?
+//It's worth noticing that we didn't changed anything in the Loader class to load features of knife.
+class Knife : public Weapon {
+    public:
+       void features() { cout << "Loading knife features.\n"; }
+};
+
+class Loader {
+   public:
+     void loadFeatures(Weapon *weapon) {
+        weapon->features();
+     }     
+};
+
+int main() {
+    Loader *l = new Loader;
+    Weapon *w;
+    Bomb b;
+    Gun g;
+
+    w = &b;
+    l->loadFeatures(w);
+
+    w = &g;
+    l->loadFeatures(w);
+
+    Knife k; 
+    w = &k; 
+    l->loadFeatures(w);
+
+    return 0;
+}
+
+/* OUTPUT:
+Loading bomb features.
+Loading gun features.
+Loading knife features.
+*/
+#endif
+
+
+virtual_Inheritence:
+====================
+
+#include<iostream>
+using namespace std;
+
+/* Grandparent, Abstract class */
+class person {
+  protected:
+    string name, gender;
+    int age;
+
+  public:
+    void get_person() {
+      cout << "Enter details: " << endl; 
+      cout << "Name: "; cin >> name;
+      cout << "Age: "; cin >> age;
+      cout << "Gender: "; cin >> gender;
+    }
+	
+    void display() {
+      cout << "\nInformation: "<< endl;
+      cout << "Name: " << name << endl;
+      cout << "Age: " << age << endl;
+      cout << "Gender: " << gender << endl;
+    }
+};
+
+/* Inherit grandparent class as virtual */
+class income : virtual public person {
+  protected:
+    string source;
+    float amount;
+
+  public:
+    void get_income() {
+      cout << "Source of Income:" << endl;
+      cin >> source;
+      cout << "Amount:" << endl;
+      cin >> amount;
+    }
+	
+    void display() {
+      cout << "Income from: " << source << endl;
+      cout << "Amount: " << amount << endl;
+    }
+};
+
+/* Inherit grandparent class as virtual */
+class expenses : virtual public person {
+  protected:
+    string purpose;
+    float amount;
+
+  public:
+    void get_expenses() {
+      cout << "Purpose of Expenses:" << endl;
+      cin >> purpose;
+      cout << "Amount:" << endl;
+      cin >> amount;
+    }
+    void display() {
+      cout << "Expenses for: " << purpose << endl;
+      cout << "Amount: " << amount << endl;
+    }
+};
+
+/* Inherit two parent class into one child class */
+class programmer : public income, public expenses {
+    float net_saving;
+
+  public:
+    void display() {
+      net_saving = income :: amount - expenses :: amount;
+      person :: display();
+      income :: display();
+      expenses :: display();
+      cout << "Net Saving: " << net_saving << endl;
+    }
+};
+
+int main() {
+	programmer p1 = programmer();
+
+	/* Call member functions from grandparent and parent classes */
+	p1.get_person();
+	p1.get_income();
+	p1.get_expenses();
+
+	/* Call display() from derived class 'programmer' */
+	p1.display();
+	return 0;
+}
+
+
+virtualClassInheritence:
+========================
+
+/* Virtual inheritance is a C++ technique that ensures only one copy of a base class's member variables are inherited by 
+   grandchild derived classes.
+
+                X
+               ^ ^
+              /   \
+     virtual /     \ virtual
+            A       B
+             ^     ^
+              \   /
+               \ /
+                C
+
+  Without virtual inheritance, if classes A and B both inherit from class X, and class C inherits from classes A and B, 
+  then class C will contain two copies of X's member variables: one via A, and one via B. 
+  These will be accessible independently, using scope resolution.
+
+  Instead, if classes A and B inherit virtually from class X, then objects of class C will contain only one set of the member 
+  variables from class X. 
+
+  This feature is most useful for multiple inheritance, as it makes the virtual base a common subobject for the deriving class 
+  and all classes that are derived from it. This can be used to avoid the diamond problem by clarifying ambiguity over which 
+  ancestor class to use, as from the perspective of the deriving class the virtual base (X) acts as though it were the 
+  direct base class of C, not a class derived indirectly through its base (A).
+
+  It is used when inheritance represents restriction of a set rather than composition of parts. 
+  In C++, a base class intended to be common throughout the hierarchy is denoted as virtual with the virtual keyword.
+*/
+
+struct Animal {
+  virtual ~Animal() { }
+  virtual void eat();
+};
+
+struct Mammal : Animal {
+  virtual void breathe();
+};
+
+struct WingedAnimal : Animal {
+  virtual void flap();
+};
+
+// A bat is a winged mammal
+struct Bat : Mammal, WingedAnimal {
+};
+
+Bat bat;
+
+
+  /* As declared above, a call to bat.eat() is ambiguous because there are two Animal (indirect) base classes in Bat, 
+     so any Bat object has two different Animal base class subobjects. So an attempt to directly bind a reference to the 
+     Animal subobject of a Bat object would fail, since the binding is inherently ambiguous:
+
+     Bat b;
+     Animal &a = b; // error: which Animal subobject should a Bat cast into, 
+                    // a Mammal::Animal or a WingedAnimal::Animal?
+
+     To disambiguate, one would have to explicitly convert bat to either base class subobject:
+
+     Bat b;
+     Animal &mammal = static_cast<Mammal&> (b); 
+     Animal &winged = static_cast<WingedAnimal&> (b);
+
+    In order to call eat(), the same disambiguation, or explicit qualification is needed: 
+               static_cast<Mammal&>(bat).eat() or 
+               static_cast<WingedAnimal&>(bat).eat() or alternatively 
+               bat.Mammal::eat() and 
+               bat.WingedAnimal::eat(). 
+
+    Explicit qualification not only uses an easier, uniform syntax for both pointers and objects but also allows for 
+    static dispatch, so it would arguably be the preferable method. 
+
+    This situation is sometimes referred to as diamond inheritance because the inheritance diagram is in the shape of a diamond. 
+    Virtual inheritance can help to solve this problem.
+
+*/
+
+struct Animal {
+  virtual ~Animal() { }
+  virtual void eat();
+};
+
+// Two classes virtually inheriting Animal:
+struct Mammal : virtual Animal {
+  virtual void breathe();
+};
+
+struct WingedAnimal : virtual Animal {
+  virtual void flap();
+};
+
+// A bat is still a winged mammal
+struct Bat : Mammal, WingedAnimal {
+};
+
+
+/*  Suppose you have two derived classes B and C that have a common base class A, and you also have another class D that 
+    inherits from B and C. You can declare the base class A as virtual to ensure that B and C share the same subobject of A.
+
+    In the following example, an object of class D has two distinct subobjects of class L, one through class B1 and another 
+    through class B2. You can use the keyword virtual in front of the base class specifiers in the base lists of 
+    classes B1 and B2 to indicate that only one subobject of type L, shared by class B1 and class B2, exists.
+
+For example:
+
+class L {  }; // indirect base class
+class B1 : virtual public L {  };
+class B2 : virtual public L {  };
+class D : public B1, public B2 {  }; // valid
+
+
+Using the keyword virtual in this example ensures that an object of class D inherits only one subobject of class L.
+A derived class can have both virtual and nonvirtual base classes. For example:
+
+class V {  };
+class B1 : virtual public V {  };
+class B2 : virtual public V {  };
+class B3 : public V {  };
+class X : public B1, public B2, public B3 { };
+
+In the above example, class X has two subobjects of class V, one that is shared by classes B1 and B2 and one through class B3.
+
+*/
+
+
+virtualDEstructorUsingSharedPtr:
+================================
+
+/*
+Virtual destruction using shared_ptr in C++:
+============================================
+
+  As we know that, deleting a derived class object using a pointer to a base class that has a non-virtual destructor results 
+  in undefined behavior. Thus, we make the base class destructor virtual so that the polymorphic objects are being deleted 
+  properly in the correct order (i.e. the reverse order of their creation).
+
+  Similar behavior can also be achieved by using a shared_ptr without having the Base class destructor virtual. 
+
+  How shared_ptr achieves this magical behavior?
+    The shared_ptr remembers the pointer type used during construction. For example,
+
+        If you say shared_ptr{ new Derived {} }, then shared_ptr will internally store a Derived*. 
+        If you say shared_ptr{ new Base {} }, then it stores a Base*. 
+    
+    When the shared_ptr is destructed, it calls delete on the stored pointer. 
+    Naturally, with non-virtual destructors, for Base* it will call Base::~Base and for Derived* it will call Derived::~Derived.
+
+  Important points :
+  ------------------
+     1. This behavior is achieved by shared_ptr only.
+     2. This behavior is not achieved by using unique_ptr.
+     3. All the classes in STL do not have virtual destructor, so be careful if you inherit from them. 
+        If you want to inherit, you can use shared_ptr in that case to have the smart destruction applied.
+
+  Let us have a look on the following code: */
+
+//#define VIRTUAL_DESTRUCTION_USING_SHARED_PTR 1
+#define VIRTUAL_DESTRUCTION_USING_SHARED_PTR_EXCEPTION 2
+
+#ifdef VIRTUAL_DESTRUCTION_USING_SHARED_PTR
+
+// Program to show order of destruction of objects using shared_ptr
+#include <iostream>
+#include <memory>
+using namespace std;
+ 
+class Base {
+public:
+    Base() { cout << "Constructing Base" << endl; }
+    ~Base() { cout << "Destructing Base" << endl; }
+};
+ 
+class Derived : public Base {
+public:
+    Derived() { cout << "Constructing Derived" << endl; }
+    ~Derived() { cout << "Destructing Derived" << endl; }
+};
+ 
+int main() {
+    std::shared_ptr<Base> sp{ new Derived };
+ 
+    // make_shared can also be used to create sp.
+    // std::shared_ptr<Base> sp{std::make_shared<Derived>()};
+    // Use sp
+}
+
+/*
+Output:
+
+  Constructing Base
+  Constructing Derived
+  Destructing Derived
+  Destructing Base
+
+  As shown in the above output, there is no need to make the destructor of the Base class virtual anymore, 
+  while achieving the virtual destructor behavior at the same time.*/
+
+#endif
+
+
+#ifdef VIRTUAL_DESTRUCTION_USING_SHARED_PTR_EXCEPTION
+
+/*
+Exceptional Condition : Initializing from Base
+==============================================
+Consider the following example:
+    Program to show exception to this behavior while using shared_ptr */
+
+#include <iostream>
+#include <memory>
+using namespace std;
+ 
+class Base {
+public:
+    Base() { cout << "Constructing Base" << endl; }
+    ~Base() { cout << "Destructing Base" << endl; }
+};
+ 
+class Derived : public Base {
+public:
+    Derived() { cout << "Constructing Derived" << endl; }
+    ~Derived() { cout << "Destructing Derived" << endl; }
+};
+ 
+int main(){
+    Base* p = new Derived{};
+    std::shared_ptr<Base> sp{ p };
+}
+
+/* Output:
+
+Constructing Base
+Constructing Derived
+Destructing Base */
+
+#endif
+
+
+delete_concept:
+===============
+
+/*
+How delete[] know how many objects to delete?
+Ans: 1. Over allocation (extra WORDSIZE 4 or 8 bytes) 
+     2. Associative array
+*/
+
+#include <iostream>
+int const n = 10;
+
+#define Over_Allocation 1
+//#define Associative_Array 2
+
+class Base {
+  public:
+    int b_var;
+};
+
+int main() {
+
+#ifdef Over_Allocation
+  /* tmp - 0 1 2 3 4 5 6 .. 43
+     p   -         4 5 6 7 8 .. 43 
+     n   - 0 1 2 3
+  */
+
+  Base *bp = new Base[n];
+  /*
+  char* tmp = (char*)operator new[](WORDSIZE + n *sizeof(Base));
+  Base *p = (Base*) (tmp + WORDSIZE);
+  *(size_t*)tmp = n;
+  for(int i = 0; i < n; i++)
+    new(p + i)Base();  //placement new
+  */
+
+  delete[] bp;
+  /*
+  size_t n = *(size_t*)((char*)p - WORDSIZE);
+  while(n-- !=0)
+    (p + n)->~Base(); // call destrcutor explicitly if call placement new
+  operator delete[] ((char*)p - WORDSIZE);
+  */
+#endif
+
+#ifdef Associative_Array
+  Base *bp1 = new Base[n];
+  /*
+  Base* bp1 = (Base*)operator new[](n *sizeof(Base));
+  size_t i;
+  for(i = 0; i < n; i++)
+    new(bp + i)Base();  //placement new
+  associativeArray.insert(bp1, n);
+  */
+
+  delete[] bp1;
+  /*
+  size_t n = associativeArray.lookup(bp1);
+  while(n-- !=0)
+    (bp1 + n)->~Base();
+  operator delete[] (bp1);
+  */
+#endif
+  return 0;
+}
+
+
+explicitKeyword:
+================
+
+/* Use of explicit keyword in C++*/
+
+//#define WITHOUT_EXPLICIT_KEYWORD 1
+//#define EXPLICIT_KEYWORD 2
+#define WITHOUT_EXPLICIT_TYPECAST_WORK 3
+
+#ifdef WITHOUT_EXPLICIT_KEYWORD
+#include <iostream>
+ 
+using namespace std;
+ 
+class Complex {
+private:
+    double real;
+    double imag;
+ 
+public:
+    // Default constructor
+    Complex(double r = 0.0, double i = 0.0) : real(r), imag(i) {}
+ 
+    // A method to compare two Complex numbers
+    bool operator == (Complex rhs) {
+       return (real == rhs.real && imag == rhs.imag)? true : false;
+    }
+};
+ 
+int main() {
+    // a Complex object
+    Complex com1(3.0, 0.0);
+ 
+    if (com1 == 3.0)
+       cout << "Same";
+    else
+       cout << "Not Same";
+
+    cout << endl;
+    return 0;
+}
+
+/* Output: The program compiles fine and produces following output.
+
+Same 
+*/
+#endif
+
+#ifdef EXPLICIT_KEYWORD
+/*  In C++, if a class has a constructor which can be called with a single argument, then this constructor becomes 
+    conversion constructor because such a constructor allows conversion of the single argument to the class being constructed.
+
+    We can avoid such implicit conversions as these may lead to unexpected results. We can make the constructor explicit with 
+    the help of explicit keyword. For example, if we try the following program that uses explicit keyword with constructor, 
+    we get compilation error. */
+
+#include <iostream>
+ 
+using namespace std;
+ 
+class Complex
+{
+private:
+    double real;
+    double imag;
+ 
+public:
+    // Default constructor
+    explicit Complex(double r = 0.0, double i = 0.0) : real(r), imag(i) {}
+ 
+    // A method to compare two Complex numbers
+    bool operator== (Complex rhs) {
+       return (real == rhs.real && imag == rhs.imag)? true : false;
+    }
+};
+ 
+int main()
+{
+    // a Complex object
+    Complex com1(3.0, 0.0);
+ 
+    if(com1 == 3.0)
+       cout << "Same";
+    else
+       cout << "Not Same";
+    return 0;
+}
+/*
+Output: Compiler Error
+
+no match for 'operator==' in 'com1 == 3.0e+0' */
+#endif
+
+#ifdef WITHOUT_EXPLICIT_TYPECAST_WORK
+/*  We can still typecast the double values to Complex, but now we have to explicitly typecast it. 
+    For example, the following program works fine. */
+
+#include <iostream>
+ 
+using namespace std;
+ 
+class Complex
+{
+private:
+    double real;
+    double imag;
+ 
+public:
+    // Default constructor
+    explicit Complex(double r = 0.0, double i = 0.0) : real(r), imag(i) {}
+ 
+    // A method to compare two Complex numbers
+    bool operator== (Complex rhs) {
+       return (real == rhs.real && imag == rhs.imag)? true : false;
+    }
+};
+ 
+int main()
+{
+    // a Complex object
+    Complex com1(3.0, 0.0);
+ 
+    if (com1 == (Complex)3.0)
+       cout << "Same";
+    else
+       cout << "Not Same";
+
+    cout << endl;
+    return 0;
+}
+/*
+Output: The program compiles fine and produces following output.
+
+Same */
+#endif
+
+
+Lambda:
+=======
+
+#include<iostream>
+#include<vector>
+#include<algorithm>
+using namespace std;
+
+void show(std::vector<int> v) {
+	cout << "vec elem  : ";
+	for(auto it = std::begin(v); it != std::end(v); it++) {
+		cout << *it << " ";
+	}
+	cout << endl;
+}
+
+int main(int argc, char* argv[]) {
+	int oddCount = 0, evenCount = 0;
+	auto isOddEven = [&](int num) { if(num%2) ++oddCount; else ++evenCount;};
+
+	std::vector<int> v;
+	for(auto i = 1; i < argc; i++) {
+		v.push_back(atoi(argv[i]));
+	}
+
+	for_each(std::begin(v), std::end(v), isOddEven);
+	show(v);
+	cout << "oddCount  : " << oddCount << endl;
+	cout << "evenCount : " << evenCount << endl;
+}
+
+
+placement_new:
+==============
+
+/* what is placement new in C++ */
+#include <iostream>
+using namespace std;
+
+class Base {
+    int a;
+  public:
+    Base() { cout << "constructor" <<  endl; }
+    ~Base() { cout << "destructor" <<  endl; }
+};
+
+int main() {
+  /* Normal Case*/
+  /* switching from user mode to kernel mode is not feasible if we have 1000 objects 
+  construction at once, hence we go for placement new case */
+  cout << "Normal Case:" << endl;
+  Base *obj = new Base();
+  delete obj;
+
+  /* Placement new case */
+  /* asking kernel once for the how much memory u need at once i
+     its easy to search the 40 bytes at only once insteasd of each object evry time.*/
+  cout << "placement new case:" << endl;
+  char *memory =  new char[10 * sizeof(Base)];
+
+  /*instead of asking for memory from kernel we use the memory whihc is already given
+    by kernel above through char *memory =  new char[10 * sizeof(Base)]; */
+  Base *obj1 = new (&memory[0])Base();
+  Base *obj2 = new (&memory[4])Base();
+  Base *obj3 = new (&memory[8])Base();
+
+  obj1->~Base();
+  obj2->~Base();
+  obj3->~Base();
+
+  delete[] memory;
+  return 0;
+}
+
+
+stopToInherit:
+==============
+
+/* C++11 and follow having 'final' keyword.
+   Question: How to stop someone inheriting from your class?
+   Answer  : use final keyword, don't use any other tweak to achieve that, just use final keyword.
+*/
+
+#include <iostream>
+using namespace std;
+
+//class Base {
+class Base final {
+    int b_var;
+  public:
+    Base() {}
+    Base(int var):b_var(var) {}
+};
+
+// error: cannot derive from ‘final’ base ‘Base’ in derived type ‘Derived’ to make it work remove final so anybody can derived.
+
+class Derived: public Base {
+    int d_var;
+  public: 
+    Derived() {}
+    Derived(int a, int b):Base(a), d_var(b) {}
+};
+
+int main() {
+  Derived d(1, 2);
+  return 0;
+}
+
+
+initializerList:
+================
+
+/*
+Question: When do we use Initializer List in C++?
+Answer  : Initializer List is used to initialize data members of a class. 
+          The list of members to be initialized is indicated with constructor as a comma separated list followed by a colon. 
+          Following is an example that uses initializer list to initialize x and y of Point class.
+
+  The below code is just an example for syntax of Initializer list. 
+  In the below code, x and y can also be easily initialed inside the constructor. */
+
+#include<iostream>
+using namespace std;
+
+//#define EXAMPLE 0
+//#define EXAMPLE_1 1
+//#define EXAMPLE_2 2
+//#define EXAMPLE_3 3
+//#define EXAMPLE_4 4
+//#define EXAMPLE_5 5
+#define EXAMPLE_6 6
+
+#ifdef EXAMPLE
+class Point {
+private:
+    int x;
+    int y;
+public:
+    Point(int i = 0, int j = 0):x(i), y(j) {} 
+    /*  The above use of Initializer list is optional as the constructor can also be written as:
+        Point(int i = 0, int j = 0) {
+            x = i;
+            y = j;
+        }
+    */   
+     
+    int getX() const {return x;}
+    int getY() const {return y;}
+};
+ 
+int main() {
+  Point t1(10, 15);
+  Point t2;
+  cout<<"x = "<<t1.getX()<<", y = "<<t1.getY() << endl;
+  cout<<"x = "<<t2.getX()<<", y = "<<t2.getY() << endl;
+  return 0;
+}
+ 
+/* OUTPUT:
+   x = 10, y = 15
+   x = 0, y = 0 */
+#endif
+
+
+/*
+  But there are situations where initialization of data members inside constructor doesn’t work and 
+  Initializer List must be used. Following are such cases:
+    1. For initialization of non-static const data members.
+    2. For initialization of reference members.
+    3. For initialization of member objects which do not have default constructor.
+    4. For initialization of base class members.
+    5. When constructor’s parameter name is same as data member.
+    6. For Performance reasons.
+*/
+
+#ifdef EXAMPLE_1 
+/* 1. For initialization of non-static const data members:
+      const data members must be initialized using Initializer List. 
+      In the following example, “t” is a const data member of Test class and is initialized using Initializer List.*/
+ 
+class Test {
+    const int t;
+public:
+    Test(int t):t(t) {}  //Initializer list must be used
+    int getT() { return t; }
+};
+ 
+int main() {
+    Test t1(10);
+    cout<<"t = " << t1.getT() << endl;
+    return 0;
+}
+ 
+/* OUTPUT:  t = 10 */
+#endif
+
+#ifdef EXAMPLE_2
+/* 2. For initialization of reference members:
+      Reference members must be initialized using Initializer List. 
+      In the following example, “t” is a reference member of Test class and is initialized using Initializer List.*/
+
+// Initialization of reference data members
+class Test {
+    int &t;
+public:
+    Test(int &t):t(t) {}  //Initializer list must be used
+    int getT() { return t; }
+};
+ 
+int main() {
+    int x = 20;
+    Test t1(x);
+    cout<<"x = " << t1.getT()<<endl;
+    x = 30;
+    cout<<"x = " << t1.getT()<<endl;
+    return 0;
+}
+/* OUTPUT:
+    x = 20
+    x = 30 */
+#endif
+
+#ifdef EXAMPLE_3
+/* 3. For initialization of member objects which do not have default constructor:
+      In the following example, an object “a” of class “A” is data member of class “B”, and “A” doesn’t have default constructor. 
+      Initializer List must be used to initialize “a”.
+
+      NOTE: If class A had both default and parameterized constructors, then Initializer List is not must if we want to 
+            initialize “a” using default constructor, but it is must to initialize “a” using parameterized constructor.*/
+class A {
+    int i;
+public:
+    A(int );
+};
+ 
+A::A(int arg) {
+    i = arg;
+    cout << "A's Constructor called: Value of i: " << i << endl;
+}
+ 
+// Class B contains object of A
+class B {
+    A a;
+public:
+    B(int );
+};
+ 
+B::B(int x):a(x) {  //Initializer list must be used
+    cout << "B's Constructor called" << endl;
+}
+ 
+int main() {
+    B obj(10);
+    return 0;
+}
+/* OUTPUT:
+    A's Constructor called: Value of i: 10
+    B's Constructor called*/
+#endif
+
+#ifdef EXAMPLE_4
+/* 4. For initialization of base class members : 
+      Like point 3, parameterized constructor of base class can only be called using Initializer List.*/
+
+class A {
+    int i;
+public:
+    A(int );
+};
+ 
+A::A(int arg) {
+    i = arg;
+    cout << "A's Constructor called: Value of i: " << i << endl;
+}
+ 
+// Class B is derived from A
+class B: A {
+public:
+    B(int );
+};
+ 
+B::B(int x):A(x) { //Initializer list must be used
+    cout << "B's Constructor called" << endl;
+}
+ 
+int main() {
+    B obj(10);
+    return 0;
+}
+#endif
+
+#ifdef EXAMPLE_5
+/* 5. When constructor’s parameter name is same as data member
+      If constructor’s parameter name is same as data member name then the data member must be initialized either using 
+      this pointer or Initializer List. In the following example, both member name and parameter name for A() is “i”. */
+
+class A {
+    int i;
+public:
+    A(int );
+    int getI() const { return i; }
+};
+ 
+A::A(int i):i(i) { }  // Either Initializer list or this pointer must be used
+/* The above constructor can also be written as 
+A::A(int i) { 
+    this->i = i;
+}
+*/
+ 
+int main() {
+    A a(10);
+    cout<< "i = " << a.getI() << endl;
+    return 0;
+}
+/* OUTPUT:
+    i = 10*/
+#endif
+
+#ifdef EXAMPLE_6
+/* 6. For Performance reasons:
+      It is better to initialize all class variables in Initializer List instead of assigning values inside body. 
+      Consider the following example: 
+
+      A. Without Initializer List, Here compiler follows following steps to create an object of type MyClass
+              1. Type’s constructor is called first for “a”.
+              2. The assignment operator of “Type” is called inside body of MyClass() constructor to assign
+
+	                    variable = a; 
+              3. And then finally destructor of “Type” is called for “a” since it goes out of scope.
+
+      B. With the Initializer List, following steps are followed by compiler:
+              1. Copy constructor of “Type” class is called to initialize : variable(a). 
+                 The arguments in initializer list are used to copy construct “variable” directly.
+
+              2. Destructor of “Type” is called for “a” since it goes out of scope.
+
+  As we can see from this example if we use assignment inside constructor body there are three function calls: 
+      constructor + destructor + one addition assignment operator call. 
+
+  And if we use Initializer List there are only two function calls: 
+      copy constructor + destructor call.
+
+  NOTE: This assignment penalty will be much more in “real” applications where there will be many such variables. */
+
+class Type {
+  public:
+    Type() { cout << "Type's Default constructor" << endl; /* Initialize data members */ }
+    Type(const Type &a) { cout << "Type's Copy constructor" << endl;  /* copy data members */}
+    Type& operator= (const Type &t) // Assignemt Operator
+    {
+        // Handle self-assignment:
+        if(this == &t) return *this;
+ 
+        // Copy data members
+        cout << "Type's Assignment Operator" << endl;  return *this;
+    }
+    ~Type() { cout << "Type's Destructor" << endl; }
+};
+
+class MyClass {
+    Type var;
+public:
+   /* // Without Initializer List (constructor + one addition assignment operator call + destructor call )
+    MyClass(Type a) {  // Assume that Type is an already declared class and it has appropriate constructors and operators
+      var = a;
+    }*/
+
+    // With Initializer List (copy constructor + destructor call)
+    MyClass(Type a):var(a) { // Assume that Type is an already declared class and it has appropriate constructors and operators
+    }
+};
+
+int main() {
+  Type a;
+  cout << "-------- STEP I ------" << endl;
+  MyClass m(a);
+  cout << "-------- STEP II ------" << endl;
+
+  return 0;
+}
+/* CASE I:
+Type's Default constructor
+-------- STEP I ------
+Type's Copy constructor
+Type's Default constructor
+Type's Assignment Operator
+Type's Destructor
+-------- STEP II ------
+Type's Destructor
+Type's Destructor
+
+CASE II:
+Type's Default constructor
+-------- STEP I ------
+Type's Copy constructor
+Type's Copy constructor
+Type's Destructor
+-------- STEP II ------
+Type's Destructor
+Type's Destructor
+
+*/
+#endif
+
+
+smartPointers:
+==============
+
+/*
+Smart Pointers in C++:
+----------------------
+Consider the following simple C++ code with normal pointers.
+
+     MyClass *ptr = new MyClass();
+     ptr->doSomething();
+     //  We must do delete(ptr) to avoid memory leak
+
+Smart pointers are also useful in management of resources, such as file handles or network sockets.
+C++ libraries provide implementations of smart pointers in the form of 
+       1. auto_ptr
+       2. unique_ptr
+       3. shared_ptr 
+       4. weak_ptr
+
+  Using smart pointers, we can make pointers to work in way that we don’t need to explicitly call delete. 
+  Smart pointer is a wrapper class over a pointer with operator like * and -> overloaded. 
+  The objects of smart pointer class look like pointer, but can do many things that a normal pointer can’t like 
+  automatic destruction (yes, we don’t have to explicitly use delete), reference counting and more.
+
+  The idea is to make a class with a pointer, destructor and overloaded operators like * and ->. 
+  Since destructor is automatically called when an object goes out of scope, the dynamically allocated memory would 
+  automatically deleted (or reference count can be decremented). Consider the following simple smartPtr class.
+*/
+
+#include<iostream>
+#include<memory>
+using namespace std;
+
+//#define SMART_POINTER_1 1
+#define SMART_POINTER_2 2
+ 
+#ifdef SMART_POINTER_1
+class SmartPtr {
+   int *ptr;  // Actual pointer
+public:
+   // Constructor: Refer https://www.geeksforgeeks.org/g-fact-93/ for use of explicit keyword 
+   explicit SmartPtr(int *p = NULL) { ptr = p; } 
+ 
+   // Destructor
+   ~SmartPtr() { delete(ptr); }  
+ 
+   // Overloading dereferencing operator
+   int &operator *() {  return *ptr; }
+};
+ 
+int main() {
+    SmartPtr ptr(new int());
+    *ptr = 20;
+    cout << *ptr << endl;
+ 
+    /* We don't need to call delete ptr: when the object ptr goes out of scope, destructor for it is automatically
+       called and destructor does delete ptr.*/
+ 
+    return 0;
+}
+
+#endif
+
+#ifdef SMART_POINTER_2
+/* Can we write one smart pointer class that works for all types?
+   Yes, we can use templates to write a generic smart pointer class. Following C++ code demonstrates the same.*/
+
+// A generic smart pointer class
+template <class T>
+class SmartPtr
+{
+   T *ptr;  // Actual pointer
+public:
+   // Constructor
+   explicit SmartPtr(T *p = NULL) { ptr = p; }
+ 
+   // Destructor
+   ~SmartPtr() { delete(ptr); }
+ 
+   // Overloading dereferncing operator
+   T & operator * () {  return *ptr; }
+ 
+   /* Overloding arrow operator so that members of T can be accessed like a pointer 
+      (useful if T represents a class or struct or  union type) */
+   T * operator -> () { return ptr; }
+};
+ 
+int main()
+{
+    SmartPtr<int> ptr(new int());
+    *ptr = 20;
+    cout << *ptr << endl;
+    return 0;
+}
+
+#endif
+
+#ifdef 
+/* auto_ptr, unique_ptr, shared_ptr and weak_ptr
+
+   C++ libraries provide implementations of smart pointers in following types:
+
+       1. auto_ptr
+       2. unique_ptr
+       3. shared_ptr
+       4. weak_ptr
+They all are declared in memory header file. */
+
+#ifdef AUTO_PTR
+/*auto_ptr
+---------- 
+    This class template is deprecated as of C++11. unique_ptr is a new facility with a similar functionality, 
+    but with improved security. auto_ptr is a smart pointer that manages an object obtained via new expression and deletes that 
+    object when auto_ptr itself is destroyed.
+
+    An object when described using auto_ptr class it stores a pointer to a single allocated object which ensures that when it 
+    goes out of scope, the object it points to must get automatically destroyed. It is based on exclusive ownership model 
+    i.e. two pointers of same type can’t point to the same resource at the same time. 
+    As shown in below program, copying or assigning of pointers changes the ownership i.e. source pointer has to give 
+    ownership to the destination pointer.
+
+    The copy constructor and the assignment operator of auto_ptr do not actually copy the stored pointer instead 
+    they transfer it, leaving the first auto_ptr object empty. This was one way to implement strict ownership, so that 
+    only one auto_ptr object can own the pointer at any given time i.e. auto_ptr should not be used where copy semantics are 
+    needed.
+
+    Why is auto_ptr deprecated?
+    It takes ownership of the pointer in a way that no two pointers should contain the same object. 
+    Assignment transfers ownership and resets the rvalue auto pointer to a null pointer. 
+    Thus, they can’t be used within STL containers due to the aforementioned inability to be copied.
+*/
+
+// C++ program to illustrate the use of auto_ptr
+#include<memory>
+ 
+class A {
+public:
+    void show() {  cout << "A::show()" << endl; }
+};
+ 
+int main()
+{
+    // p1 is an auto_ptr of type A
+    auto_ptr<A> p1(new A);
+    p1 -> show();
+ 
+    // returns the memory address of p1
+    cout << p1.get() << endl;
+ 
+    // copy constructor called, this makes p1 empty.
+    auto_ptr <A> p2(p1);
+    p2 -> show();
+ 
+    // p1 is empty now
+    cout << p1.get() << endl;
+ 
+    // p1 gets copied in p2
+    cout<< p2.get() << endl;
+ 
+    return 0;
+}
+
+#endif
+
+#ifdef UNIQUE_PTR
+/* unique_ptr
+--------------
+    std::unique_ptr was developed in C++11 as a replacement for std::auto_ptr.
+    unique_ptr is a new facility with a similar functionality, but with improved security (no fake copy assignments), 
+    added features (deleters) and support for arrays. It is a container for raw pointers. 
+    It explicitly prevents copying of its contained pointer as would happen with normal assignment 
+    i.e. it allows exactly one owner of the underlying pointer.
+    So, when using unique_ptr there can only be at most one unique_ptr at any one resource and when that unique_ptr is destroyed, 
+    the resource is automatically claimed. Also, since there can only be one unique_ptr to any resource, so any attempt to make 
+    a copy of unique_ptr will cause a compile time error.
+
+               unique_ptr<A> ptr1 (new A);
+
+               // Error: can't copy unique_ptr
+               unique_ptr<A> ptr2 = ptr1;    
+    But, unique_ptr can be moved using the new move semantics i.e. using std::move() function to transfer ownership of the 
+    contained pointer to another unique_ptr.
+
+               // Works, resource now stored in ptr2
+               unique_ptr<A> ptr2 = move(ptr1); 
+    So, it’s best to use unique_ptr when we want a single pointer to an object that will be reclaimed when that single pointer is 
+    destroyed. 
+
+    When to use unique_ptr?
+    Use unique_ptr when you want to have single ownership(Exclusive) of resource. Only one unique_ptr can point to one resource. 
+    Since there can be one unique_ptr for single resource its not possible to copy one unique_ptr to another. */
+
+// C++ program to illustrate the use of unique_ptr
+ 
+class A {
+public:
+    void show() {
+        cout<<"A::show()"<<endl;
+    }
+};
+ 
+int main() {
+    unique_ptr<A> p1 (new A);
+    p1 -> show();
+ 
+    // returns the memory address of p1
+    cout << p1.get() << endl;
+ 
+    // transfers ownership to p2
+    unique_ptr<A> p2 = move(p1);
+    p2 -> show();
+    cout << p1.get() << endl;
+    cout << p2.get() << endl;
+ 
+    // transfers ownership to p3
+    unique_ptr<A> p3 = move (p2);
+    p3->show();
+    cout << p1.get() << endl;
+    cout << p2.get() << endl;
+    cout << p3.get() << endl;
+ 
+    return 0;
+}
+
+/*
+  The below code returns a resource and if we don’t explicitly capture the return value, the resource will be cleaned up. 
+  If we do, then we have exclusive ownership of that resource. In this way we can think of unique_ptr as safer and better 
+  replacement of auto_ptr.
+
+unique_ptr<A> fun()
+{
+    unique_ptr<A> ptr(new A);
+
+    // ...
+    // ... 
+
+    return ptr;
+}
+*/
+
+#endif
+
+#ifdef SHARED_PTR
+/* shared_ptr
+-------------
+    A shared_ptr is a container for raw pointers. It is a reference counting ownership model i.e. it maintains the reference 
+    count of its contained pointer in cooperation with all copies of the shared_ptr. So, the counter is incremented each time a 
+    new pointer points to the resource and decremented when destructor of object is called.
+
+    Reference Counting: It is a technique of storing the number of references, pointers or handles to a resource such as 
+    an object, block of memory, disk space or other resources.
+
+    An object referenced by the contained raw pointer will not be destroyed until reference count is greater than zero 
+    i.e. until all copies of shared_ptr have been deleted.
+    So, we should use shared_ptr when we want to assign one raw pointer to multiple owners. 
+
+    When to use shared_ptr?
+    Use shared_ptr if you want to share ownership of resource. Many shared_ptr can point to single resource. 
+    shared_ptr maintains reference count for this propose. when all shared_ptr’s pointing to resource goes out of scope the 
+    resource is destroyed. */
+
+// C++ program to demonstrate shared_ptr
+ 
+class A {
+public:
+    void show() {
+        cout<<"A::show()"<<endl;
+    }
+};
+ 
+int main() {
+    shared_ptr<A> p1 (new A);
+    cout << p1.get() << endl;
+    p1->show();
+    shared_ptr<A> p2 (p1);
+    p2->show();
+    cout << p1.get() << endl;
+    cout << p2.get() << endl;
+ 
+    // Returns the number of shared_ptr objects
+    //referring to the same managed object.
+    cout << p1.use_count() << endl;
+    cout << p2.use_count() << endl;
+ 
+    // Relinquishes ownership of p1 on the object
+    //and pointer becomes NULL
+    p1.reset();
+    cout << p1.get() << endl;
+    cout << p2.use_count() << endl;
+    cout << p2.get() << endl;
+ 
+    return 0;
+}
+
+#endif
+
+#ifdef WEAK_PTR
+/* weak_ptr
+-----------
+    A weak_ptr is created as a copy of shared_ptr. It provides access to an object that is owned by one or more shared_ptr 
+    instances, but does not participate in reference counting. The existence or destruction of weak_ptr has no effect on the 
+    shared_ptr or its other copies. It is required in some cases to break circular references between shared_ptr instances.
+
+    Cyclic Dependency (Problems with shared_ptr): Let’s consider a scenario where we have two classes A and B, both have pointers 
+    to other classes. So, it’s always be like A is pointing to B and B is pointing to A. Hence, use_count will never reach zero 
+    and they never get deleted. 
+
+                  -------<-----<----------
+                  |                      |   B_ptr(shared_ptr)
+               --------               -------
+               |  A   |               |  B  |
+               --------               -------
+                  |                      |
+                  --------->---->---------
+
+                       Circular Reference    
+
+
+    This is the reason we use weak pointers(weak_ptr) as they are not reference counted. 
+    So, the class in which weak_ptr is declared doesn’t have strong hold of it i.e. the ownership isn’t shared, 
+    but they can have access to these objects.
+
+                 -------<-----<----------                             --------------<------<--------
+                  |                      |   B_ptr(shared_ptr)        |                            | B_ptr(shared_ptr)
+               --------               -------                      -------                      -------
+               |  A   |               |  B  |                      |  A  |                      |  B  |
+               --------               -------                      -------                      -------
+                  |                      |                            |                            |
+                  ------------X--->--->---                            ------>--(DOTED LINE)--->-----
+            A_ptr(shared_ptr)                                A_ptr(weak_ptr)        |
+                                                                                    |
+                                                                                    ----> it stil hvae access but doesn't own it
+   So, in case of shared_ptr because of cyclic dependency use_count never reaches zero which is prevented using weak_ptr, 
+   which removes this problem by declaring A_ptr as weak_ptr, thus class A does not own it, only have access to it and 
+   we also need to check the validity of object as it may go out of scope. In general, it is a design issue.
+
+    When to use weak_ptr?
+    When you do want to refer to your object from multiple places – for those references for which it’s ok to ignore and 
+    deallocate (so they’ll just note the object is gone when you try to dereference). */
+
+#endif
+
+
+struct_padding_and_packing:
+===========================
+
+/*
+Question: what is structural padding and packing in C & C++?
+Answer: It is a way to speed up CPU optimization. padding will give boost ur program.
+*/
+
+#include <iostream>
+using namespace std;
+
+//#pragma pack(1) //disable padding
+
+struct Base {
+  char a;
+  char b;
+  int i;
+  char c;
+};
+
+/* 
+ 1. one word is 4 bytes in 32 bit processor
+ 2. one word is 8 bytes in 64 bit processor
+*/
+
+int main() {
+  cout << "Base size: " << sizeof(Base) << endl;
+  return 0;
+}
+
+/* Case I:
+
+struct Base {
+  char a;
+  char b;
+  int i;
+};
+
+|a|b|-|-|i|i|i|i|
+ 0 1 2 3 4 5 6 7
+
+*/
+
+/* Case II:
+
+struct Base {
+  char a;
+  int i;
+  char b;
+};
+
+|a|-|-|-|i|i|i|i|b|-|-|-|
+ 0 1 2 3 4 5 6 7 8.....11
+
+*/
+
+/*
+How dat gets memory slots:
+--------------------------
+  1. 1 Byte --> can be stored at multiple of 1 memory slot
+  2. 2 Byte --> can be stored at multiple of 2 memory slot
+  3. 4 Byte --> can be stored at multiple of 4 memory slot
+  4. 8 Byte --> can be stored at multiple of 8 memory slot
+  
+*/
+
+
+preAndPostIncrement:
+====================
+
+#include <iostream>
+using namespace std;
+
+/* post increment(4 instructions) is more costilier then pre increment(3 instruction) */
+int main() {
+  int i = 10; //mov DWORD PTR [rbp-4], 10
+  
+  int j = 5;  // mov DWORD PTR [rbp-8], 5
+
+  j = i++; /*
+  mov eax, DWORD PTR [rbp-4]  // move i([rbp-4]) value to register eax <-- 10
+  lea edx, [rax+1]            // increment the register rax value(10) with +1 and move in edx <-- 11
+  mov DWORD PTR [rbp-4], edx  // move edx register to i([rbp-4]) <-- 11 
+  mov DWORD PTR [rbp-8], eax  // move eax(10) value to j([rbp-8]) <--10  */
+  cout << "i: " << i << ", j: " << j << endl;
+  // OUTPUT: i: 11, j: 10
+
+  j = ++i; /*
+  add DWORD PTR [rbp-4], 1    // add in i(rbp-4]) whch has value 10 with 1, i([rbp-4]) <-- 11
+  mov eax, DWORD PTR [rbp-4]  // now move i([rbp-4]) value(11) to eax register (eax <-- 11)
+  mov DWORD PTR [rbp-8], eax  // now move eax(11) value to j([rbp-8]) <-- 11 */
+  cout << "i: " << i << ", j: " << j << endl;
+  // OUTPUT: i: 12, j: 12
+
+  return 0;
+}
+
+
+overloadPrePostIncrement:
+=========================
+
+#include <iostream>
+using namespace std;
+class Int {
+    int _val;
+  public:
+    Int() {}
+    Int(int val):_val(val) {}
+    void printValue() { cout << "Value: " << _val << endl; }
+
+    Int& operator++() { //pre Increment
+      _val++;
+      return *this;
+    }
+
+    Int operator++(int dummy) { // post Increment
+      Int tmp = *this;
+      ++(*this);
+      return tmp;
+    }
+};
+
+int main() {
+  Int obj1(100);
+  (obj1++).printValue(); // post increment
+  obj1.printValue();
+ 
+  Int obj2(200);
+  (++obj2).printValue(); // pre increment
+  obj2.printValue();
+ 
+  return 0;
+}
+
+/*
+Value: 100
+Value: 101
+
+Value: 201
+Value: 201
+*/
+
+
 
