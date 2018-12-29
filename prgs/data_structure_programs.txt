@@ -1,0 +1,707 @@
+atoiOwnFunction:
+================
+/*
+atoi is a inbuilt function in c which is used to convert ascii to integer.
+So if we have char str[] = "345", and we want this to come inside int data type 
+we will use this function like this: int i = atoi(str);
+*/
+
+#include <iostream>
+
+using namespace std;
+
+int atoiOwn(char *str) {
+  int res = 0;  // Initialize result
+  int sign = 1; // Initialize sign as positive
+  int index = 0;// Initialize indx of first digit
+
+  // if number is negative, then update sign
+  if(str[0] == '-') {
+    sign = -1;
+    index++;
+  }
+
+  for(;str[index] != '\0'; ++index)
+    res = res * 10 + str[index] - '0';
+
+  return sign * res;
+}
+
+int main() {
+  char str[] = "-1233625";
+  int val = atoiOwn(str);
+  cout << "val: " << val << endl;
+  return 0;
+}
+
+
+count_set_bitsinInt:
+====================
+/* Question: what is good way to counter number of set bit using C/C++? */
+#include <iostream>
+using namespace std;
+
+int main() {
+  int number = 7; // 0111
+  int number1 = number;
+  int count = 0;
+
+  //simple way
+  while(number) {
+    count = count + (number & 1);
+    number = number >> 1;
+  }
+
+  cout << "count: " << count << endl;
+
+  //Brian Kernighan's way
+  for(count = 0; number1; ++count) {
+    number1 = number1 & (number1-1);
+  }
+  cout << "count: " << count << endl;
+
+  return 0;
+}
+
+
+
+function_pointer:
+=================
+/*
+ 1. what is function pointer and how to create then?
+ 2. calling a function using a function pointer.
+ 3. how to pass a function pointer as an argument.
+ 4. how to return a function pointer.
+ 5. how to use array of function pointers.
+ 6. where to use function pointers.
+
+*/
+
+/*
+1. what is function pointer and how to create them?
+
+Ans: normal pointer vaiables store the address of another variables, 
+     function pointer store the address of the another function.
+*/
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+int add(int a, int b) {
+  return a+b;
+}
+
+// 3. how to pass a function pointer as an argument.
+int function_ptr_as_arg( int (*fun_ptr)(int,int), int a, int b ) {
+  int c = (*fun_ptr)(a,b);
+  return c;
+}
+
+int sub(int a, int b) {
+  return a-b;
+}
+
+typedef int (*mathFun) (int, int);
+
+// 4. how to return a function pointer.
+int (*funTypeReturn(int type)) (int, int) { // this line is more tricky
+//mathFun funTypeReturn(int type) {
+  if(type == 1)
+    return add;
+  else if(type == 2)
+    return sub;
+}
+
+// 6. where to use function pointers.
+int compare(const void *p, const void *q) {
+  int l = *(const int*)p;
+  int r = *(const int*)q;
+  return l>r;
+}
+
+int main() {
+  // 1. what is function pointer and how to create then?
+  int (*fun_new_sum) (int, int) = add; //new type to assign address
+
+  int b = fun_new_sum(4,5); // 2. calling a function using a function pointer.
+  cout << " B : " << b << endl;
+
+  // 1. what is function pointer and how to create then?
+  int (*fun_old_sum) (int, int) = &add; //old type to assign address
+
+  int c = (*fun_old_sum)(2,3); // 2. calling a function using a function pointer.
+  cout << " C : " << c << endl;
+
+  // 3. how to pass a function pointer as an argument.
+  int d = function_ptr_as_arg(fun_old_sum, 20, 30);
+  cout << " D : " << d << endl;
+
+  int (*mFun) (int, int);
+  mFun = funTypeReturn(2); // 4. how to return a function pointer.
+  int result = (*mFun)(20, 10);
+  cout << " result : " << result << endl;
+
+  // 5. how to use array of function pointers.
+  mathFun arr[2] = {add, sub};
+  //int (*arr[2])(int, int) = {add, sub}; //this also we can use if we dont typedef function pointer
+
+  int x = (*arr[0])(100, 50);
+  int y = (*arr[1])(100, 50);
+  cout << " add : " << x << endl;
+  cout << " sub : " << y << endl;
+
+  // 6. where to use function pointers.
+  int numberArray[5] = {5, 3, 8, 4, 1};
+  int arraySize = sizeof(numberArray)/sizeof(numberArray[0]);
+  int elementSize = sizeof(numberArray[0]);
+
+  qsort(numberArray, arraySize, elementSize, compare);
+
+  for(int i=0; i < arraySize; i++) {
+    cout << " " << numberArray[i];
+  }
+  cout << endl;
+}
+
+
+
+returnArrayFromFunction:
+========================
+
+#include <iostream>
+using namespace std;
+
+/*
+1. One-Dimentioanl Array return from Function:
+-------------------------------------------
+The issue is if you return locally created array (non-static) from function then it will be run time error 
+because if we create anything on function stack it will be claimed back once that function is returning back.
+
+There are basically two ways to return an array from function. 
+ 1. First way is to use static array and return it form function.
+ 2. second way is to create array dynamically and then return it from a function.
+*/
+
+//#define ONED_DONT_RETURN_LOCAL_REF_PTR 1
+//#define ONED_DECLARE_ARR_AS_STATIC 2
+//#define ONED_DYNAMIC_ALLOC_ADDRESS_RETURN 3
+//#define TWOD_DYNAMIC_ARRAY 4
+#define TWOD_STATIC_ARRAY 5
+
+
+#ifdef ONED_DONT_RETURN_LOCAL_REF_PTR
+int* function() {
+  int arr[3] = {1, 2, 3}; // warning: address of local variable ‘arr’ returned [-Wreturn-local-addr]
+  return arr; //return pointers of local or references of loacal are NOT good idea, hence this is wrong return
+}
+
+int main() {
+  int *arr = function(); 
+ 
+  cout << arr[0] << endl;
+  cout << arr[1] << endl;
+  cout << arr[2] << endl;
+ 
+  return 0;
+}
+/* OUTPUT:
+$ ./m
+Segmentation fault (core dumped)
+*/
+#endif
+
+
+#ifdef ONED_DECLARE_ARR_AS_STATIC
+int* function() {
+  static int arr[3] = {1, 2, 3};
+  return arr; //valid return
+}
+
+int main() {
+  int *arr = function();
+
+  cout << arr[0] << endl;
+  cout << arr[1] << endl;
+  cout << arr[2] << endl;
+
+  return 0;
+}
+#endif
+
+#ifdef ONED_DYNAMIC_ALLOC_ADDRESS_RETURN
+int* function() {
+  int* arr = new int[3]; //Memory is created in heap and base address is assigned into arr pointer variable
+  
+  arr[0] = 1;
+  arr[1] = 2;
+  arr[2] = 3;
+
+  return arr; 
+}
+
+int main() {
+  int *arr = function();
+
+  cout << arr[0] << endl;
+  cout << arr[1] << endl;
+  cout << arr[2] << endl;
+
+  delete[] arr;
+
+  return 0;
+}
+#endif
+
+/* Two Dimentional Array return from Function:
+   ===========================================
+   How to return 2-D array from function in C & C++?
+   Ans: 1. Using Dynamic Array
+        2. Using static keyword
+        3. Using struct keyword
+*/
+
+const int N = 3;
+
+#ifdef TWOD_DYNAMIC_ARRAY
+void displayArray(int** arr) {
+  for(int i = 0; i < N; i++) {
+    for(int j = 0; j < N; j++) {
+      cout << " " << arr[i][j];
+    }
+    cout << endl;
+  }
+}
+
+int** getArrayDynamically() {
+  int** arr = new int*[N];
+  for(int i = 0; i < N; i++) {
+    arr[i] = new int[N];
+    for(int j = 0; j < N; j++) {
+      arr[i][j] = i + j;
+    }
+  }
+
+  return arr;
+}
+
+/*
+void freeTwoDArray(int** arr) {
+ for(int i = 0; i < N; i++) {
+   int *a = arr[i];
+   delete[] a;
+ } 
+ delete[][] arr;
+}*/
+
+int main() {
+  int **a;
+  a = getArrayDynamically();
+  displayArray(a);
+  //freeTwoDArray(a);
+
+  return 0;
+}
+#endif
+
+#ifdef TWOD_STATIC_ARRAY
+void displayArray(int arr[][N]) {
+  for(int i = 0; i < N; i++) {
+    for(int j = 0; j < N; j++) {
+      cout << " " << arr[i][j];
+    }
+    cout << endl;
+  }
+}
+
+//typedef (*DoublePointer123) [N];
+//DoublePointer123 getArrayStatically() {
+int (*(getArrayStatically)())[N] {
+  static int arr[N][N] = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+  return arr;
+}
+
+int main() {
+  int (*arr)[N];
+  arr = getArrayStatically();
+  displayArray(arr);
+
+  return 0;
+}
+#endif
+
+
+
+return_max_occuring_character:
+==============================
+
+/*
+Return maximum occurring character in an input string:-
+-------------------------------------------------------
+  Write an efficient C function to return maximum occurring character in the input string e.g., 
+  if input string is “test” then function should return ‘t’.
+
+Algorithm:
+----------
+  One obvious approach to solve this problem would be to sort the input string and then traverse 
+  through the sorted string to find the character which is occurring maximum number of times. 
+  Let us see if we can improve on this. So we will use a technique called ‘Hashing’. 
+  In this, when we traverse through the string, we would hash each character into an array of 
+  ASCII characters.
+
+Input string = “test”
+
+1: Construct character count array from the input string.
+  count['e'] = 1
+  count['s'] = 1
+  count['t'] = 2
+
+2: Return the index of maximum value in count array (returns ‘t’).
+   Typically, ASCII characters are 256, so we use our Hash array size as 256. But if we know that 
+   our input string will have characters with value from 0 to 127 only, we can limit Hash array 
+   size as 128. Similarly, based on extra info known about input string, the Hash array size can 
+   be limited to 26.
+
+*/
+
+// C++ program to output the maximum occurring character in a string */
+
+#include <iostream>
+#include <string.h>
+#define ASCII_SIZE 256
+using namespace std;
+ 
+char getMaxOccuringChar(char* str) {
+  //create the array to keep the count of individual characters and initialize the array as 0
+  int count[ASCII_SIZE] = {0};
+  
+  //construct character count array from the input string
+  int len = strlen(str);
+  for(int i = 0; i < len; i++)
+    count[str[i]]++;
+
+  int max = -1; // initialize max count
+  char result;  // initialize result
+
+  //Traverse through the string and manitaning the count of each character
+  for(int i = 0; i < len; i++) {
+    if(max < count[str[i]]) {
+      max = count[str[i]];
+      result = str[i];
+    }
+  }
+  return result;
+}
+
+void charOccurenceCount(char *str) {
+  //create the array to keep the count of individual characters and initialize the array as 0
+  int count[ASCII_SIZE] = {0};
+  int indexCount = 0;
+
+  //construct character count array from the input string
+  int len = strlen(str);
+  for(int i = 0; i < len; i++) {
+    count[str[i]]++;
+    indexCount++;
+  }
+
+  for(int i = 0; i < indexCount; i++)
+    cout << str[i] << " : " << count[str[i]] << endl;
+}
+
+// Driver program to test the above function
+int main() {
+    //char str[] = "sample string";
+    char str[] = "GURUGURU";
+    charOccurenceCount(str);
+    cout << "Max occurring character is: " << getMaxOccuringChar(str) << endl;
+    return 0;
+}
+
+/*
+Time Complexity: O(n)
+Space Complexity: O(1) 
+      Because we are using fixed space (Hash array) irrespective of input string size.
+
+Notes:
+------
+  If more than one characters have the same count and that count is maximum then the function 
+  returns the first character with maximum count in input string. For example if input string is 
+  “test sample” then there are three characters with same and maximum count two i.e. “t”, “e” and 
+  “s” but our program will result “t” because “t” comes first in input string. Similarly, the 
+  output for “cbbbbccc” would be “c”.
+*/
+
+
+string_reverse:
+===============
+
+/* Reverse a string in C/C++ (Different Methods) */
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+//#define REVERSE_WITH_SWAP 1
+//#define REVERSE_WITH_INBUILT_REVERSE 2
+//#define REVERSE_WITH_STRLEN 3
+#define REVERSE_A_CONST_STRING 4
+
+
+#ifdef REVERSE_WITH_SWAP
+//1. Write own reverse function by swapping characters:
+void reverseStr(string &str) {
+  int length = str.length();
+
+  //swap character starting from two corners
+  for(int i = 0; i < length/2; i++)
+    swap(str[i], str[length - 1 - i]);
+}
+
+int main() {
+  string str = "Hello World!";
+  reverseStr(str);
+  cout << str << endl;
+  return 0;
+}
+#endif
+
+/* 2. Using inbuilt “reverse” function: 
+      There is a direct function in “algorithm” header file for doing reverse that saves our time 
+      when programming.
+      
+      Reverses elements in [begin, end]
+           void reverse (BidirectionalIterator begin, BidirectionalIterator end);
+*/
+
+#ifdef REVERSE_WITH_INBUILT_REVERSE
+int main()
+{
+   string str = "Guru Prasad Patel";
+    
+   // Reverse str[beign..end]
+   reverse(str.begin(),str.end());
+    
+   cout << str << endl; 
+   return 0;
+}
+#endif
+
+/* 3. Write own reverse function with strlen(): 
+      strlen is an inbuilt library function used to calculate string length. 
+      need to be included to use this method.
+   
+      CPP program to reverse a given string using strlen() */
+
+#ifdef REVERSE_WITH_STRLEN
+
+#include<stdio.h>
+#include<string.h>
+  
+// Function to reverse a string
+void * reverse(char * str )
+{ 
+    int i, len ;
+      
+    // calculating length of the string
+    len = strlen(str);
+      
+    for( i=len ; i>=0 ; i--)   // *(str+i) is the character at the ith index of the string
+        printf( "%c", *(str+i));
+    printf("\n");
+}
+
+// Driver code
+int main( void )
+{
+    char a[] = "Guru Prasad Patel" ;
+      
+    reverse(a);
+    return(0);
+}
+#endif
+
+/* 4. Reverse a constant string: 
+      If the string is a const string (not editable), then how do we create a string which is the 
+      reverse of given string?
+
+      We need to create an array and return the pointer of that. Let’s see how to do it:
+      C Program to reverse a constant string and return the pointer of that */
+
+#ifdef REVERSE_A_CONST_STRING
+ 
+#include <stdio.h>
+#include <string.h>
+#include <malloc.h>
+ 
+// Function to reverse string and return reverse string pointer of that
+char* ReverseConstString(char *str)
+{
+    int start, end, len;
+    char temp, *ptr = NULL;
+     
+    len = strlen(str);    // find length of string
+     
+    ptr = (char*)malloc(sizeof(char)*(len+1)); // create dynamic pointer char array
+     
+    ptr = strcpy(ptr,str);             // copy of string to ptr array
+     
+    // swapping of the characters
+    for (start=0,end=len-1; start<=end; start++,end--)
+    {
+        temp = ptr[start];
+        ptr[start] = ptr[end];         
+        ptr[end] = temp;
+    }
+     
+    return ptr; // return pointer of reversed string
+}
+ 
+// Driver Code
+int main(void) 
+{
+    const char const *str = "GeeksforGeeks";
+    printf("%s", ReverseConstString(str));
+    return 0;
+}
+#endif
+
+
+
+string_reverse_word:
+====================
+
+/*
+Reverse words in a given string:
+    Example: Let the input string be “i like this program very much”. 
+             The function should change the string to “much very program this like i”
+
+Algorithm:
+----------
+  1. Reverse the individual words, we get the below string.
+     "i ekil siht margorp yrev hcum"
+  2. Reverse the whole string from start to end and you get the desired output.
+     "much very program this like i"
+*/
+
+
+#include <stdio.h>
+/* Function to reverse any sequence starting with pointer begin and ending with pointer end */
+void reverse(char *begin, char *end) {
+  char temp;
+  while(begin < end) {
+    temp = *begin;
+    *begin++ = *end;
+    *end-- = temp;
+  }
+}
+
+/* Function to reverse words */
+void reverseWords(char *s) {
+  char *word_begin = s;
+  char *temp = s; //temp is for word boundry
+
+  /* STEP 1: of the above algorithm */
+  while(*temp) {
+    temp++;
+
+    if(*temp == '\0') {
+      reverse(word_begin, temp-1);
+    } else if(*temp == ' ') {
+      reverse(word_begin, temp-1);
+      word_begin = temp+1;
+    }
+  }
+
+  /* STEP 2: of above algorithm*/
+  reverse(s, temp-1);
+}
+
+/* The above code doesn’t handle the cases when the string starts with space. 
+  The following version handles this specific case and doesn’t make unnecessary calls to 
+  reverse function in the case of multiple space in between. 
+  Time Complexity: O(n) */
+
+void reverseWords1(char *s) {
+  char *word_begin = NULL;
+  char *temp = s; // temp is for word boundry
+
+  /* STEP 2: of above algorithm*/
+  while(*temp) {
+    /* This condition is to make sure that string start with valid character only (not space) */
+    if((word_begin == NULL) && (*temp != ' ')) {
+      word_begin = temp;
+    }
+
+    if(word_begin && ((*(temp+1) == ' ') || (*(temp+1) == '\0'))) {
+      reverse(word_begin, temp);
+      word_begin = NULL;
+    }
+    temp++;
+  }
+
+  /* STEP 2: of above algorithm*/
+  reverse(s, temp-1);
+}
+
+/* Driver function to test above functions */
+int main() {
+  char s[] = "Guru Prasad Patel";
+  printf("Input : %s\n", s);
+  reverseWords(s);
+  //reverseWords1(s);
+  printf("Output: %s\n", s);
+  return 0;
+}
+
+
+str_remove_consecutive_vowels:
+==============================
+
+/*
+Remove consecutive vowels from string:
+--------------------------------------
+Given a string s of lowercase letters, we need to remove consecutive vowels from the string
+
+Note: Sentence should not contain two consecutive vowels ( a, e, i, o, u).
+
+Examples:
+         Input: geeks for geeks
+         Output: geks for geks
+
+         Input : your article is in queue 
+         Output : yor article is in qu
+
+Approach: 
+        Iterate string using a loop and check for the repetitiveness of vowels in a given sentence 
+        and in case if consecutive vowels are found then delete the vowel till coming next 
+        consonant and printing the updated string.
+*/
+
+#include <iostream>
+#include <stdio.h>
+
+using namespace std;
+
+/* Function which returns TRUE or FALSE for occurence of a vowel */
+bool is_vow(char c) {
+  return (c == 'a') || (c == 'e') || (c == 'i') || (c == 'o') || (c == 'u');
+}
+
+void removeVowels(string str) {
+  printf("%c", str[0]);
+
+  /* loop to check for each character */
+  for(int i = 1; str[i]; i++) {
+    if((!is_vow(str[i-1])) || (!is_vow(str[i]))) {
+      printf("%c", str[i]);
+    }
+  }
+  printf("\n");
+}
+
+int main() {
+  char str[] = "geeks for geeks";
+  removeVowels(str);
+
+  return 0;
+}
