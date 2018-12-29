@@ -1,0 +1,419 @@
+/* Abstract class Example */
+#include <iostream>
+using namespace std;
+
+// Abstract class
+class Shape {
+    protected:
+       float _l;
+    public:
+       void setData(float l) { _l = l; }
+       // virtual Function
+       virtual float calculateArea() = 0;
+};
+
+class Square : public Shape {
+    public:
+       float calculateArea() {   return _l*_l;  }
+};
+
+class Circle : public Shape {
+    public:
+       float calculateArea() { return 3.14*_l*_l; }
+};
+
+int main() {
+    Square s;
+    Circle c;
+    s.setData(10);
+    cout<<"Area of square: " << s.calculateArea() << endl ;
+    c.setData(20);
+    cout << "Area of circle: " << c.calculateArea() << endl;
+    return 0;
+}
+/*OUTPUT:
+Area of square: 100
+Area of circle: 1256
+*/
+
+
+/*
+const_cast in C++:
+==================
+The expression const_cast<T>(v) can be used to change the const or volatile qualifiers of pointers or reference.
+where T must be a pointer, reference, or pointer-to-member type.
+
+
+volatile is generally used in embaded system when we dont want to optimize the variables.
+
+Bottom Line:
+-----------
+1. Use only when you have to.
+2. Use only when the actual refered object/variable is not const.
+3. Use when we are dealing with 3'rd party library and some API want dat in non-const form but we have it in const.
+   (actually we can not do anything in that case, but make sure that API is not changing our variable value)
+
+- if const keyword is left to datatype, then value is constant, not the pointer(so pointer can point to any memory address). 
+	Example: int x = 20;
+    		 const int* p = &x;
+		 *p = 40; // Invalid
+		 int z = 50;
+		 p = &z; // Valid
+
+- if const keyword is right to *, then pointer is constant, not the value(so value can be changed but pointer can't point to any memory address).
+	Example: int x = 20;
+    		 int* const p = &x;
+		 *p = 40; // Valid
+		 int z = 50;
+		 p = &z; // Invalid
+
+- if const keyword is closed to datatype as well as *, then pointer and value both are constant(neither value nor pointer can be changed).
+	Example: int x = 20;
+    		 const int* const p = &x;
+    		 *p = 40; // Invalid
+    		 int z = 50;
+		 p = &z; // Invalid
+*/
+
+#include <iostream>
+
+using namespace std;
+
+//#define CONST_CAST_1 1
+#define CONST_CAST_2 2
+
+#ifdef CONST_CAST_2
+// 2. when we need to call some third party library where it is taking variables/object as non-const but not changing that.
+void thirdPartyLibrary(int* y) {
+  int k = 10;
+  cout << "Value : " << k + *(y) << endl;
+}
+#endif
+
+int main() {
+#ifdef CONST_CAST_1
+  const int a1 = 10;
+  const int *b1 = &a1;
+  int *d1 = const_cast<int*>(b1);
+  *d1 = 15; //Invalid and Undefined behaviour!
+  cout << "a1: " << a1 << endl;
+  cout << "d1: " << *d1 << endl;
+
+  int a2 = 20;  // 1. when the actual referred object/variable is not const.
+  const int *b2 = &a2;
+  int *d2 = const_cast<int*>(b2);
+  *d2 = 30;  // Valid code!
+  cout << "a2: " << a2 << endl;
+  cout << "d2: " << *d2 << endl;
+#endif
+
+#ifdef CONST_CAST_2
+  const int x = 20;
+  const int *px = &x;
+  // 2. when we need to call some third party library where it is taking variables/object as non-const but not changing that.
+  //thirdPartyLibrary(const_cast<int*>(px));
+  
+  // error: invalid conversion from 'const int*' to 'int*' [-fpermissive]
+  thirdPartyLibrary(px);
+#endif
+
+  return 0;
+}
+
+
+
+/*
+static_cast in C++:
+===================
+I have included 6 to 7 points to demonstrate the use static_cast in C++.
+We use static_cast to check type casting at compile time. And it has more strict rules to check things at compile time.
+
+1. For compatible type conversion, such as float to int.
+2. For conversion operator and conversion constructors.
+3. To avoid unrelated pointer conversion.
+4. Avoids derived to private base class pointer conversion.
+5. Use for all up cast but never use for confued down-cast because there are no runtime checks performed for static_cast conversion.
+6. INtensions are more clear in C++ style cast(express you intent better and make code review easier).
+7. Finding is easy.
+8. Error found at compile time.
+*/
+
+#include<iostream>
+#include<string> // for string class
+using namespace std;
+
+#define STATIC_CAST_5  5
+
+#ifdef STATIC_CAST_2
+//2. Use static_cast when conversion between types is provided through conversion operator or coversion constructor
+class Int {
+    int x;
+  public:
+    Int(int x=0):x(x) { cout << "conversion constructor" << endl; }
+    operator string () { cout<< "coversion operator" << endl ; return to_string(x); }
+};
+#endif
+
+#ifdef STATIC_CAST_4
+/* 4. static_cast avoid cast from derived to private base pointer*/
+class Base {};
+class Derived:  private Base {};
+#endif
+
+#ifdef STATIC_CAST_5
+class Base {};
+class Derived1: public Base {};
+class Derived2: public Base {};
+#endif
+
+int main() {
+
+#ifdef STATIC_CAST_1
+  // Q1. Why to use static_cast when implicit conversion is involved?
+  // A. Because c-style cast is hard to find in code, but you can search static_cast keyword.
+  float f = 3.5;
+  int a;
+  a = f; //hard to find in code
+  a = static_cast<int>(f); //compile time conversion, search is easly
+#endif
+
+#ifdef STATIC_CAST_2
+  //2. Use static_cast when conversion between types is provided through conversion operator or coversion constructor
+  Int obj(3);
+  cout << " step 1. " << endl;
+  string str1 = obj;
+  cout << " step 2. " << endl;
+  obj = 20;
+
+  cout << " step 3. " << endl;
+  string str2 = static_cast<string>(obj);
+  cout << " step 4. " << endl;
+  obj = static_cast<Int>(30);
+
+  /*
+  conversion constructor
+   step 1. 
+  coversion operator
+   step 2. 
+  conversion constructor
+   step 3. 
+  coversion operator
+   step 4. 
+  conversion constructor
+  */
+#endif
+
+
+#ifdef STATIC_CAST_3
+  /* 3. static_cast is more restrictive than C-style
+     Example: char* to  int* is allowd in C-Style but not in static_cast.
+           c ->  |c|
+      p = &c ->  | | | | | (p allowd to acces only 1 byte, but accessing consecutive 3 more byte, which
+                            in turn do memory corrut or core segment.
+  */
+
+  char c;           // 1 byte data
+
+  int *p = (int*)&c; // 4 byte data
+  *p = 5;   // pass at compile time but fail at run time (that's why it is dangerous)
+
+  // erroe: invalid static_cast from type 'char*' to type 'int*'
+  int *ip = static_cast<int*>(&c); //FAIL : Compile time error, because not compatible type pointers.
+#endif
+
+#ifdef STATIC_CAST_4
+  /* 4. static_cast avoid cast from derived to private base pointer
+        erroe: 'Base' is an inaccessible base of 'Derived' */
+  Derived d1;
+  Base *bp1 = (Base*)&d1;  // allowd at compile time
+  Base *bp2 = static_cast<Base*>(&d1); // NOT allowd at compile time
+#endif
+
+#ifdef STATIC_CAST_5
+  /* use for all up cast but never use for down cast since confusing
+
+  ->---->B<---<-
+  |     / \    |
+  |    /   \   |
+  <----D1  D2-->
+
+  */
+  Derived1 d1;
+  Derived2 d2;
+
+  Base *bp1 = static_cast<Base*>(&d1); // Allowed (up cast)
+  Base *bp2 = static_cast<Base*>(&d2); // Allowed (up cast)
+
+  Derived1 *d1p = static_cast<Derived1*>(bp2); // Allowed, but never used like
+  Derived2 *d2p = static_cast<Derived2*>(bp1); // Allowed, but never use like
+#endif
+
+#ifdef STATIC_CAST_5
+  int i = 20;
+  void *v = static_cast<void*>(&i);
+  int *ip = static_cast<int*>(v);
+  cout << "*ip : " << *ip << endl;
+#endif
+
+  return 0;
+}
+
+
+
+/*
+dynamic_cast in C++:
+====================
+SYNTAX: dynamic_cast < new_type > (expression)
+
+1. dynamic_cast is used at runtime to find out the correct down-cast.
+
+NOTE: a. Need atleast one virtual function in base class.
+      b. If the cast is successful, dynamic_cast returns a value of type new_type.
+      c. If the cast fails and new_type is a pointer type, it returns a null pointer of that type.
+      d. If the cast fails and new_type is a reference type, it throws an expection that matches a handler of type std::bad_cast.
+
+NOTE: if we remove the virtual keyword from the Base class function declaration, we will get below error:
+      error: cannot dynamic_cast 'bp' (of type 'class Base*') to type 'calss Derived1*'
+
+Bottom Line:
+------------
+1. Work only on polymorphic base class (at least one virtual function in base class)
+   because it uses this information to decide about wrong down-cast.
+2. it is used for up-cast (D->B) and down-cast(B->D), but it is mainly used for correct downcast.
+3. Using this cast has run time overhead, because it checks objects type at run time using RTTI(Run Time Type Information).
+4. If we are sure that we will never cast to wrong object then we should always avoid this castans use static cast.
+*/
+#include <string>
+#include <iostream>
+#include <exception>
+
+using namespace std;
+
+#define REFERENCE_DYN_CAST 1
+//#define POINTER_DYN_CAST 2
+
+class Base {
+  virtual void print() { cout << "Base..." << endl; }
+};
+
+class Derived1: public Base {
+  void print() { cout << "Derived 1 .." << endl; }
+};
+
+class Derived2: public Base {
+  void print() { cout << "Derived 2 .." << endl; }
+};
+
+
+int main() {
+  Derived1 d1;
+
+#ifdef POINTER_DYN_CAST
+  Base *bp = dynamic_cast<Base*>(&d1); // valid code
+
+  //Derived2 *dp2 = dynamic_cast<Derived2*>(bp); // invalid code
+
+  // valid since cast is happening from Derived1 object to Derived1 pointer (perfect type cast)
+  Derived1 *dp2 = dynamic_cast<Derived1*>(bp); 
+
+  if(dp2 == nullptr)
+    cout << "NULL" <<endl;
+  else
+    cout << "NOT NULL" << endl;
+#endif
+
+#ifdef REFERENCE_DYN_CAST
+
+  try {
+    Derived2 &ref = dynamic_cast<Derived2&>(d1); 
+  } catch(std::exception& e) {
+    cout << "-----> Reference : " << e.what() << endl;
+  }
+  cout << "End of main.!!" << endl;
+
+#endif
+
+  return 0;
+}
+
+
+
+/*
+reinterpret_cast in C++:
+========================
+ 1. It can perform dangerous conversions because it can typecast any pointer to any other pointer.
+
+Bottom Line:
+------------
+1. The result of reinterpret_cast cannot safely be used for anything other than being cast back to its original type.
+2. we should be very carefull when using this cast.
+3. if we use this type of cast then it becomes non-portable product.
+
+*/
+
+#include <iostream>
+using namespace std;
+
+#define REINTERPRET_CAST_2
+
+#ifdef REINTERPRET_CAST_1
+class Mango {
+  public:
+    void eatMango() { cout << "Eating Mango" << endl; }
+};
+
+class Banana {
+  public:
+    void eatBanana() { cout << "Eating Banana" << endl; }
+};
+#endif
+
+#ifdef REINTERPRET_CAST_2
+//it is used when you want to work with bits.
+struct myStruct {
+  int x;
+  int y;
+  char c;
+  bool b;
+};
+#endif
+
+int main() {
+#ifdef REINTERPRET_CAST_1
+  Banana *b = new Banana();
+  Mango *m =  new Mango();
+  
+ //explicitly telling to compiler assign the address of mango m to the banana address, which is dangerous
+  Banana *newBanana = reinterpret_cast<Banana*>(m);
+  newBanana->eatBanana();
+#endif
+
+#ifdef REINTERPRET_CAST_2
+  //it is used when you want to work with bits.
+  myStruct m;
+  m.x = 6; m.y = 10; m.c = 'a'; m.b = true;
+  
+  // m ---> |x|x|x|x|y|y|y|y|c|b|-|-|    -> 4 byte word size so m structre size will be 12 bytes.
+  //         0 1 2 3 4 5 6 7 8 9...11
+  int *p = reinterpret_cast<int*>(&m);
+  //since integer pointer so will print X value as x is integer type |x|x|x|x|
+  cout << "point to x: " << *p << endl;  
+  p++; // since it is a integer pointer   |y|y|y|y|
+  cout << "Point to y: " << *p << endl;  // it will point to y as y is integer data
+  p++;  // |c|b|-|-|
+  cout << "Point to c+b: " << *p << endl;  // it will point to y as y is integer data
+
+  char *c = reinterpret_cast<char*>(p);
+  cout << "Point to c: " << *c << endl;
+  
+  ++c;
+  bool *b = reinterpret_cast<bool*>(c);
+  cout << "Point to b: " << *b << endl;
+  
+#endif
+
+  return 0;
+}
+
+
+
