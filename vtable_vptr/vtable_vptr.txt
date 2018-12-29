@@ -1,0 +1,435 @@
+Virtual Function and Virtual Table in C++:
+==========================================
+- Runtime Polymorphism is C++ is achived with virtual function. 
+- Hence in order to implement the runtime behaviour C++ compiler inserts Virtual Table for every class having virtual function 
+  or class inherited from the class that has virtual function.
+- If we print sizeof Vehicle class it will give us 4 bytes. 
+- As the class contains a virtual function C++ compiler inserts a pointer v_ptr called as virtual table pointer. 
+- Compiler also creates a table for that class called as virtual table known as vtable for the class. 
+- The table is created compile time, v_ptr holds the address of v_table of the corresponding class. 
+- vtable is a array of function pointers pointing to virtual function.
+
+Following Example explains virtual table entry and runtime behaviour:
+------------------------------------------------
+#include<iostream>
+using namespace std;
+class Vehicle {
+ public:
+  virtual void ApplyBreaks() { cout<<"Vehicle Break"<<endl; }
+  virtual void ApplyHorns() { cout<<"Vehicle Horns"<<endl; }
+};
+
+class Truck: public Vehicle {
+ public:
+  void ApplyBreaks() { cout<<"Truck Break"<<endl; }
+};
+
+class Car:public Vehicle {
+ public:
+  void ApplyHorns() { cout<<"Car Horns"<<endl; }
+};
+-------------------------------------------------
+In case of Vehicle class , virtual table contains pointers to ApplyHorn function and ApplyHorns of Vehicle class. Hence
+
+	Vehicle *v = new Vehicle();
+	v->ApplyBreak(); //Calls vehicle ApplyBreak
+	v->ApplyHorn(); //Calls vehicle ApplyHorn
+	
+------------------------------------------------
+	Vehicle *v = new Truck();
+	v->ApplyBreak(); //calls Truck ApplyBreak
+	v->ApplyHorn(); //calls Vehicle ApplyHorn
+
+- As Truck Class inherits Vehicle class, and as we know Vehicle class has a data member v_ptr. 
+- Truck class inheits v_ptr of Vehicle class but new Virtual table will be created compile time for Truck class. 
+- Hence v_ptr of Truck class holds the address of vtable of Truck class. 
+- As Truck class has implemented ApplyBreak and ApplyHorn implementation is missing. 
+- vtable of Truck class contains pointer to ApplyBreak function of Truck class but pointer to ApplyHorn function of base class i.e Vehicle class.
+
+Similarly goes with Car class.
+
+	Vehicle *v = new Car();
+	v->ApplyBreak(); //calls Vehicle ApplyBreak
+	v->ApplyHorn(); //calls Car ApplyHorn
+	
+-------------------------------------------------
+
+
+=================================================
+How virtual table or vtable and _vptr works, with a pictorial representation?
+- Virtual Table is a lookup table of function pointers used to dynamically bind the virtual functions to objects at runtime. 
+- It is not intended to be used directly by the program, and as such there is no standardized way to access it.
+
+Virtual Table:
+--------------
+- Every class that uses virtual functions (or is derived from a class that uses virtual functions) is given it's own virtual table 
+  as a secret data member.
+- This table is set up by the compiler at compile time.
+- A virtual table contains one entry as a function pointer for each virtual function that can be called by objects of the class.
+- Virtual table stores NULL pointer to pure virtual functions in ABC.
+- Virtual Table is created even for classes that have virtual base classes. 
+  In this case, the vtable has pointer to the shared instance of the base class along with the pointers to the 
+  classe's virtual functions if any.
+  
+_vptr :
+--------
+- This vtable pointer or _vptr, is a hidden pointer added by the Compiler to the base class. 
+  And this pointer is pointing to the virtual table of that particular class.
+- This _vptr is inherited to all the derived classes.
+- Each object of a class with virtual functions transparently stores this _vptr. 
+- Call to a virtual function by an object is resolved by following this hidden _vptr.
+
+- When we create the object like
+		Base* pBase = new Derived;
+	Now as the pointer is of the base class but the object is created of the derived type then when we call a function pBase->Function1(); 
+	The first and the foremost thing happens is that first four bytes of object is extracted which stores the virtual table address 
+	and is set to the vptr and since the object is of the type derived it goes to the derived class v-table and calls the corrosponding 
+	function, and if a particular function is not overridden in the derived class then it keeps the reference from which class it has been 
+	derived..(most derived class not necessarily the base class, could be the class just above the derived class).
+	
+Here we have 3 classes Base, D1 and D2. Where D1 and D2 are derived from class Base:
+
+#include<iostream.h>
+class Base {  
+ public:  
+    virtual void function1() {cout<<"Base :: function1()\n";}  
+    virtual void function2() {cout<<"Base :: function2()\n";}  
+    virtual ~Base(){}
+};  
+   
+class D1: public Base {  
+public:  
+   ~D1(){};
+   virtual void function1() { cout<<"D1 :: function1()\n"; }
+};  
+  
+class D2: public Base {  
+public:  
+   ~D2(){};
+   virtual void function2() { cout<< "D2 :: function2\n";} 
+};  
+
+int main() {
+  D1 *d = new D1;;
+  Base *b = d; 
+
+  b->function1();
+  b->function2();
+
+  delete (b);
+  
+  return (0);
+}
+
+output:
+D1 :: function1()
+Base :: function2()
+
+Expalnation :
+-------------
+- Here in function main 'b' pointer gets assigned to D1's _vptr and now starts pointing to D1's vtable. 
+  Then calling to a function1(), makes it's _vptr startightway calls D1's vtable function1() and so in turn calls D1's method 
+  i.e. function1() as D1 has it's own function1() defined it's class.
+
+- Where as pointer 'b' calling to a function2(), makes it's _vptr points to D1's vatble which in-turn pointing to Base class's vtable 
+  function2 () as shown in the diagram (as D1 class does not have it's own definition or function2()).
+
+- So, now calling delete on pointer b follows the _vptr - which is pointing to D1's vtable calls it's own class's destructor 
+  i.e. D1 class's destructor and then calls the destrcutor of Base class - this as part of when dervied object gets deleted it turn deletes 
+  it's emebeded base object. Thats why we must always make Base class's destrcutor as virtual if it has any virtual functions in it.
+
+Bootom Line:
+Thats how the Run-time or Dynamic binding happens on calling virtual functions of different derived objects.
+
+- Refer the graphical diagram file "vtable_diagram.jpeg"
+	- the *__vptr in each class points to the virtual table for that class. 
+	- The entries in the virtual table point to the most-derived version of the function objects of that class are allowed to call.
+--------------
+
+===================================================
+
+https://thispointer.com/how-virtual-functions-works-internally-using-vtable-and-vpointer/
+
+How virtual functions works internally using vTable and vPointer?
+-----------------------------------------------------------------
+- virtual functions is based on run time binding. So, let’s first understand what is Binding/Linking,
+- Binding is a kind of mapping of a function call with the function’s definition i.e. function’s address. 
+  For example, When we make a function call like,
+		obj.display();
+  then before its execution, it gets bonded to display() function definition i.e. function’s address, so that while code execution, 
+  correct function should be called.
+
+  There are two types of Bindings:
+	- Static Binding or Early Binding:
+		By Default C++ Compiler do the early binding for all function calls i.e. while linking when compiler sees a function call, 
+		then it binds that call with the particular function’s address / definition.
+
+	- Dynamic Binding or Run Time Binding:
+		When we make a member function virtual then compiler performs run time binding for that function 
+		i.e. any call to that virtual function will not be linked to any function’s address during compile time. 
+		Actual function’s address to this call will be calculated at run time. 
+		To resolve the actual function’s address or definition at run time, C++ compiler adds some additional data structure around virtual functions i.e.
+			- vTable
+			- vPointers
+			
+  What is vtable & vPointer and How C++ do run time binding using them:
+  - vTable:
+	- Every class that has one or more virtual member functions in it has a vTable associated with it.
+	- vTable is a kind of function pointer array that contains the addresses all virtual functions of this class. 
+	- Compiler builds this vTable at compile time.
+
+  - vPointer:
+	- Now for every object of a class that has a vTable associated with it, contains a vPointer in first 4 bytes. 
+	- This vPointer points to the vTable of that class.
+	- This vPointer will be used to find the actual function address from vTable at run rime.
+	
+  Example:
+  --------
+	class MsgConverter {
+		int m_count;
+	  public:
+		virtual std::string convert(std::string msg) {
+			msg = "[START]" + msg + "[END]";
+			return msg;
+		}
+		virtual std::string encrypt(std::string msg) {
+			return msg;
+		}
+		void displayAboutInfo() {
+			std::cout<<"MessageCoverter Class"<<std::endl;
+		}
+	};
+	
+	As the above class contains more than 0 virtual functions i.e. convert() and encrypt(), 
+	Hence it has a vTable associated with it. vTable will look like this:
+	     ---------------------
+		|       vTable        |    
+		|---------------------|
+		| convert()'s address |
+		| encrypt()'s address |
+		 ---------------------
+	Virtual Table for MsgConverter Class
+	
+	- Now suppose we created three different objects for this class:
+		MsgConverter * ptr1 = new MsgConverter();
+		MsgConverter * ptr2 = new MsgConverter();
+		MsgConverter * ptr3 = new MsgConverter();
+
+	Memory layout of each of the object is as follows:
+	
+	     -----------------------------------------------------------------------------
+		|                                                                             |
+		|     -----------------------                                                 |
+		|    | *ptr1 - Memory Layout |                                                |
+		|    |-----------------------|                                                |
+		|    |      vPointer --->--->|------>---------------------->|                 |		
+		|    |-----------------------|                              |                 |
+		|    |      m_count          |                              |                 |
+		|     -----------------------                               |                 |
+		|                                                           |                 |
+		|     -----------------------                       ---------------------     |
+		|    | *ptr2 - Memory Layout |                     |       vTable        |    |
+		|    |-----------------------|                     |---------------------|    | 
+		|    |      vPointer --->--->|------>------------->| convert()'s address |    |
+		|    |-----------------------|                     | encrypt()'s address |    |
+		|    |      m_count          |                      ---------------------     |
+		|     -----------------------		                        |                 |
+		|                                                           |                 |
+		|     -----------------------                               |                 |
+		|    | *ptr3 - Memory Layout |                              |                 |
+		|    |-----------------------|                              |                 |
+		|    |      vPointer --->--->|------>---------------------->                  |		
+		|    |-----------------------|                                                |
+		|    |      m_count          |                                                |
+		|     -----------------------		                                          |
+		|                                                                             |
+         -----------------------------------------------------------------------------
+		 
+		               - vPointer and vTable for MsgConverter class
+					   
+	- In Every object first 4 bytes will a pointer that points to the vTable of that class. This pointer is called vPointer.
+	- Because for virtual functions linking was not done at compile time. So, what happens when a call to virtual function is executed ,i.e.
+		ptr1->convert("hello");
+
+	- Steps are as follows:
+		Step 1: vpointer hidden in first 4 bytes of the object will be fetched
+		Step 2: vTable of this class is accessed through the fetched vPointer
+		Step 3: Now from the vTable corresponding function’s address will be fetched
+		Step 4: Function will be executed from that function pointer
+		
+	- Now what happens when inheritance comes into picture i.e.
+	  Create a Derived class from MsgConverter i.e. NewMsgConverter
+	  
+		class NewMsgConverter : public MsgConverter {
+		  public:
+			std::string convert(std::string msg) {
+				msg = "<START> " + msg + " <END>";
+				return msg;
+			}
+		};
+		
+	- Once a function is declared virtual in a class then for all its derived classes that function will remain virtual. 
+	- Therefore in above class NewMsgConverter even if we haven’t declared convert function virtual but it will be considered 
+	  as virtual because in its base class this function is virtual.
+	- So, there is a vTable for this new class too. vTable for this new class is,
+	
+	     ---------------------
+		|       vTable        |    
+		|---------------------|
+		| convert()'s address |
+		 ---------------------
+	Virtual Table for NewMsgConverter Class
+	
+	- Now when we create a object of NewMsgConverter then first 4 bytes of this object i.e. vpointer points to the vTable of this new class.
+			MsgConverter * pNewPtr = new NewMsgConverter();
+		
+         -----------------------------------------------------------------------------------		
+		|                                                                                   |
+		|     --------------------------                    ---------------------------     |
+	    |    | *pNewPtr - Memory Layout |                  | vTable of NewMsgConverter |    |    
+		|    |--------------------------|                  |---------------------------|    | 
+		|    |      vPointer --->--->---|------>---------->|    convert()'s address    |    |    
+		|    |--------------------------|                   ---------------------------     |
+		|    |      m_count             |                                                   |
+		|     --------------------------		                                            |
+		|                                                                                   |
+		 -----------------------------------------------------------------------------------
+							vTable and vPointer for NewMsgConverter
+							
+	- vTable of the NewMsgConverter contains the function address of Derived class’s (NewMsgConverter class) convert() function.
+    - So, if we call the function convert from pNewPtr then convert() function of Derived class is called i.e.
+		pNewPtr->convert("hello"); // This calls the NewMsgConverter's convert() function.
+
+This is how everything works behind the curtain for every virtual function call.
+
+=================================================================================
+
+https://www.learncpp.com/cpp-tutorial/125-the-virtual-table/
+The virtual table:
+==================
+- To implement virtual functions, C++ uses a special form of late binding known as the virtual table. 
+- The virtual table is a lookup table of functions used to resolve function calls in a dynamic/late binding manner. 
+- The virtual table sometimes goes by other names, such as “vtable”, “virtual function table”, “virtual method table”, or “dispatch table”.
+
+- First, every class that uses virtual functions (or is derived from a class that uses virtual functions) is given its own virtual table. 
+  This table is simply a static array that the compiler sets up at compile time. 
+  A virtual table contains one entry for each virtual function that can be called by objects of the class. 
+  Each entry in this table is simply a function pointer that points to the most-derived function accessible by that class.
+  
+- Second, the compiler also adds a hidden pointer to the base class, which we will call *__vptr. 
+  *__vptr is set (automatically) when a class instance is created so that it points to the virtual table for that class. 
+  Unlike the *this pointer, which is actually a function parameter used by the compiler to resolve self-references, *__vptr is a real pointer. 
+  Consequently, it makes each class object allocated bigger by the size of one pointer. 
+  It also means that *__vptr is inherited by derived classes, which is important.
+  
+- By now, you’re probably confused as to how these things all fit together, so let’s take a look at a simple example:
+
+	class Base {
+	  public:
+		virtual void function1() {};
+		virtual void function2() {};
+	};
+ 
+	class D1: public Base {
+	  public:
+		virtual void function1() {};
+	};
+ 
+	class D2: public Base {
+	  public:
+		virtual void function2() {};
+	};
+	
+	- Because there are 3 classes here, the compiler will set up 3 virtual tables: one for Base, one for D1, and one for D2.
+	
+- The compiler also adds a hidden pointer to the most base class that uses virtual functions. 
+  Although the compiler does this automatically, we’ll put it in the next example just to show where it’s added:
+	class Base {
+	  public:
+		FunctionPointer *__vptr;
+		virtual void function1() {};
+		virtual void function2() {};
+	};
+ 
+	class D1: public Base {
+	  public:
+		virtual void function1() {};
+	};
+ 
+	class D2: public Base {
+	  public:
+		virtual void function2() {};
+	};
+	
+- When a class object is created, *__vptr is set to point to the virtual table for that class. 
+  For example, when a object of type Base is created, *__vptr is set to point to the virtual table for Base. 
+  When objects of type D1 or D2 are constructed, *__vptr is set to point to the virtual table for D1 or D2 respectively.
+
+- Now, let’s talk about how these virtual tables are filled out. 
+  Because there are only two virtual functions here, each virtual table will have two entries (one for function1(), and one for function2()). 
+  Remember that when these virtual tables are filled out, each entry is filled out with the most-derived function an object of that class type can call.
+
+	- The virtual table for Base objects is simple. 
+	  An object of type Base can only access the members of Base. 
+	  Base has no access to D1 or D2 functions. Consequently, the entry for function1 points to Base::function1(), and the entry for function2 points to Base::function2().
+
+	- The virtual table for D1 is slightly more complex. 
+	  An object of type D1 can access members of both D1 and Base. 
+	  However, D1 has overridden function1(), making D1::function1() more derived than Base::function1(). 
+	  Consequently, the entry for function1 points to D1::function1(). 
+	  D1 hasn’t overridden function2(), so the entry for function2 will point to Base::function2().
+
+	- The virtual table for D2 is similar to D1, except the entry for function1 points to Base::function1(), and the entry for function2 points to D2::function2().
+	
+- Refer the graphical diagram file "vtable_diagram.jpeg"
+	- the *__vptr in each class points to the virtual table for that class. 
+	- The entries in the virtual table point to the most-derived version of the function objects of that class are allowed to call.
+	
+- what happens when we create an object of type D1:
+	int main() {
+		D1 d1;
+	}	
+	- Because d1 is a D1 object, d1 has its *__vptr set to the D1 virtual table.
+
+- Set a Base pointer to D1:
+	int main() {
+		D1 d1;
+		Base *dPtr = &d1;
+	}
+	- Note that because dPtr is a base pointer, it only points to the Base portion of d1. 
+	  However, also note that *__vptr is in the Base portion of the class, so dPtr has access to this pointer. 
+	  Finally, note that dPtr->__vptr points to the D1 virtual table! Consequently, even though dPtr is of type Base, it still has access to D1’s virtual table (through __vptr).
+	  
+- what happens when we try to call dPtr->function1()?
+	int main() {
+		D1 d1;
+		Base *dPtr = &d1;
+		dPtr->function1();
+	}
+	- First, the program recognizes that function1() is a virtual function. 
+	  Second, the program uses dPtr->__vptr to get to D1’s virtual table. 
+	  Third, it looks up which version of function1() to call in D1’s virtual table. This has been set to D1::function1(). 
+	  Therefore, dPtr->function1() resolves to D1::function1()!
+	  
+-  “But what if dPtr really pointed to a Base object instead of a D1 object. Would it still call D1::function1()?”. The answer is NO.
+	int main() {
+		Base b;
+		Base *bPtr = &b;
+		bPtr->function1();
+	}
+	- In this case, when b is created, __vptr points to Base’s virtual table, not D1’s virtual table. 
+	  Consequently, bPtr->__vptr will also be pointing to Base’s virtual table. 
+	  Base’s virtual table entry for function1() points to Base::function1(). 
+	  Thus, bPtr->function1() resolves to Base::function1(), which is the most-derived version of function1() that a Base object should be able to call.
+	  
+- By using these tables, the compiler and program are able to ensure function calls resolve to the appropriate virtual function, 
+  even if you’re only using a pointer or reference to a base class!
+
+- Calling a virtual function is slower than calling a non-virtual function for a couple of reasons: 
+	1. First, we have to use the *__vptr to get to the appropriate virtual table. 
+	2. Second, we have to index the virtual table to find the correct function to call. Only then can we call the function. 
+	As a result, we have to do 3 operations to find the function to call, as opposed to 2 operations for a normal indirect function call, or one operation for a direct function call. 
+	However, with modern computers, this added time is usually fairly insignificant.
+	
+- NOTE: Any class that uses virtual functions has a __vptr, and thus each object of that class will be bigger by one pointer. 
+        Virtual functions are powerful, but they do have a performance cost.
