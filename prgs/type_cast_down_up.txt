@@ -1,0 +1,552 @@
+TYPE CAST OPERATORS:
+====================
+Type-Conversion Operators:
+--------------------------
+	Here is the list of type-conversions:
+		1. a = dynamic_cast<T*>(p) 		// Try to convert p into a T*. It may return 0
+		2. a = dynamic_cast<T&>(*p) 	// Try to convert *p into a T&. It may throw bad_cast
+		3. a = static_cast<T>(p) 		// Convert p into a T if a T can be conterted into p's type.
+        4. a = reinterpret_cast<T>(p)  	// Convert p into a T represented by the same bit pattern.
+        5. a =const_cast<T>(p) 			// Convert p into a T by adding or subtracting const.
+        6. a = (T)v 					// C-style cast.
+        7. a = T(v) 					// Functional cast.
+		
+Which one compiles successfully?
+	struct Foo{};
+	struct Bar{};
+	int main(int argc, char** argv) {
+		Foo* f = new Foo;
+
+		Bar* b1 = f;                              // (1)
+		Bar* b2 = static_cast<Bar*>(f);           // (2)
+		Bar* b3 = dynamic_cast<Bar*>(f);          // (3)
+		Bar* b4 = reinterpret_cast<Bar*>(f);      // (4) only line (4) compiles without any complain
+		Bar* b5 = const_cast<Bar*>(f);            // (5)
+	
+		return 0;
+	}
+	Only reinterpret_cast can be used to convert a pointer to an object to a pointer to an unrelated object type. 
+	The dynamic_cast would fail at run-time, however on most compilers it will also fail to compile because there are no virtual functions in the class of the pointer being casted. 
+	
+const_cast:
+-----------
+- const_cast is typically used to cast away the constness of objects. It is the only C++ style that can do this.
+- The syntax is: const_cast < type-name > (expression)
+- The reason for this operator is that we may have a need for a value that is constant most of the time but that can be changed occasionally. 
+  In such a case, we can declare the value as const and use const_cast when we need to alter the value.
+  
+#include <iostream>
+#include <cstring>
+using namespace std;
+int main () {
+  string str("A123456789");
+  const char *cstr = str.c_str();
+  char *nonconst_cstr  = const_cast<char *> (cstr) ; 
+  *nonconst_cstr ='B';
+  cout << nonconst_cstr << endl;
+  return 0;
+}
+Because we casted away the constness of the string, we were able to modify the string from "A123456789" to "B1234567889".
+
+reinterpret_cast:
+-----------------
+- reinterpret_cast is intended for low-level casts that yield implementation-dependent and it would not be portable.
+- This cast is used for reinterpreting a bit pattern. It is not guaranteed to be portable. 
+  In fact, it is best to assume that reinterpret_cast is not portable at all. A typical example is an int-to-pointer to get a machine address into a program:
+		Register* a = reinterpret_cast<Register*>(0xfa);
+  This example is the typical use of a reinterpret_cast. We are telling the compiler that the part of memory starting with 0xfa is to be considered a Register.
+
+- It converts any pointer type to any other pointer type, even of unrelated classes. The operation result is a simple binary copy of the value from one pointer to the other. 
+  All pointer conversions are allowed: neither the content pointed nor the pointer type itself is checked.
+- We can cast a pointer type to an integer type that's large enough to hold the pointer representation, 
+  but we can't cast a pointer to a smaller integer type or to a floating-point type. 
+  The format in which this integer value represents a pointer is platform-specific. We can't cast a function pointer to a data pointer or vice versa.
+
+The syntax is: reinterpret_cast < type-name > (expression)
+Here is an example code:
+
+#include <iostream>
+using namespace std;
+struct data {
+	short a; 
+	short b;
+};
+
+int main () {
+	long value = 0xA2345678;
+	data* pdata = reinterpret_cast<data*> (&value;);
+	cout << pdata->a << endl;
+	return 0;
+}
+Output on my machine: 22136 which is 2 bytes of value.
+
+Another example might be:
+class A {};
+class B {};
+
+int main() {
+	A * pA = new A;
+	B * pB = reinterpret_cast<B*>(pA);
+}
+
+In the following code (b1-b5), only Bar* b5 = reinterpret_cast<Bar*> compiles.
+
+struct Foo {};
+struct Bar {};
+
+int main() {
+	Foo* f = new Foo;
+
+	Bar* b1 = f;
+	Bar* b2 = static_cast<Bar*>(f);
+	Bar* b3 = dynamic_cast<Bar*>(f);
+	Bar* b4 = const_cast<Bar*>(f);
+	Bar* b5 = reinterpret_cast<Bar*>(f);
+
+	return 0;
+}
+- Only reinterpret_cast can be used to convert a pointer to an object to a pointer to an unrelated object type. 
+- The dynamic cast would fail at run-time, however on most compilers it will also fail to compile because there are no virtual functions in the class of the pointer being casted.
+
+Pointer comparison:
+-------------------
+Normally, the pointer comparison between different types are undefined. Here is the example of using reinterpret_cast for pointer comparison.
+#include <iostream>
+
+class A{};
+class B{};
+class C:public A, public B{};
+
+int main(){
+    C d;
+    A *a = &d;
+    B *b = &d;
+
+    bool bool1 = reinterpret_cast<char*>(a) == reinterpret_cast<char*>(&d;);
+    bool bool2 = b == &d;
+    bool bool3 = reinterpret_cast<char*>(a) == reinterpret_cast<char*>(b);
+
+    std::cout << bool1 << bool2 << bool3 << std::endl; // 110
+    return 0;
+}
+Base pointer (a and b) and the address of the derived object &d; are equal but a and b are different as expected.
+
+static_cast:
+------------
+- static_cast can be used to force implicit conversions such as non-const object to const, int to double. 
+- It can be also be used to perform the reverse of many conversions such as void* pointers to typed pointers, base pointers to derived pointers. 
+- But it cannot cast from const to non-const object. This can only be done by const_cast operator.
+- static_cast can perform conversions between pointers to related classes, not only from the derived class to its base, but also from a base class to its derived.
+
+- This ensures that at least the classes are "compatible" if the proper object is converted, but no safety check is performed during runtime to check 
+  if the object being converted is in fact a full object of the destination type.
+- Therefore, it is up to the programmer to ensure that the conversion is safe. On the other side, the overhead of the type-safety checks of dynamic_cast is avoided.
+
+The syntax is:	static_cast < type-name > (expression)
+
+- It's valid only if type_name can be converted implicitly to the same type that expression has, or vise versa. Otherwise, the type cast is an error.
+
+class Base {};
+class Derived : public Base {};
+class UnrelatedClass {};
+
+int main() {
+	Base base;
+	Derived derived;
+
+	// #1: valid upcast
+	Base *pBase = static_cast<Base *>(&derived;);  
+
+	// #2: valid downcast
+	Derived *pDerived = static_cast<Derived *> (&base;);
+
+	// #3: invalid, between unrelated classes
+	UnrelatedClass *pUnrelated 
+		= static_cast<UnrelatedClass *> (&derived;);
+}
+
+- In above example, the conversion from Base to Derived and Derived to Base are valid, but a conversion from Derived to UnrelatedClass is disallowed.
+- The #1 conversion here is valid because an upcast can be done explicitly. 
+- The #2 conversion, from a base-class pointer to a derived-class pointer, can't be done without an explicit type conversion. 
+  But because the type cast in the other direction can be made without a type cast, it's valid to use static_cast for a downcast. 
+  However, pDerivded would point to an incomplete object of the class and could lead to runtime errors if dereferenced.
+  
+dynamic_cast:
+-------------
+- dynamic_cast is used to perform safe downcasting, i.e., to determine whether an object is of a particular type in an inheritance hierarchy. 
+- It is the only cast that may have a significant runtime cost.
+
+Key Points:
+-----------
+- Use C++ casts like static_cast<>(). Do not use other cast formats like int y = (int)x; or int y = int(x);.
+- C++ casts are more visible when searching for them.
+- Use static_cast as the equivalent of a C-style cast that does value conversion, or when we need to explicitly up-cast a pointer from a class to its superclass.
+- Use const_cast to remove the const qualifier.
+- Use reinterpret_cast to do unsafe conversions of pointer types to and from integer and other pointer types. 
+  Use this only if we know what we are doing and we understand the aliasing issues.
+  
+
+UPCASTING AND DOWNCASTING:
+==========================
+Upcasting:
+----------
+- Upcasting is converting a derived-class reference or pointer to a base-class. 
+- In other words, upcasting allows us to treat a derived type as though it were its base type. 
+- It is always allowed for public inheritance, without an explicit type cast. 
+- This is a result of the is-a relationship between the base and derived classes.
+- Upcasting allows us to treat a derived type as though it were its base type. That's how we decouple ourselves from knowing about the exact type we are dealing with.
+
+- The compiler and runtime linker handle the details. If a member function is virtual, then when we send a message to an object, the object will do the right thing, 
+  even when upcasting is involved.
+- Note that the most important aspect of inheritance is not that it provides member functions for the new class, however. 
+  It's the relationship expressed between the new class and the base class. This relationship can be summarized by saying, "The new class is a type of the existing class."
+  
+	class Parent {
+	  public:
+		void sleep() {}
+	};
+
+	class Child: public Parent {
+	  public:
+		void gotoSchool(){}
+	};
+
+	int main( ) { 
+		Parent parent;
+		Child child;
+
+		// upcast - implicit type cast allowed
+		Parent *pParent = &child; 
+
+		// downcast - explicit type case required 
+		Child *pChild =  (Child *) &parent;
+
+		pParent -> sleep();
+		pChild -> gotoSchool();
+		return 0; 
+	}
+- A Child object is a Parent object in that it inherits all the data members and member functions of a Parent object. 
+  So, anything that we can do to a Parent object, we can do to a Child object. Therefore, a function designed to handle a Parent pointer (reference) can perform 
+  the same acts on a Child object without any problems. The same idea applies if we pass a pointer to an object as a function argument. 
+  Upcasting is transitive: if we derive a Child class from Parent, then Parent pointer (reference) can refer to a Parent or a Child object.
+- Upcasting can cause object slicing when a derived class object is passed by value as a base class object, as in foo(Base derived_obj).
+
+Downcasting:
+------------
+- The opposite process, converting a base-class pointer (reference) to a derived-class pointer (reference) is called downcasting. 
+- Downcasting is not allowed without an explicit type cast. The reason for this restriction is that the is-a relationship is not, in most of the cases, symmetric. 
+- A derived class could add new data members, and the class member functions that used these data members wouldn't apply to the base class.
+
+- As in the example, we derived Child class from a Parent class, adding a member function, gotoSchool(). It wouldn't make sense to apply the gotoSchool() method to a Parent object. 
+  However, if implicit downcasting were allowed, we could accidentally assign the address of a Parent object to a pointer-to-Child
+		Child *pChild =  &parent; // actually this won't compile
+        // error: cannot convert from 'Parent *' to 'Child *'
+  and use the pointer to invoke the gotoSchool() method as in the following line.
+		pChild -> gotoSchool();
+Because a Parent isn't a Child (a Parent need not have a gotoSchool() method), the downcasting in the above line can lead to an unsafe operation.
+
+- C++ provides a special explicit cast called dynamic_cast that performs this conversion. 
+  Downcasting is the opposite of the basic object-oriented rule, which states objects of a derived class, can always be assigned to variables of a base class.
+  One more thing about the upcasting: 
+	- Because implicit upcasting makes it possible for a base-class pointer (reference) to refer to a base-class object or a derived-class object, 
+	  there is the need for dynamic binding. That's why we have virtual member functions.
+		1. Pointer (Reference) type: known at compile time.
+		2. Object type: not known until run time.
+
+- Dynamic Casting:
+------------------
+- The dynamic_cast operator answers the question of whether we can safely assign the address of an object to a pointer of a particular type.
+
+Here is a similar example to the previous one.
+#include <string>
+	class Parent {
+	  public:
+		void sleep() { }
+	};
+
+	class Child: public Parent {
+	private:
+		std::string classes[10];
+	public:
+		void gotoSchool(){}
+	};
+
+	int main( ) { 
+		Parent *pParent = new Parent;
+		Parent *pChild = new Child;
+    
+		Child *p1 = (Child *) pParent;  // #1
+		Parent *p2 = (Child *) pChild;  // #2
+		return 0; 
+	}
+
+Which of the type cast is safe? 
+	- The only one guaranteed to be safe is the ones in which the pointer is the same type as the object or else a base type for the object.
+
+	- Type cast #1 is not safe because it assigns the address of a base-class object (Parent) to a derived class (Child) pointer. 
+	  So, the code would expect the base-class object to have derived class properties such as gotoSchool() method, and that is false. 
+	  Also, Child object, for example, has a member classes that a Parent object is lacking.
+
+	- Type case #2, however, is safe because it assigns the address of a derived-class object to a base-class pointer. 
+	  In other words, public derivation promises that a Child object is also a Parent object.
+
+- The question of whether a type conversion is safe is more useful than the question of what kind of object is pointed to. 
+  The usual reason for wanting to know the type is so that we can know if it's safe to invoke a particular method.
+
+Here is the syntax of dynamic_cast.
+	Child *p = dynamic_cast<Child *>(pParent)
+This code is asking whether the pointer pParent can be type cast safely to the type Child *.
+	1. It returns the address of the object, if it can.
+	2. It returns 0, otherwise.
+	
+How do we use the dynamic_cast?
+	void f(Parent* p) {
+		Child *ptr = dynamic_cast<Child*>(p);
+		if(ptr) { 
+			// we can safely use ptr
+		} 
+	}
+
+	- In the code, if (ptr) is of the type Child or else derived directly or indirectly from the type Child, the dynamic_cast converts the pointer p to a pointer of type Child. 
+	  Otherwise, the expression evaluates to 0, the null pointer.
+	- In other words, we want to check if we can use the passed in pointer p before we do some operation on a child class object even though it's a pointer to base class.
+
+"The need for dynamic_cast generally arises because we want perform derived class operation on a derived class object, but we have only a pointer-or reference-to-base." -Scott Meyers
+
+
+Run-time Type Identification(RTTI):
+===================================
+- RTTI is short for Run-time Type Identification. RTTI is to provide a standard way for a program to determine the type of object during runtime.
+- RTTI allows programs that use pointers or references to base classes to retrieve the actual derived types of the objects to which these pointers or references refer.
+- RTTI is provided through two operators:
+	- The dynamic_cast operator, which safely converts from a pointer (or reference) to a base type to a pointer (or reference) to a derived type.
+	- The typeid operator, which returns the actual type of the object referred to by a pointer (or a reference).
+	
+The dynamic_cast Operator:
+--------------------------
+- An attempt to convert an object into a more specific object.
+	#include <iostream>
+	using namespace std;
+	class A {
+	  public:
+		virtual void f(){cout << "A::f()" << endl;}
+	};
+
+	class B : public A {
+	  public:
+			void f(){cout << "B::f()" << endl;}
+	};
+
+	int main() {
+		A a;
+		B b;
+		a.f();        // A::f()
+		b.f();        // B::f()
+
+		A *pA = &a;   
+		B *pB = &b;   
+		pA->f();      // A::f()
+		pB->f();      // B::f()
+	
+		pA = &b;
+		// pB = &a;      // not allowed
+		pB = dynamic_cast<B*>(&a;); // allowed but it returns NULL
+	return 0;
+	}
+
+	- The dynamic_cast operator is intended to be the most heavily used RTTI component. It doesn't give us what type of object a pointer points to. 
+	  Instead, it answers the question of whether we can safely assign the address of an object to a pointer of a particular type.
+	  
+	- Unlike other casts, a dynamic_cast involves a run-time type check. If the object bound to the pointer is not an object of the target type, it fails and the value is 0. 
+	  If it's a reference type when it fails, then an exception of type bad_cast is thrown. 
+	  So, if we want dynamic_cast to throw an exception (bad_cast) instead of returning 0, cast to a reference instead of to a pointer. 
+	- Note also that the dynamic_cast is the only cast that relies on run-time checking.
+
+	- "The need for dynamic_cast generally arises because you want to perform derived class operation on a derived class object, 
+	   but you have only a pointer or reference-to-base" said Scott Meyers in his book "Effective C++".
+
+	class Base { };
+	class Derived : public Base { };
+	int main() {
+		Base b;
+		Derived d;
+
+		Base *pb = dynamic_cast<Base*>(&d;);      	// #1
+		Derived *pd = dynamic_cast<Derived*>(&b;); 	// #2
+		return 0;
+	}
+	- The #1 is ok because dynamic_cast is always successful when we cast a class to one of its base classes
+	- The #2 conversion has a compilation error:
+			error C2683: 'dynamic_cast' : 'Base' is not a polymorphic type.
+	  It's because base-to-derived conversions are not allowed with dynamic_cast unless the base class is polymorphic.
+	  
+	- So, if we make the Base class polymorphic by adding virtual function as in the code sample below, it will be compiled successfully.
+	class Base { virtual void vf(){} };
+	class Derived : public Base { };
+	int main() {
+		Base b;
+		Derived d;
+
+		Base *pb = dynamic_cast<Base*>(&d;);      	// #1
+		Derived *pd = dynamic_cast<Derived*>(&b;); 	// #2
+		return 0;
+	}
+	But at runtime, the #2 cast fails and produces null pointer.
+	
+	class Base { virtual void vf(){} };
+	class Derived : public Base { };
+	int main() {
+		Base *pBDerived = new Derived;
+		Base *pBBase = new Base;
+		Derived *pd;
+
+		pd = dynamic_cast<Derived*>(pBDerived);	#1
+		pd = dynamic_cast<Derived*>(pBBase);	#2 
+		return 0;
+	}
+	- The example has two dynamic casts from pointers of type Base to a point of type Derived. But only the #1 is successful.
+	- Even though pBDerived and pBBase are pointers of type Base*, pBDerived points to an object of type Derived, while pBBase points to an object of type Base. 
+	  Thus, when their respective type-castings are performed using dynamic_cast, pBDerived is pointing to a full object of class Derived, 
+	  whereas pBBase is pointing to an object of class Base, which is an incomplete object of class Derived.
+
+	In general, the expression
+		dynamic_cast<Type *>(ptr)
+	converts the pointer ptr to a pointer of type Type* if the pointer-to object (*ptr) is of type Type or else derived directly or indirectly from type Type. 
+	Otherwise, the expression evaluates to 0, the null pointer.
+
+- Dynamic_cast - another example
+	In this example, the DoSomething(Window* w) is passed down Window pointer. It calls scroll() method which is only available from Scroll object. 
+	So, in this case, we need to check if the object is the Scroll type or not before the call to the scroll() method.
+
+	#include <iostream>
+	#include <string>
+	using namespace std;
+	class Window {
+	  public:
+		Window(){}
+		Window(const string s):name(s) {};
+		virtual ~Window() {};
+		void getName() { cout << name << endl;};
+	  private:
+		string name;
+	};
+
+	class ScrollWindow : public Window {
+	  public:
+		ScrollWindow(string s) : Window(s) {};
+		~ScrollWindow() {};
+		void scroll() { cout << "scroll()" << endl;};
+	};
+
+	void DoSomething(Window *w) {
+		w->getName();
+		// w->scroll();  // class "Window" has no member scroll
+
+		// check if the pointer is pointing to a scroll window
+		ScrollWindow *sw = dynamic_cast<ScrollWindow*>(w);
+
+		// if not null, it's a scroll window object
+		if(sw) sw->scroll();
+	}
+
+	int main() {
+		Window *w = new Window("plain window");
+		ScrollWindow *sw = new ScrollWindow("scroll window");
+
+		DoSomething(w);
+		DoSomething(sw);
+		return 0;
+	}
+	
+Upcasting and Downcasting:
+--------------------------
+- Converting a derived-class reference or pointer to a base-class reference or pointer is called upcasting. 
+  It is always allowed for public inheritance without the need for an explicit type cast.
+- Actually this rule is part of expressing the is-a relationship. A Derived object is a Base object in that it inherits all the data members and member functions of a Base object. 
+  Thus, anything that we can do to a Base object, we can do to a Derived class object.
+- The downcasting, the opposite of upcasting, is a process converting a base-class pointer or reference to a derived-class pointer or reference.
+- It is not allowed without an explicit type cast. That's because a derived class could add new data members, and the class member functions that used these data members 
+  wouldn't apply to the base class.
+  
+	#include <iostream>
+	using namespace std;
+	class Employee { 
+	  private:
+		int id;
+	  public:
+		void show_id(){}
+	};
+
+	class Programmer : public Employee {
+	  public:
+		void coding(){}
+	};
+
+	int main() {
+		Employee employee;
+		Programmer programmer;
+
+		// upcast - implicit upcast allowed
+		Employee *pEmp = &programmer;
+
+		// downcast - explicit type cast required
+		Programmer *pProg = (Programmer *)&employee;
+
+		// Upcasting: safe - progrommer is an Employee and has his id to do show_id().
+		pEmp->show_id();
+		pProg->show_id();
+
+		// Downcasting: unsafe - Employee does not have the method, coding().
+		// compile error: 'coding' : is not a member of 'Employee'
+		// pEmp->coding(); 
+		pProg->coding();
+		return 0;
+	}
+
+	
+The typeid:
+-----------
+- typeid operator allows us to determine whether two objects are the same type.
+- In the previous example for Upcasting and Downcasting, employee gets the method coding() which is not desirable. 
+  So, we need to check if a pointer is pointing to the Programmer object before we use the method, coding().
+  
+	class Employee { 
+	  private:
+		int id;
+	  public:
+		void show_id(){}
+	};
+
+	class Programmer : public Employee {
+	  public:
+		void coding(){}
+	};
+
+	#include <typeinfo>
+	int main() {
+		Employee lee;
+		Programmer park;
+
+		Employee *pEmpA = &lee;
+		Employee *pEmpB = &park;
+
+		// check if two object is the same
+		if(typeid(Programmer) == typeid(lee)) {
+			Programmer *pProg = (Programmer *)&lee; 
+			pProg->coding();
+		}
+		if(typeid(Programmer) == typeid(park)) {
+			Programmer *pProg = (Programmer *)&park; 
+			pProg->coding();
+		}
+
+		pEmpA->show_id();
+		pEmpB->show_id();
+		return 0;
+	}
+	So, only a programmer uses the coding() method.
+
+	Note that we included <typeinfo> in the example. The typeid operator returns a reference to a type_info object, where type_info is a class defined in the typeinfo header file.
+
+
+
