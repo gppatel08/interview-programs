@@ -1,3 +1,76 @@
+int const* is pointer to constant integer:
+------------------------------------------
+- This means that the variable being declared is a pointer, pointing to a constant integer. 
+- Effectively, this implies that the pointer is pointing to a value that shouldn’t be changed. 
+- Const qualifier doesn’t affect the pointer in this scenario so the pointer is allowed to point to some other address.
+- The first const keyword can go either side of data type, hence int const* is equivalent to const int*
+- Examle:
+#include <stdio.h>   
+int main(){ 
+    const int q = 5; 
+    int const* p = &q;  
+    *p = 7; //Compilation error
+	
+    const int q2 = 7; 
+    p = &q2;  //Valid       
+    return 0; 
+} 
+
+int *const is a constant pointer to integer:
+--------------------------------------------
+- This means that the variable being declared is a constant pointer pointing to an integer. 
+- Effectively, this implies that the pointer shouldn’t point to some other address. 
+- Const qualifier doesn’t affect the value of integer in this scenario so the value being stored in the address is allowed to change.
+- Example:
+#include <stdio.h> 
+int main(){ 
+    const int q = 5; 
+    int const* p = &q; 
+    *p = 7;  //Valid 
+  
+    const int q2 = 7;  
+    p = &q2;  //Compilation error
+    return 0; 
+} 
+
+const int* const is a constant pointer to constant integer:
+-----------------------------------------------------------
+- This means that the variable being declared is a constant pointer pointing to a constant integer. 
+- Effectively, this implies that a constant pointer is pointing to a constant value. 
+- Hence, neither the pointer should point to a new address nor the value being pointed to should be changed.
+- The first const keyword can go either side of data type, hence const int* const is equivalent to int const* const.
+- Example:
+#include <stdio.h> 
+int main(){ 
+    const int q = 5; 
+    int const* p = &q; 
+    *p = 7; //Compilation error 
+      
+    const int q2 = 7;  
+    p = &q2;  //Compilation error
+    return 0; 
+} 
+
+- Memory Map
+One way to remember the syntax (according to Bjarne Stroustrup) is the spiral rule-
+	The rule says, start from the name of the variable and move clockwise to the next pointer or type. Repeat until expression ends.
+			int const * const var = var is a const pointer of const int
+			
+- The rule can also be seen as decoding the syntax from right to left.
+		int <- const <- * <- const = const pointer to const int
+
+Hence,
+	- int const* is pointer to const int
+	- int *const is const pointer to int
+	- int const* const is const pointer to const int
+
+Using this rule, even complex declarations can be decoded like,
+	- int ** const is a const pointer to pointer to an int.
+	- int * const * is a pointer to const pointer to an int.
+	- int const ** is a pointer to a pointer to a const int.
+	- int * const * const is a const pointer to a const pointer to an int.
+	
+
 /* Abstract class Example */
 #include <iostream>
 using namespace std;
@@ -55,24 +128,24 @@ Bottom Line:
 
 - if const keyword is left to datatype, then value is constant, not the pointer(so pointer can point to any memory address). 
 	Example: int x = 20;
-    		 const int* p = &x;
-		 *p = 40; // Invalid
-		 int z = 50;
-		 p = &z; // Valid
+    		 const int* p = &x; //(const int* or, int const*) both are same
+		     *p = 40; // Invalid
+		     int z = 50;
+		     p = &z; // Valid
 
 - if const keyword is right to *, then pointer is constant, not the value(so value can be changed but pointer can't point to any memory address).
 	Example: int x = 20;
     		 int* const p = &x;
-		 *p = 40; // Valid
-		 int z = 50;
-		 p = &z; // Invalid
+		     *p = 40; // Valid
+		     int z = 50;
+		     p = &z; // Invalid
 
 - if const keyword is closed to datatype as well as *, then pointer and value both are constant(neither value nor pointer can be changed).
 	Example: int x = 20;
-    		 const int* const p = &x;
+    		 const int* const p = &x;  (const int* const or, int const* const) both are same
     		 *p = 40; // Invalid
     		 int z = 50;
-		 p = &z; // Invalid
+		     p = &z; // Invalid
 */
 
 #include <iostream>
@@ -120,6 +193,69 @@ int main() {
   return 0;
 }
 
+const_cast in C++:
+------------------
+- You are not allowed to const_cast variables that are actually const. This results in undefined behavior. 
+- const_cast is used to remove the const-ness from references and pointers that ultimately refer to something that is not const.
+- So, this is allowed:
+
+	int i = 0;
+	const int& ref = i;
+	const int* ptr = &i;
+
+	const_cast<int&>(ref) = 3;	
+	*const_cast<int*>(ptr) = 3;
+	It's allowed because i, the object being assigned to, is not const. The below is not allowed:
+
+	const int i = 0;
+	const int& ref = i;
+	const int* ptr = &i;
+
+	const_cast<int&>(ref) = 3;
+	*const_cast<int*>(ptr) = 3;
+	because here i is const and you are modifying it by assigning it a new value. 
+	The code will compile, but its behavior is undefined (which can mean anything from "it works just fine" to "the program will crash".)
+
+- You should initialize constant data members in the constructor's initializers instead of assigning them in the body of constructors:
+	Student(const Student & s) : Person(p.getName(), p.getEmailAddress(), p.getBirthDate()), school(0), studentNumber(s.studentNumber) {
+		// ...
+	}
+	
+- Example:
+----------
+#include<iostream>
+#include<string.h>
+#include<stdlib.h>
+using namespace std;
+
+class Student {
+    const int studentNumber;
+    char *school;
+    public:
+    Student(char *sc=nullptr, int sNumber=0): studentNumber(sNumber) { 
+        school = new char[strlen(sc) + 1];
+        strncpy(school, sc, strlen(sc) + 1);
+    }
+    Student(const Student &s): studentNumber(s.studentNumber) {  // Ok, Initializer list
+    //Student(const Student &s): studentNumber(0) { // : studentNumber(0) is must here
+        *const_cast<int*>(&studentNumber) = s.studentNumber; // Ok, const_cast
+        school = new char[strlen(s.school) + 1];
+        strncpy(school, s.school, strlen(s.school) + 1);
+    }
+    void show() { cout << "studentNumber: " << studentNumber << ", School: " << school << endl; }
+};
+
+int main() {
+    Student s("M. S. Munger", 10);
+    s.show();
+    Student ss(s);
+    ss.show();
+    return 0;
+}
+/*OUTPUT:
+studentNumber: 10, School: M. S. Munger                                                                                        
+studentNumber: 10, School: M. S. Munger
+*/
 
 
 /*

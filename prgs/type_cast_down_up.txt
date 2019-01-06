@@ -549,4 +549,49 @@ The typeid:
 	Note that we included <typeinfo> in the example. The typeid operator returns a reference to a type_info object, where type_info is a class defined in the typeinfo header file.
 
 
+===========================================================
 
+const_cast conversion:
+----------------------
+Notes: Pointers to functions and pointers to member functions are not subject to const_cast
+
+#include <iostream>
+struct type {
+    int i;
+    type(): i(3) {}
+    void f(int v) const {
+        // this->i = v;                 // compile error: this is a pointer to const
+        const_cast<type*>(this)->i = v; // OK as long as the type object isn't const
+    }
+    void show() { std::cout << "Hello.!" << std::endl; }
+};
+
+int main() {
+    int i = 3;                 // i is not declared const
+    const int& rci = i; 
+    const_cast<int&>(rci) = 4; // OK: modifies i
+    std::cout << "i = " << i << std::endl;
+    *const_cast<int*>(&rci) = 10; // OK: modifies i
+    std::cout << "i = " << i << std::endl;
+    
+    type t; // if this was const type t, then t.f(4) would be undefined behavior
+    t.f(4);
+    std::cout << "type::i = " << t.i << std::endl;
+    
+    const int j = 3; // j is declared const
+    int* pj = const_cast<int*>(&j);
+    std::cout << "*pj = " << *pj << std::endl;
+    *pj = 4;      // undefined behavior
+    std::cout << "*pj = " << *pj << std::endl;
+    
+    void (type::* pmf)(int) const = &type::f; // pointer to member function
+    void (type::*pmshow)() = &type::show;     // pointer to member function
+    //const_cast<void(type::*)(int)>(pmf);   // compile error: const_cast does not work on function pointers
+}
+/*OUTPUT:
+i = 4                                                                                                                          
+i = 10                                                                                                                         
+type::i = 4                                                                                                                    
+*pj = 3                                                                                                                        
+*pj = 4
+*/

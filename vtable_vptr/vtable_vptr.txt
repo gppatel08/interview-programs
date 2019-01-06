@@ -433,3 +433,111 @@ The virtual table:
 	
 - NOTE: Any class that uses virtual functions has a __vptr, and thus each object of that class will be bigger by one pointer. 
         Virtual functions are powerful, but they do have a performance cost.
+
+==============================================================================================
+
+https://pabloariasal.github.io/2017/06/10/understanding-virtual-tables/
+
+Understandig Virtual Tables in C++:
+-----------------------------------
+	1. Function overriding makes it impossible to dispatch virtual functions statically (at compile time)
+	2. Dispatching of virtual functions needs to happen at runtime
+	3. The virtual table method is a popular implementation of dynamic dispatch
+	4. For every class that defines or inherits virtual functions the compiler creates a virtual table
+	5. The virtual table stores a pointer to the most specific definition of each virtual function
+	6. For every class that has a vtable, the compiler adds an extra member to the class: the vpointer
+	7. The vpointer points to the corresponding vtable of the class
+	8. Always declare desctructors of base classes as virtual
+	
+	NOTE: vtables exist at the class level, meaning there exists a single vtable per class, and is shared by all instances.
+		  Every time the compiler creates a vtable for a class, it adds an extra argument to it: a pointer to the corresponding virtual table, called the vpointer.
+		  Note that the vpointer is just another class member added by the compiler and increases the size of every object that has a vtable by sizeof(vpointer).
+	
+“A virtual method table (VMT),…, is a mechanism used in a programming language to support dynamic dispatch.” 
+
+What does dynamic dispatch mean?
+Ans: In this context, dispatching just refers to the action of finding the right function to call. In the general case, when you define a method inside a class, 
+     The compiler will remember its definition and execute it every time a call to that method is encountered.
+	 
+	#include <iostream>
+	class A {
+	  public:
+		void foo();
+	};
+	void A::foo(){  std::cout << "Hello this is foo" << std::endl; }
+	
+	Here, the compiler will create a routine for foo() and remember its address. This routine will be executed every time the compiler finds a call to foo() on an instance of A. 
+	Keep in mind that only one routine exists per class method, and is shared by all instances of the class. 
+	This process is known as static dispatch or early binding: the compiler knows which routine to execute during compilation.
+	
+So, what do vtables have to do with all this?
+ANs: Well, there are cases where it is not possible for the compiler to know which routine to execute at compile time. 
+	 This is the case, for instance, when we declare virtual functions:
+	 
+	#include <iostream>
+	class B {
+	  public:
+		virtual void bar();
+		virtual void qux();
+	};
+	void B::bar() {  std::cout << "B's implementation of bar" << std::endl; }
+	void B::qux() {  std::cout << "B's implementation of qux" << std::endl; }
+	
+	class C : public B {
+	  public:
+		void bar() override;
+	};
+	void C::bar() {  std::cout << "C's implementation of bar" << std::endl; }
+	
+	B* b = new C();
+	b->bar();
+	
+	If we use static dispatch as above, the call b->bar() would execute B::bar(), since (from the point of view of the compiler) b points to an object of type B. 
+	This would be horribly wrong, off course, because b actually points to an object of type C and C::bar() should be called instead.
+	
+	Hopefully you can see the problem by now: 
+	Given that virtual functions can be redefined in subclasses, "calls via pointers (or references) to a base type can not be dispatched at compile time."
+	The compiler has to find the right function definition (i.e. the most specific one) at runtime. This process is called dynamic dispatch or late method binding.
+	
+So, how do we implement dynamic dispatch?
+Ans: For every class that contains virtual functions, the compiler constructs a virtual table, a.k.a vtable. 
+     The vtable contains an entry for each virtual function accessible by the class and stores a pointer to its definition. 
+	 Only the most specific function definition callable by the class is stored in the vtable. 
+	 Entries in the vtable can point to either functions declared in the class itself (e.g. C::bar()), or virtual functions inherited from a base class (e.g. C::qux()).
+	 
+How exactly do they solve the problem, When the compiler sees b->bar() in the example above?
+Ans: when a call to a virtual function on an object is performed, the vpointer of the object is used to find the corresponding vtable of the class. 
+     Next, the function name is used as index to the vtable to find the correct (most specific) routine to be executed. Done!
+	 
+Virtual Destructors:
+--------------------
+By now it should also be clear why it is always a good idea to make destructors of base classes virtual. 
+Ans: Since derived classes are often handled via base class references, declaring a non-virtual destructor will be dispatched statically.
+
+	#include <iostream>
+	class Base {
+	  public:
+		~Base() { std::cout << "Destroying base" << std::endl; }
+		// virtual ~Base() { std::cout << "Destroying base" << std::endl; }
+	};
+
+	class Derived : public Base {
+	  public:
+		Derived(int number) { some_resource_ = new int(number); }
+		~Derived() { std::cout << "Destroying derived" << std::endl; delete some_resource_; }
+	  private:
+		int* some_resource_;
+	};
+
+	int main() {
+		Base* p = new Derived(5);
+		delete p;
+	}
+	This will output:
+		> Destroying base
+
+	Making Base’s destructor virtual will result in the expected behavior:
+		> Destroying derived
+		> Destroying base
+		
+==========================================================================
