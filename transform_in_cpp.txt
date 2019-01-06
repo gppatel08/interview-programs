@@ -1,0 +1,200 @@
+/*
+Perform an operation on all elements:
+Consider the problem of adding contents of two arrays into a third array. It is given that all arrays are of same size.
+
+NOTE: std::transform does not guarantee in-order application of unary_op or binary_op. 
+      To apply a function to a sequence in-order or to apply a function that modifies the elements of a sequence, use std::for_each
+	  
+std::transform:
+---------------
+- applies the given function to a range and stores the result in another range, beginning at d_first.
+
+	first1, last1	-	the first range of elements to transform
+	first2			-	the beginning of the second range of elements to transform
+	d_first			-	the beginning of the destination range, may be equal to first1 or first2
+1) The unary operation unary_op is applied to the range defined by [first1, last1).
+2) The binary operation binary_op is applied to pairs of elements from two ranges: one defined by [first1, last1) and the other beginning at first2.
+
+First version:
+--------------
+template<class InputIt, class OutputIt, class UnaryOperation>
+OutputIt transform(InputIt first1, InputIt last1, OutputIt d_first, UnaryOperation unary_op) {
+    while (first1 != last1) {
+        *d_first++ = unary_op(*first1++);
+    }
+    return d_first;
+}
+
+Second version:
+---------------
+template<class InputIt1, class InputIt2, class OutputIt, class BinaryOperation>
+OutputIt transform(InputIt1 first1, InputIt1 last1, InputIt2 first2, OutputIt d_first, BinaryOperation binary_op) {
+    while (first1 != last1) {
+        *d_first++ = binary_op(*first1++, *first2++);
+    }
+    return d_first;
+}
+
+Example:
+--------
+	#include <algorithm>
+	#include <iostream>
+	#include <string>
+	#include <vector>
+
+	int main() {
+		std::string s("hello");
+		std::transform(s.begin(), s.end(), s.begin(), [](char c) -> char { return std::toupper(c); });
+	 
+		std::vector<char> ordinals;
+		std::transform(s.begin(), s.end(), std::back_inserter(ordinals), [](char c) -> char { return c; });
+		std::cout << s << ':';
+		for (auto ord : ordinals) {
+		   std::cout << ' ' << ord;
+		}
+	}
+	// OUTPUT: HELLO: H E L L O
+	
+std::for_each:
+--------------
+template< class InputIt, class UnaryFunction >
+UnaryFunction for_each( InputIt first, InputIt last, UnaryFunction f );
+
+1) Applies the given function object f to the result of dereferencing every iterator in the range [first, last), in order.
+2) Applies the given function object f to the result of dereferencing every iterator in the range [first, last)
+
+first, last	-	the range to apply the function to
+policy		-	the execution policy to use. See execution policy for details.
+f			-	function object, to be applied to the result of dereferencing every iterator in the range [first, last) 
+
+Possible implementation:
+------------------------
+template<class InputIt, class UnaryFunction>
+constexpr UnaryFunction for_each(InputIt first, InputIt last, UnaryFunction f) {
+    for (; first != last; ++first) {
+        f(*first);
+    }
+    return f;
+}
+
+Example:
+--------
+- The following example uses a lambda function to increment all of the elements of a vector and then uses an overloaded operator() 
+  in a functor to compute their sum. Note that to compute the sum, it is recommended to use the dedicated algorithm std::accumulate.
+  
+	#include <vector>
+	#include <algorithm>
+	#include <iostream>
+	struct Sum {
+		Sum(): sum{0} { }
+		void operator()(int n) { sum += n; }
+		int sum;
+	};
+	 
+	int main() {
+		std::vector<int> nums{3, 4, 2, 8, 15, 267};
+		auto print = [](const int& n) { std::cout << " " << n; };
+	 
+		std::cout << "before:";
+		std::for_each(nums.begin(), nums.end(), print);
+		std::cout << '\n';
+		std::for_each(nums.begin(), nums.end(), [](int &n){ n++; });
+		// calls Sum::operator() for each number
+		Sum s = std::for_each(nums.begin(), nums.end(), Sum());
+		std::cout << "after :";
+		std::for_each(nums.begin(), nums.end(), print);
+		std::cout << '\n';
+		std::cout << "sum   : " << s.sum << '\n';
+	}
+	/*
+	before: 3 4 2 8 15 267                                                                                                         
+	after : 4 5 3 9 16 268                                                                                                         
+	sum   : 305 
+	*/
+	
+1. C++ program without transform():
+-----------------------------------
+	#include<iostream>
+	int main() { 
+	  int arr1[] = {1, 2, 3}; 
+	  int arr2[] = {4, 5, 6}; 
+	  int n = sizeof(arr1)/sizeof(arr1[0]); 
+	  int res[n]; 
+	  
+	  // Code to add two arrays 
+	  for (int i=0; i<n; i++) 
+		res[i] = arr1[i] + arr2[i]; 
+	  std::cout << "Transformed array: ";
+	  for (int i=0; i<3; i++) 
+		std::cout << res[i] << " "; 
+	} 
+	// OUTPUT: Transformed array: 5 7 9
+	
+2. Using transform function of STL, we can add arrays in single line:
+---------------------------------------------------------------------
+	#include<iostream>
+	#include<algorithm>
+	using namespace std;
+	int main() { 
+	  int arr1[] = {1, 2, 3}; 
+	  int arr2[] = {4, 5, 6}; 
+	  int n = sizeof(arr1)/sizeof(arr1[0]); 
+	  int res[n]; 
+	  
+	  // Single line code to add arr1[] and arr2[] and store result in res[] 
+	  transform(arr1, arr1+n, arr2, res, plus<int>());
+	  std::cout << "Transformed array: ";
+	  for (int i=0; i<3; i++) 
+		std::cout << res[i] << " "; 
+	}
+	// OUTPUT: Transformed array: 5 7 9
+	
+	
+3. transform() in C++ is used in two forms:
+
+	A. Unary Operation : Applies a unary operator on input to convert into output
+			transform(Iterator inputBegin, Iterator inputEnd, Iterator OutputBegin, unary_operation) 
+			
+			#include<iostream>
+			#include<algorithm>
+			using namespace std;
+			int increment(int x) { return x+1; } 
+			int main() { 
+				int arr[] = {1, 2, 3, 4, 5}; 
+				int n = sizeof(arr)/sizeof(arr[0]); 
+				int res[n];
+				// Apply increment to all elements of arr[] and store the modified elements in res[] 
+				transform(arr, arr+n, res, increment); 
+				std::cout << "Transformed array: ";
+				for (int i=0; i<n; i++) 
+					cout << res[i] << " "; 
+				return 0; 
+			} 
+			// OUTPUT: Transformed array: 2 3 4 5 6 
+			
+	B. Binary Operation : Applies a binary operator on input to convert into output
+			transform(Iterator inputBegin1, Iterator inputEnd1, Iterator inputBegin2, Iterator OutputBegin, binary_operation) 
+	
+		The example mentioned below for adding two arrays is an example of transform with binary operation.
+			#include<iostream>
+			#include<algorithm>
+			using namespace std;
+			int main() { 
+				int arr1[] = {1, 2, 3, 4, 5}; 
+				int arr2[] = {1, 2, 3, 4, 5};
+				int n = sizeof(arr1)/sizeof(arr1[0]); 
+				int res[n];
+				// Apply plus to all elements of arr1[] & arr2[], and store the result in res[] 
+				transform(arr1, arr1+n, arr2, res, plus<int>()); 
+				std::cout << "Transformed array: ";
+				for (int i=0; i<n; i++) 
+					cout << res[i] << " "; 
+				return 0; 
+			} 
+			// Transformed array: 2 4 6 8 10
+	
+	We can modify above examples for vectors also.
+		//vect is a vector of integers.
+		transform(vect.begin(), vect.end(), vect.begin(), increment);
+*/
+

@@ -1,0 +1,286 @@
+/* 
+https://www.geeksforgeeks.org/program-for-nth-fibonacci-number/
+What is Dynamic Programing?
+	It's basically a way of making your algorithm more efficient and by storing some of the intermediate result.
+	and it work really wwll when your algorithm has a lot of repeted computation.
+	so you dont have to repeate that computaion over and over again.
+	
+	Program for Fibonacci numbers:
+	- The Fibonacci numbers are the numbers in the following integer sequence.
+		0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, ...
+		
+	-In mathematical terms, the sequence Fn of Fibonacci numbers is defined by the recurrence relation:
+			Fn = Fn-1 + Fn-2
+		with seed values: F0 = 0 and F1 = 1		
+		
+	- Write a function int fib(int n) that returns Fn. For example:
+		If n = 0, then fib() should return 0. 
+		If n = 1, then it should return 1. 
+		For n > 1, it should return Fn-1 + Fn-2
+*/
+
+/* 	Method 1 ( Use recursion ) 
+		- A simple method that is a direct recursive implementation mathematical recurrence relation given above. 
+		- Time Complexity: T(n) = T(n-1) + T(n-2) which is exponential.
+		  We can observe that this implementation does a lot of repeated work. So this is a bad implementation for nth Fibonacci number.
+		- Extra Space: O(n) if we consider the function call stack size, otherwise O(1).
+		- Notice that if we call, say, fib(5), we produce a call tree that calls the function on the same value many different times:
+			fib(5)
+			fib(4) + fib(3)
+			(fib(3) + fib(2)) + (fib(2) + fib(1))
+			((fib(2) + fib(1)) + (fib(1) + fib(0))) + ((fib(1) + fib(0)) + fib(1))
+			(((fib(1) + fib(0)) + fib(1)) + (fib(1) + fib(0))) + ((fib(1) + fib(0)) + fib(1))
+		
+	Method 2 ( Use Dynamic Programming )
+		- We can avoid the repeated work done is the method 1 by storing the Fibonacci numbers calculated so far.
+	
+	Method 3 ( Space Optimized Method 2 )
+		- We can optimize the space used in method 2 by storing the previous two numbers only because 
+		  that is all we need to get the next Fibonacci number in series.
+		- Time Complexity:O(n)
+		  Extra Space: O(1)
+*/
+	#include<bits/stdc++.h> 
+	using namespace std; 
+	#define NUM 9
+	// Method 1 ( Use recursion )
+	int fibonachi_using_recusion(int num) { 
+		int result;
+		if (num == 0 || num == 1) 
+			result = num; 
+		else
+			result = fibonachi_using_recusion(num-1) + fibonachi_using_recusion(num-2); 
+		return result;
+	} 
+	  
+	// Method 2 ( Use Dynamic Programming )
+	int fibonachi_using_dp(int n) { 
+		/* Declare an array to store Fibonacci numbers. */
+		int f[n+2];   // 1 extra to handle case, n = 0 
+		/* 0th and 1st number of the series are 0 and 1*/
+		f[0] = 0; 
+		f[1] = 1; 
+		for (int i = 2; i <= n; i++) { 
+		  /* Add the previous 2 numbers in the series and store it */
+		  f[i] = f[i-1] + f[i-2]; 
+		} 
+		return f[n]; 
+	} 
+	
+	// Method 3 ( Space Optimized Method 2 )
+	int fibonachi_space_optimized(int num) { 
+		int f0 = 0, f1 = 1, fib; 
+		if( num == 0 || num == 1) 
+			return num; 
+		for (int i = 2; i <= num; i++) { 
+			fib = f0 + f1; 
+			f0 = f1; 
+			f1 = fib; 
+		} 
+		return fib; 
+	}
+	int main () { 
+		cout << "fibonachi_using_recusion(" << NUM << ") : " << fibonachi_using_recusion(NUM) << endl; // fibonachi_using_recusion(9) : 34
+		cout << "fibonachi_using_dp(" << NUM << ")       : " << fibonachi_using_dp(NUM) << endl; // fibonachi_using_dp(9) : 34
+		cout << "fibonachi_space_optimized(" << NUM << "): " << fibonachi_space_optimized(NUM) << endl; // fibonachi_space_optimized(9) : 34
+		return 0; 
+	}
+	
+======================================================
+#include<bits/stdc++.h> 
+using namespace std;
+#define NUM 9
+#define NIL -1
+int lookup[NUM + 1]; 
+/* Function to initialize NIL values in lookup table */
+void _initialize() { 
+  for (int i = 0; i < NUM + 1; i++) 
+    lookup[i] = NIL; 
+} 
+void show() { 
+  for (int i = 0; i < NUM + 1; i++) 
+    cout << lookup[i] << ", "; 
+}
+// Memoization (Top Down)
+int fibonachi_memoized_solution(int num) { 
+    if (lookup[num] == NIL) {
+	    if (num == 0 || num == 1) 
+		    lookup[num] = num; 
+	    else
+		    lookup[num] = fibonachi_memoized_solution(num-1) + fibonachi_memoized_solution(num-2); 
+    }
+	return lookup[num];
+} 
+  
+// Use recursion
+int fibonachi_using_recusion(int num) { 
+	int result;
+	if (num == 0 || num == 1) 
+		result = num; 
+	else
+		result = fibonachi_using_recusion(num-1) + fibonachi_using_recusion(num-2); 
+	return result;
+} 
+
+// Best solution bottom up approach: Tabulation (Bottom Up)
+int fibonachi_bottom_up(int num) {
+	if( num == 0 || num == 1)
+		return num;
+	unsigned int *bottom_up = new unsigned int[num+1];
+	bottom_up[0] = 0;
+	bottom_up[1] = 1;
+	for(int i = 2; i <= num; i++){
+		bottom_up[i] = bottom_up[i-1] + bottom_up[i-2];
+	}
+	for(int i = 0; i <= num; i++){
+		cout << bottom_up[i] << ", ";
+	}
+	return bottom_up[num];
+}
+
+int main () { 
+	unsigned int fib = fibonachi_bottom_up(NUM);
+    cout << "\nfibonachi_bottom_up(" << NUM << ")         : " << fib << endl;
+    cout << "fibonachi_using_recusion(" << NUM << ")    : " << fibonachi_using_recusion(NUM) << endl;
+    _initialize();
+    cout << "fibonachi_memoized_solution(" << NUM << ") : " << fibonachi_memoized_solution(NUM) << endl; 
+    show();
+    return 0; 
+} 
+/*
+fibonachi_using_recusion(9)    : 34                                                                                            
+fibonachi_memoized_solution(9) : 34                                                                                            
+0, 1, 1, 2, 3, 5, 8, 13, 21, 34,
+*/
+
+================================================================================
+
+Dynamic Programming:
+===================
+- Dynamic Programming is an algorithmic paradigm that solves a given complex problem by breaking it into subproblems and stores the results 
+  of subproblems to avoid computing the same results again. Following are the two main properties of a problem that suggests that the given 
+  problem can be solved using Dynamic programming.
+	1) Overlapping Subproblems
+	2) Optimal Substructure
+	
+	1) Overlapping Subproblems:
+	---------------------------
+		Like Divide and Conquer, Dynamic Programming combines solutions to sub-problems. 
+		Dynamic Programming is mainly used when solutions of same subproblems are needed again and again. 
+		In dynamic programming, computed solutions to subproblems are stored in a table so that these don’t have to be recomputed. 
+		So Dynamic Programming is not useful when there are no common (overlapping) subproblems because there is no point storing the solutions 
+		if they are not needed again. For example, Binary Search doesn’t have common subproblems. 
+		If we take an example of following recursive program for Fibonacci Numbers, there are many subproblems which are solved again and again.
+		
+			/* simple recursive program for Fibonacci numbers */
+			int fib(int n) { 
+			   if ( n <= 1 ) 
+				  return n; 
+			   return fib(n-1) + fib(n-2); 
+			}
+			
+		Recursion tree for execution of fib(5):
+		---------------------------------------
+			fib(5)
+			fib(4) + fib(3)
+			(fib(3) + fib(2)) + (fib(2) + fib(1))
+			((fib(2) + fib(1)) + (fib(1) + fib(0))) + ((fib(1) + fib(0)) + fib(1))
+			(((fib(1) + fib(0)) + fib(1)) + (fib(1) + fib(0))) + ((fib(1) + fib(0)) + fib(1))
+			
+		- We can see that the function fib(3) is being called 2 times. 
+		  If we would have stored the value of fib(3), then instead of computing it again, we could have reused the old stored value. 
+		  
+		  - There are following two different ways to store the values so that these values can be reused:
+			a) Memoization (Top Down)
+			b) Tabulation (Bottom Up)
+				
+			a) Memoization (Top Down): 
+			--------------------------
+			- The memoized program for a problem is similar to the recursive version with a small modification that it looks into a lookup table 
+			  before computing solutions. We initialize a lookup array with all initial values as NIL. Whenever we need the solution to a subproblem, 
+			  we first look into the lookup table. If the precomputed value is there then we return that value, otherwise, we calculate the value and 
+			  put the result in the lookup table so that it can be reused later.
+				#define NUM 9
+				#define NIL -1
+				int lookup[NUM + 1]; 
+				/* Function to initialize NIL values in lookup table */
+				void _initialize() { 
+				  for (int i = 0; i < NUM + 1; i++) 
+					lookup[i] = NIL; 
+				} 
+				void show() { 
+				  for (int i = 0; i < NUM + 1; i++) 
+					cout << lookup[i] << ", "; 
+				}
+				// Memoization (Top Down)
+				int fibonachi_memoized_solution(int num) { 
+					if (lookup[num] == NIL) {
+						if (num == 0 || num == 1) 
+							lookup[num] = num; 
+						else
+							lookup[num] = fibonachi_memoized_solution(num-1) + fibonachi_memoized_solution(num-2); 
+					}
+					return lookup[num];
+				} 
+				int main () { 
+					_initialize();
+					cout << "fibonachi_memoized_solution(" << NUM << ") : " << fibonachi_memoized_solution(NUM) << endl; 
+					show();
+					return 0; 
+				} 
+				
+			b) Tabulation (Bottom Up): 
+			--------------------------
+			- The tabulated program for a given problem builds a table in bottom up fashion and returns the last entry from table. 
+			  For example, for the same Fibonacci number, we first calculate fib(0) then fib(1) then fib(2) then fib(3) and so on. 
+			  So literally, we are building the solutions of subproblems bottom-up.
+				// Best solution bottom up approach: Tabulation (Bottom Up)
+				int fibonachi_bottom_up(int num) {
+					if( num == 0 || num == 1)
+						return num;
+					unsigned int *bottom_up = new unsigned int[num+1];
+					bottom_up[0] = 0;
+					bottom_up[1] = 1;
+					for(int i = 2; i <= num; i++){
+						bottom_up[i] = bottom_up[i-1] + bottom_up[i-2];
+					}
+					for(int i = 0; i <= num; i++){
+						cout << bottom_up[i] << ", ";
+					}
+					return bottom_up[num];
+				}
+				
+		  - Both Tabulated and Memoized store the solutions of subproblems. 
+		    In Memoized version, table is filled on demand while in Tabulated version, starting from the first entry, all entries are filled one by one. 
+			Unlike the Tabulated version, all entries of the lookup table are not necessarily filled in Memoized version. 
+			For example, Memoized solution of the LCS problem doesn’t necessarily fill all entries.
+			(https://en.wikipedia.org/wiki/Longest_common_subsequence_problem)
+
+		  - To see the optimization achieved by Memoized and Tabulated solutions over the basic Recursive solution, 
+		    see the time taken by following runs for calculating 40th Fibonacci number:
+				Recursive solution
+				Memoized solution
+				Tabulated solution
+		  - Time taken by Recursion method is much more than the two Dynamic Programming techniques mentioned above – Memoization and Tabulation!
+		  
+		  
+	2) Optimal Substructure:
+	------------------------
+		A given problems has Optimal Substructure Property if optimal solution of the given problem can be obtained by using 
+		optimal solutions of its subproblems.
+
+		For example, the Shortest Path problem has following optimal substructure property:
+		 - If a node x lies in the shortest path from a source node u to destination node v then the shortest path from u to v is combination 
+		   of shortest path from u to x and shortest path from x to v. The standard All Pair Shortest Path algorithms like Floyd–Warshall and 
+		   Bellman–Ford are typical examples of Dynamic Programming.
+
+		   On the other hand, the Longest Path problem doesn’t have the Optimal Substructure property. 
+		   Here by Longest Path we mean longest simple path (path without cycle) between two nodes. 
+		   Consider the following unweighted graph given in the CLRS book. There are two longest paths from q to t: q→r→t and q→s→t. 
+		   Unlike shortest paths, these longest paths do not have the optimal substructure property. For example, the longest path q→r→t is 
+		   not a combination of longest path from q to r and longest path from r to t, because the longest path from q to r is q→s→t→r and 
+		   the longest path from r to t is r→q→s→t.
+		   
+											q -><- r -><- t -><- s
+											|                    |
+											 --------><----------
