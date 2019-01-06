@@ -26,7 +26,8 @@ Which one compiles successfully?
 		return 0;
 	}
 	Only reinterpret_cast can be used to convert a pointer to an object to a pointer to an unrelated object type. 
-	The dynamic_cast would fail at run-time, however on most compilers it will also fail to compile because there are no virtual functions in the class of the pointer being casted. 
+	The dynamic_cast would fail at run-time, however on most compilers it will also fail to compile because there are no virtual functions in the class 
+	of the pointer being casted. 
 	
 const_cast:
 -----------
@@ -56,8 +57,8 @@ reinterpret_cast:
 		Register* a = reinterpret_cast<Register*>(0xfa);
   This example is the typical use of a reinterpret_cast. We are telling the compiler that the part of memory starting with 0xfa is to be considered a Register.
 
-- It converts any pointer type to any other pointer type, even of unrelated classes. The operation result is a simple binary copy of the value from one pointer to the other. 
-  All pointer conversions are allowed: neither the content pointed nor the pointer type itself is checked.
+- It converts any pointer type to any other pointer type, even of unrelated classes. The operation result is a simple binary copy of the value from one pointer 
+  to the other. All pointer conversions are allowed: neither the content pointed nor the pointer type itself is checked.
 - We can cast a pointer type to an integer type that's large enough to hold the pointer representation, 
   but we can't cast a pointer to a smaller integer type or to a floating-point type. 
   The format in which this integer value represents a pointer is platform-specific. We can't cast a function pointer to a data pointer or vice versa.
@@ -106,7 +107,8 @@ int main() {
 	return 0;
 }
 - Only reinterpret_cast can be used to convert a pointer to an object to a pointer to an unrelated object type. 
-- The dynamic cast would fail at run-time, however on most compilers it will also fail to compile because there are no virtual functions in the class of the pointer being casted.
+- The dynamic cast would fail at run-time, however on most compilers it will also fail to compile because there are no virtual functions in the class of 
+  the pointer being casted.
 
 Pointer comparison:
 -------------------
@@ -199,7 +201,8 @@ Upcasting:
 - The compiler and runtime linker handle the details. If a member function is virtual, then when we send a message to an object, the object will do the right thing, 
   even when upcasting is involved.
 - Note that the most important aspect of inheritance is not that it provides member functions for the new class, however. 
-  It's the relationship expressed between the new class and the base class. This relationship can be summarized by saying, "The new class is a type of the existing class."
+  It's the relationship expressed between the new class and the base class. This relationship can be summarized by saying, 
+  "The new class is a type of the existing class."
   
 	class Parent {
 	  public:
@@ -237,7 +240,8 @@ Downcasting:
 - Downcasting is not allowed without an explicit type cast. The reason for this restriction is that the is-a relationship is not, in most of the cases, symmetric. 
 - A derived class could add new data members, and the class member functions that used these data members wouldn't apply to the base class.
 
-- As in the example, we derived Child class from a Parent class, adding a member function, gotoSchool(). It wouldn't make sense to apply the gotoSchool() method to a Parent object. 
+- As in the example, we derived Child class from a Parent class, adding a member function, gotoSchool(). It wouldn't make sense to apply the gotoSchool() method 
+  to a Parent object. 
   However, if implicit downcasting were allowed, we could accidentally assign the address of a Parent object to a pointer-to-Child
 		Child *pChild =  &parent; // actually this won't compile
         // error: cannot convert from 'Parent *' to 'Child *'
@@ -307,9 +311,10 @@ How do we use the dynamic_cast?
 		} 
 	}
 
-	- In the code, if (ptr) is of the type Child or else derived directly or indirectly from the type Child, the dynamic_cast converts the pointer p to a pointer of type Child. 
-	  Otherwise, the expression evaluates to 0, the null pointer.
-	- In other words, we want to check if we can use the passed in pointer p before we do some operation on a child class object even though it's a pointer to base class.
+	- In the code, if (ptr) is of the type Child or else derived directly or indirectly from the type Child, the dynamic_cast converts the pointer p 
+	  to a pointer of type Child. Otherwise, the expression evaluates to 0, the null pointer.
+	- In other words, we want to check if we can use the passed in pointer p before we do some operation on a child class object even though 
+	  it's a pointer to base class.
 
 "The need for dynamic_cast generally arises because we want perform derived class operation on a derived class object, but we have only a pointer-or reference-to-base." -Scott Meyers
 
@@ -357,8 +362,8 @@ The dynamic_cast Operator:
 	- The dynamic_cast operator is intended to be the most heavily used RTTI component. It doesn't give us what type of object a pointer points to. 
 	  Instead, it answers the question of whether we can safely assign the address of an object to a pointer of a particular type.
 	  
-	- Unlike other casts, a dynamic_cast involves a run-time type check. If the object bound to the pointer is not an object of the target type, it fails and the value is 0. 
-	  If it's a reference type when it fails, then an exception of type bad_cast is thrown. 
+	- Unlike other casts, a dynamic_cast involves a run-time type check. If the object bound to the pointer is not an object of the target type, 
+	  it fails and the value is 0. If it's a reference type when it fails, then an exception of type bad_cast is thrown. 
 	  So, if we want dynamic_cast to throw an exception (bad_cast) instead of returning 0, cast to a reference instead of to a pointer. 
 	- Note also that the dynamic_cast is the only cast that relies on run-time checking.
 
@@ -462,11 +467,12 @@ Upcasting and Downcasting:
 --------------------------
 - Converting a derived-class reference or pointer to a base-class reference or pointer is called upcasting. 
   It is always allowed for public inheritance without the need for an explicit type cast.
-- Actually this rule is part of expressing the is-a relationship. A Derived object is a Base object in that it inherits all the data members and member functions of a Base object. 
+- Actually this rule is part of expressing the is-a relationship. A Derived object is a Base object in that it inherits all the data members and 
+  member functions of a Base object. 
   Thus, anything that we can do to a Base object, we can do to a Derived class object.
 - The downcasting, the opposite of upcasting, is a process converting a base-class pointer or reference to a derived-class pointer or reference.
-- It is not allowed without an explicit type cast. That's because a derived class could add new data members, and the class member functions that used these data members 
-  wouldn't apply to the base class.
+- It is not allowed without an explicit type cast. That's because a derived class could add new data members, 
+  and the class member functions that used these data members wouldn't apply to the base class.
   
 	#include <iostream>
 	using namespace std;
@@ -546,7 +552,8 @@ The typeid:
 	}
 	So, only a programmer uses the coding() method.
 
-	Note that we included <typeinfo> in the example. The typeid operator returns a reference to a type_info object, where type_info is a class defined in the typeinfo header file.
+	Note that we included <typeinfo> in the example. The typeid operator returns a reference to a type_info object, 
+	where type_info is a class defined in the typeinfo header file.
 
 
 ===========================================================
@@ -595,3 +602,8 @@ type::i = 4
 *pj = 3                                                                                                                        
 *pj = 4
 */
+
+std::mem_fn:
+------------
+- Function template std::mem_fn generates wrapper objects for pointers to members, which can store, copy, and invoke a pointer to member. 
+  Both references and pointers (including smart pointers) to an object can be used when invoking a std::mem_fn.
